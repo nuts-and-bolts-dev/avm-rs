@@ -1,0 +1,61 @@
+# Taplo configuration for TOML formatting
+# https://taplo.tamasfe.dev/configuration/file.html
+
+[formatting]
+# Maximum line length for formatting
+column_width = 100
+
+# Whether to use array trailing commas
+array_trailing_comma = true
+
+# Whether to use trailing commas in inline tables
+inline_table_expand = true
+
+# Array formatting style
+array_auto_expand = true
+
+# Array auto-collapse threshold
+array_auto_collapse = true
+
+# Whether to reorder keys alphabetically
+reorder_keys = true
+
+# Whether to reorder arrays
+reorder_arrays = false
+
+# Indentation settings
+indent_string = "    " # 4 spaces
+
+# Whether to align entries in tables
+align_entries = false
+
+# Whether to align comments
+align_comments = true
+
+# Compact arrays (single line when short)
+compact_arrays = true
+
+# Compact inline tables
+compact_inline_tables = false
+
+# Whether to allow mixed type arrays
+allowed_blank_lines = 1
+
+# Comments formatting
+crlf = false
+
+# Rules for specific files
+[[rule]]
+include = ["Cargo.toml"]
+
+[rule.formatting]
+# Cargo.toml specific settings
+array_trailing_comma = true
+reorder_keys = true
+
+[[rule]]
+include = ["rustfmt.toml", "rust-toolchain.toml", ".clippy.toml"]
+
+[rule.formatting]
+# Tool config files
+reorder_keys = false # Keep original order for tool configs

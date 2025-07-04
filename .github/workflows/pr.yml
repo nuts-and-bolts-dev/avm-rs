@@ -1,0 +1,36 @@
+name: PR Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  quick-checks:
+    name: Quick Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      
+      - uses: Swatinem/rust-cache@v2
+      
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+      
+      - name: Check with clippy
+        run: cargo clippy --all-targets -- -D warnings
+      
+      - name: Check build
+        run: cargo check --all-features
+      
+      - name: Check build (no std)
+        run: cargo check --no-default-features
+      
+      - name: Check documentation
+        run: cargo doc --no-deps --all-features
