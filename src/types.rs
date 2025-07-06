@@ -196,6 +196,100 @@ impl fmt::Display for TealValue {
     }
 }
 
+/// TEAL version enum for type-safe version handling
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub enum TealVersion {
+    /// TEAL version 1 (initial version)
+    V1 = 1,
+    /// TEAL version 2 (added more opcodes)
+    V2 = 2,
+    /// TEAL version 3 (added asset opcodes)
+    V3 = 3,
+    /// TEAL version 4 (added more crypto opcodes)
+    V4 = 4,
+    /// TEAL version 5 (added application opcodes)
+    V5 = 5,
+    /// TEAL version 6 (added more opcodes)
+    V6 = 6,
+    /// TEAL version 7 (added inner transactions)
+    V7 = 7,
+    /// TEAL version 8 (latest version)
+    V8 = 8,
+}
+
+impl TealVersion {
+    /// Convert from u8 to TealVersion
+    pub fn from_u8(version: u8) -> Result<Self, crate::error::AvmError> {
+        match version {
+            1 => Ok(Self::V1),
+            2 => Ok(Self::V2),
+            3 => Ok(Self::V3),
+            4 => Ok(Self::V4),
+            5 => Ok(Self::V5),
+            6 => Ok(Self::V6),
+            7 => Ok(Self::V7),
+            8 => Ok(Self::V8),
+            _ => Err(crate::error::AvmError::UnsupportedVersion(version)),
+        }
+    }
+
+    /// Convert to u8
+    pub fn as_u8(self) -> u8 {
+        self as u8
+    }
+
+    /// Get the latest supported version
+    pub const fn latest() -> Self {
+        Self::V8
+    }
+
+    /// Check if this version supports a specific feature
+    pub fn supports_subroutines(self) -> bool {
+        self >= Self::V4
+    }
+
+    /// Check if this version supports inner transactions
+    pub fn supports_inner_transactions(self) -> bool {
+        self >= Self::V5
+    }
+
+    /// Check if this version supports box operations
+    pub fn supports_boxes(self) -> bool {
+        self >= Self::V8
+    }
+
+    /// Check if this version supports advanced crypto operations
+    pub fn supports_advanced_crypto(self) -> bool {
+        self >= Self::V5
+    }
+
+    /// Get all available versions
+    pub const fn all() -> &'static [Self] {
+        &[
+            Self::V1,
+            Self::V2,
+            Self::V3,
+            Self::V4,
+            Self::V5,
+            Self::V6,
+            Self::V7,
+            Self::V8,
+        ]
+    }
+}
+
+impl fmt::Display for TealVersion {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_u8())
+    }
+}
+
+impl Default for TealVersion {
+    fn default() -> Self {
+        Self::latest()
+    }
+}
+
 /// Run mode for the AVM
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum RunMode {

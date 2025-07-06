@@ -1,9 +1,9 @@
 //! Virtual Machine implementation
 
 use crate::error::{AvmError, AvmResult};
-use crate::opcodes::OpSpec;
+use crate::opcodes::{OpSpec, get_standard_opcodes};
 use crate::state::LedgerAccess;
-use crate::types::{RunMode, StackValue, TealValue};
+use crate::types::{RunMode, StackValue, TealValue, TealVersion};
 use std::collections::HashMap;
 
 /// Maximum stack size
@@ -20,9 +20,52 @@ pub const SCRATCH_SIZE: usize = 256;
 pub struct ExecutionConfig {
     pub run_mode: RunMode,
     pub cost_budget: u64,
-    pub version: u8,
+    pub version: TealVersion,
     pub group_index: usize,
     pub group_size: usize,
+}
+
+impl ExecutionConfig {
+    /// Create a new execution configuration with defaults
+    pub fn new(version: TealVersion) -> Self {
+        Self {
+            run_mode: RunMode::Signature,
+            cost_budget: 700, // Default budget for signature mode
+            version,
+            group_index: 0,
+            group_size: 1,
+        }
+    }
+
+    /// Create configuration for application mode
+    pub fn application(version: TealVersion) -> Self {
+        Self {
+            run_mode: RunMode::Application,
+            cost_budget: 20000, // Higher budget for application mode
+            version,
+            group_index: 0,
+            group_size: 1,
+        }
+    }
+
+    /// Set the cost budget
+    pub fn with_cost_budget(mut self, budget: u64) -> Self {
+        self.cost_budget = budget;
+        self
+    }
+
+    /// Set the group configuration
+    pub fn with_group(mut self, index: usize, size: usize) -> Self {
+        self.group_index = index;
+        self.group_size = size;
+        self
+    }
+
+    /// Set the run mode
+    pub fn with_run_mode(mut self, run_mode: RunMode) -> Self {
+        self.run_mode = run_mode;
+        self
+    }
 }
 
 /// Evaluation context for the AVM
@@ -47,7 +90,7 @@ pub struct EvalContext<'a> {
     cost: u64,
 
     /// TEAL version
-    version: u8,
+    version: TealVersion,
 
     /// Scratch space (256 slots)
     scratch: [StackValue; SCRATCH_SIZE],
@@ -85,7 +128,7 @@ impl<'a> EvalContext<'a> {
         program: &'a [u8],
         run_mode: RunMode,
         cost_budget: u64,
-        version: u8,
+        version: TealVersion,
         group_index: usize,
         group_size: usize,
         ledger: &'a dyn LedgerAccess,
@@ -231,7 +274,7 @@ impl<'a> EvalContext<'a> {
     }
 
     /// Get the TEAL version
-    pub fn version(&self) -> u8 {
+    pub fn version(&self) -> TealVersion {
         self.version
     }
 
@@ -312,6 +355,51 @@ pub struct VirtualMachine {
     opcodes: HashMap<u8, OpSpec>,
 }
 
+impl Default for VirtualMachine {
+    fn default() -> Self {
+        Self::with_version(TealVersion::latest())
+    }
+}
+
+/// Builder for creating VirtualMachine instances with fluent API
+#[derive(Debug, Default)]
+pub struct VirtualMachineBuilder {
+    version: Option<TealVersion>,
+    custom_opcodes: Vec<OpSpec>,
+}
+
+impl VirtualMachineBuilder {
+    /// Create a new builder
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Set the TEAL version
+    pub fn version(mut self, version: TealVersion) -> Self {
+        self.version = Some(version);
+        self
+    }
+
+    /// Add a custom opcode
+    pub fn with_opcode(mut self, spec: OpSpec) -> Self {
+        self.custom_opcodes.push(spec);
+        self
+    }
+
+    /// Build the VirtualMachine
+    pub fn build(self) -> VirtualMachine {
+        let version = self.version.unwrap_or_default();
+        let mut vm = VirtualMachine::with_version(version);
+
+        // Add custom opcodes
+        for spec in self.custom_opcodes {
+            vm.register_opcode(spec.opcode, spec);
+        }
+
+        vm
+    }
+}
+
 impl VirtualMachine {
     /// Create a new virtual machine
     pub fn new() -> Self {
@@ -320,9 +408,68 @@ impl VirtualMachine {
         }
     }
 
+    /// Create a virtual machine with standard opcodes for a specific TEAL version
+    pub fn with_version(version: TealVersion) -> Self {
+        let mut vm = Self::new();
+        vm.load_standard_opcodes(version);
+        vm
+    }
+
+    /// Create a builder for fluent VM construction
+    pub fn builder() -> VirtualMachineBuilder {
+        VirtualMachineBuilder::new()
+    }
+
+    /// Load standard opcodes for a specific TEAL version
+    pub fn load_standard_opcodes(&mut self, version: TealVersion) {
+        for spec in get_standard_opcodes() {
+            // Only register opcodes that are available in the specified version
+            if Self::is_opcode_available_in_version(&spec, version) {
+                self.opcodes.insert(spec.opcode, spec);
+            }
+        }
+    }
+
+    /// Check if an opcode is available in a specific TEAL version
+    fn is_opcode_available_in_version(spec: &OpSpec, version: TealVersion) -> bool {
+        // For now, we'll include all opcodes since we don't have version restrictions implemented
+        // In a full implementation, this would check the minimum version for each opcode
+        match spec.name.as_str() {
+            // Subroutines were added in v4
+            "callsub" | "retsub" => version >= TealVersion::V4,
+            // Box operations were added in v8
+            "box_create" | "box_extract" | "box_replace" | "box_del" | "box_len" | "box_get"
+            | "box_put" => version >= TealVersion::V8,
+            // Most basic opcodes are available from v1
+            _ => true,
+        }
+    }
+
     /// Register an opcode specification
     pub fn register_opcode(&mut self, opcode: u8, spec: OpSpec) {
         self.opcodes.insert(opcode, spec);
+    }
+
+    /// Execute a TEAL program with automatic configuration
+    pub fn execute_simple(
+        &self,
+        program: &[u8],
+        version: TealVersion,
+        ledger: &dyn LedgerAccess,
+    ) -> AvmResult<bool> {
+        let config = ExecutionConfig::new(version);
+        self.execute(program, config, ledger)
+    }
+
+    /// Execute a TEAL program in application mode
+    pub fn execute_application(
+        &self,
+        program: &[u8],
+        version: TealVersion,
+        ledger: &dyn LedgerAccess,
+    ) -> AvmResult<bool> {
+        let config = ExecutionConfig::application(version);
+        self.execute(program, config, ledger)
     }
 
     /// Execute a TEAL program
@@ -357,9 +504,9 @@ impl VirtualMachine {
             })?;
 
             // Check if opcode is available in this version
-            if spec.min_version > config.version {
+            if spec.min_version > config.version.as_u8() {
                 return Err(AvmError::OpcodeNotAvailable {
-                    version: config.version,
+                    version: config.version.as_u8(),
                     opcode: spec.name.clone(),
                 });
             }
@@ -399,11 +546,5 @@ impl VirtualMachine {
 
         let result = ctx.pop()?;
         result.as_bool()
-    }
-}
-
-impl Default for VirtualMachine {
-    fn default() -> Self {
-        Self::new()
     }
 }

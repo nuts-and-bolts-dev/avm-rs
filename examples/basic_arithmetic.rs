@@ -5,40 +5,26 @@
 //! work with the stack, and use comparison operations.
 
 use rust_avm::assembler::Assembler;
-use rust_avm::opcodes::get_standard_opcodes;
 use rust_avm::state::MockLedger;
-use rust_avm::types::RunMode;
-use rust_avm::vm::{ExecutionConfig, VirtualMachine};
+use rust_avm::{ExecutionConfig, TealVersion, VirtualMachine};
 
 /// Helper function to execute TEAL source code
 fn execute_teal_signature(teal_code: &str) -> Result<bool, String> {
-    // Create VM and register opcodes
-    let mut vm = VirtualMachine::new();
-    for spec in get_standard_opcodes() {
-        vm.register_opcode(spec.opcode, spec);
-    }
+    // Use the ergonomic API - VM with standard opcodes for version 8
+    let vm = VirtualMachine::with_version(TealVersion::V8);
 
-    // Assemble TEAL to bytecode
     let mut assembler = Assembler::new();
     let bytecode = assembler
         .assemble(teal_code)
         .map_err(|e| format!("Assembly error: {e}"))?;
 
-    // Configure execution
-    let config = ExecutionConfig {
-        run_mode: RunMode::Signature,
-        cost_budget: 10000,
-        version: 8,
-        group_index: 0,
-        group_size: 1,
-    };
+    // Use the fluent configuration API
+    let config = ExecutionConfig::new(TealVersion::V8).with_cost_budget(10000);
 
-    // Execute
     let ledger = MockLedger::default();
     let result = vm
         .execute(&bytecode, config, &ledger)
         .map_err(|e| format!("Execution error: {e}"))?;
-
     Ok(result)
 }
 

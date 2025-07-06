@@ -71,6 +71,9 @@ pub enum AvmError {
     #[error("Invalid TEAL version: {version}")]
     InvalidTealVersion { version: u8 },
 
+    #[error("Unsupported TEAL version: {0}")]
+    UnsupportedVersion(u8),
+
     #[error("Opcode not available in version {version}: {opcode}")]
     OpcodeNotAvailable { version: u8, opcode: String },
 

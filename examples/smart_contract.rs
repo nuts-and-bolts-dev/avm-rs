@@ -6,28 +6,22 @@
 //! common smart contract patterns.
 
 use rust_avm::assembler::Assembler;
-use rust_avm::opcodes::get_standard_opcodes;
 use rust_avm::state::MockLedger;
-use rust_avm::types::RunMode;
-use rust_avm::vm::{ExecutionConfig, VirtualMachine};
+use rust_avm::{ExecutionConfig, TealVersion, VirtualMachine};
 
 /// Helper function to execute TEAL source code in application mode
 fn execute_teal_application(teal_code: &str) -> Result<bool, String> {
-    let mut vm = VirtualMachine::new();
-    for spec in get_standard_opcodes() {
-        vm.register_opcode(spec.opcode, spec);
-    }
+    // Use the ergonomic API - VM with standard opcodes for version 8
+    let vm = VirtualMachine::with_version(TealVersion::V8);
+
     let mut assembler = Assembler::new();
     let bytecode = assembler
         .assemble(teal_code)
         .map_err(|e| format!("Assembly error: {e}"))?;
-    let config = ExecutionConfig {
-        run_mode: RunMode::Application,
-        cost_budget: 10000,
-        version: 8,
-        group_index: 0,
-        group_size: 1,
-    };
+
+    // Use the fluent configuration API for application mode
+    let config = ExecutionConfig::application(TealVersion::V8).with_cost_budget(10000);
+
     let ledger = MockLedger::default();
     let result = vm
         .execute(&bytecode, config, &ledger)

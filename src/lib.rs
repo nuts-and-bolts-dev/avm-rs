@@ -14,34 +14,21 @@ pub mod vm;
 
 // Re-export main types
 pub use error::{AvmError, AvmResult};
-pub use types::{StackValue, TealValue};
-pub use vm::{EvalContext, ExecutionConfig, VirtualMachine};
+pub use types::{StackValue, TealValue, TealVersion};
+pub use vm::{EvalContext, ExecutionConfig, VirtualMachine, VirtualMachineBuilder};
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use assembler::Assembler;
-    use opcodes::get_standard_opcodes;
     use state::MockLedger;
-    use types::RunMode;
-    use vm::{ExecutionConfig, VirtualMachine};
 
     fn setup_vm() -> VirtualMachine {
-        let mut vm = VirtualMachine::new();
-        for spec in get_standard_opcodes() {
-            vm.register_opcode(spec.opcode, spec);
-        }
-        vm
+        VirtualMachine::with_version(TealVersion::V6)
     }
 
     fn test_config() -> ExecutionConfig {
-        ExecutionConfig {
-            run_mode: RunMode::Signature,
-            cost_budget: 1000, // Reasonable limit for tests
-            version: 6,
-            group_index: 0,
-            group_size: 1,
-        }
+        ExecutionConfig::new(TealVersion::V6).with_cost_budget(1000) // Reasonable limit for tests
     }
 
     #[test]
