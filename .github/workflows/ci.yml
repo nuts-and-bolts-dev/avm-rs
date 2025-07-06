@@ -76,6 +76,40 @@ jobs:
       - name: Run tests (no default features)
         run: cargo test --no-default-features
 
+  examples:
+    name: Examples
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build all examples
+        run: cargo build --examples
+
+      - name: Run basic arithmetic example
+        run: cargo run --example basic_arithmetic
+
+      - name: Run simple test example
+        run: cargo run --example simple_test
+
+      - name: Run control flow example
+        run: cargo run --example control_flow
+
+      - name: Run crypto operations example
+        run: cargo run --example crypto_operations
+
+      - name: Run smart contract example
+        run: cargo run --example smart_contract
+
+      - name: Run TEAL assembly example
+        run: cargo run --example teal_assembly
+
+      - name: Run transaction fields example
+        run: cargo run --example transaction_fields
+
   build:
     name: Build
     runs-on: ${{ matrix.os }}

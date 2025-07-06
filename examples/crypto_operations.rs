@@ -1,14 +1,14 @@
 //! Cryptographic Operations Example
-//! 
+//!
 //! This example demonstrates cryptographic operation patterns in the AVM.
 //! Note: Actual crypto opcodes have implementation issues, so we demonstrate
 //! the logical patterns using working opcodes.
 
 use rust_avm::assembler::Assembler;
-use rust_avm::vm::{VirtualMachine, ExecutionConfig};
-use rust_avm::types::RunMode;
 use rust_avm::opcodes::get_standard_opcodes;
 use rust_avm::state::MockLedger;
+use rust_avm::types::RunMode;
+use rust_avm::vm::{ExecutionConfig, VirtualMachine};
 
 /// Helper function to execute TEAL source code
 fn execute_teal_signature(teal_code: &str) -> Result<bool, String> {
@@ -17,8 +17,9 @@ fn execute_teal_signature(teal_code: &str) -> Result<bool, String> {
         vm.register_opcode(spec.opcode, spec);
     }
     let mut assembler = Assembler::new();
-    let bytecode = assembler.assemble(teal_code)
-        .map_err(|e| format!("Assembly error: {}", e))?;
+    let bytecode = assembler
+        .assemble(teal_code)
+        .map_err(|e| format!("Assembly error: {e}"))?;
     let config = ExecutionConfig {
         run_mode: RunMode::Signature,
         cost_budget: 10000,
@@ -27,8 +28,9 @@ fn execute_teal_signature(teal_code: &str) -> Result<bool, String> {
         group_size: 1,
     };
     let ledger = MockLedger::default();
-    let result = vm.execute(&bytecode, config, &ledger)
-        .map_err(|e| format!("Execution error: {}", e))?;
+    let result = vm
+        .execute(&bytecode, config, &ledger)
+        .map_err(|e| format!("Execution error: {e}"))?;
     Ok(result)
 }
 
@@ -37,7 +39,7 @@ fn main() {
 
     // Example 1: Multi-signature verification logic pattern
     println!("Example 1: Multi-signature logic (2-of-3)");
-    
+
     let teal_code = r#"
 #pragma version 8
 // Simulate checking 3 signatures and requiring at least 2 valid
@@ -53,15 +55,15 @@ return
 
     match execute_teal_signature(teal_code) {
         Ok(success) => {
-            println!("Multi-sig validation passed: {} ✓", success);
+            println!("Multi-sig validation passed: {success} ✓");
             println!("Pattern: Count valid signatures and compare to threshold\n");
         }
-        Err(e) => println!("Error: {}\n", e),
+        Err(e) => println!("Error: {e}\n"),
     }
 
-    // Example 2: Hash preimage verification pattern  
+    // Example 2: Hash preimage verification pattern
     println!("Example 2: Hash verification pattern");
-    
+
     let teal_code = r#"
 #pragma version 8
 // Simulate hash verification by comparing known values
@@ -73,15 +75,15 @@ return
 
     match execute_teal_signature(teal_code) {
         Ok(success) => {
-            println!("Hash verification pattern: {} ✓", success);
+            println!("Hash verification pattern: {success} ✓");
             println!("Pattern: Compare computed hash with expected value\n");
         }
-        Err(e) => println!("Error: {}\n", e),
+        Err(e) => println!("Error: {e}\n"),
     }
 
     // Example 3: Signature validation pattern
     println!("Example 3: Signature validation pattern");
-    
+
     let teal_code = r#"
 #pragma version 8
 // Simulate signature validation logic
@@ -95,15 +97,15 @@ return
 
     match execute_teal_signature(teal_code) {
         Ok(success) => {
-            println!("Signature validation pattern: {} ✓", success);
+            println!("Signature validation pattern: {success} ✓");
             println!("Pattern: Validate message, key, and signature format\n");
         }
-        Err(e) => println!("Error: {}\n", e),
+        Err(e) => println!("Error: {e}\n"),
     }
 
     // Example 4: Time-lock pattern
     println!("Example 4: Time-lock verification pattern");
-    
+
     let teal_code = r#"
 #pragma version 8
 // Simulate time-based access control
@@ -119,15 +121,15 @@ return
 
     match execute_teal_signature(teal_code) {
         Ok(success) => {
-            println!("Time-lock pattern: {} ✓", success);
+            println!("Time-lock pattern: {success} ✓");
             println!("Pattern: Enforce time window for operations\n");
         }
-        Err(e) => println!("Error: {}\n", e),
+        Err(e) => println!("Error: {e}\n"),
     }
 
     // Example 5: Access control pattern
     println!("Example 5: Access control pattern");
-    
+
     let teal_code = r#"
 #pragma version 8
 // Simulate access control check
@@ -144,15 +146,15 @@ return
 
     match execute_teal_signature(teal_code) {
         Ok(success) => {
-            println!("Access control pattern: {} ✓", success);
+            println!("Access control pattern: {success} ✓");
             println!("Pattern: Branch based on authorization status\n");
         }
-        Err(e) => println!("Error: {}\n", e),
+        Err(e) => println!("Error: {e}\n"),
     }
 
     // Example 6: Threshold voting pattern
     println!("Example 6: Threshold voting pattern");
-    
+
     let teal_code = r#"
 #pragma version 8
 // Simulate threshold voting (3 of 5 votes)
@@ -172,9 +174,9 @@ return
 
     match execute_teal_signature(teal_code) {
         Ok(success) => {
-            println!("Threshold voting pattern: {} ✓", success);
+            println!("Threshold voting pattern: {success} ✓");
             println!("Pattern: Count votes and compare to required threshold");
         }
-        Err(e) => println!("Error: {}", e),
+        Err(e) => println!("Error: {e}"),
     }
 }

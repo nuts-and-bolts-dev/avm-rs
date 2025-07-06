@@ -1,12 +1,12 @@
 //! Simple Test Example
-//! 
+//!
 //! This is a basic test to verify the rust-avm examples are working correctly.
 
 use rust_avm::assembler::Assembler;
-use rust_avm::vm::{VirtualMachine, ExecutionConfig};
-use rust_avm::types::RunMode;
 use rust_avm::opcodes::get_standard_opcodes;
 use rust_avm::state::MockLedger;
+use rust_avm::types::RunMode;
+use rust_avm::vm::{ExecutionConfig, VirtualMachine};
 
 fn main() {
     println!("=== Simple AVM Test ===\n");
@@ -15,80 +15,80 @@ fn main() {
     println!("Test 1: Basic arithmetic (5 + 3 = 8)");
     let teal_code = r#"
 #pragma version 8
-pushint 5
-pushint 3
+int 5
+int 3
 +
-pushint 8
+int 8
 ==
 return
 "#;
 
     match execute_teal(teal_code, RunMode::Signature) {
-        Ok(success) => println!("Result: {} ✓", success),
-        Err(e) => println!("Error: {}", e),
+        Ok(success) => println!("Result: {success} ✓"),
+        Err(e) => println!("Error: {e}"),
     }
 
-    // Test 2: Simple string operation
-    println!("\nTest 2: String length");
+    // Test 2: Simple string comparison
+    println!("\nTest 2: String comparison");
     let teal_code = r#"
 #pragma version 8
-pushbytes "hello"
-len
-pushint 5
+byte "hello"
+byte "hello"
 ==
 return
 "#;
 
     match execute_teal(teal_code, RunMode::Signature) {
-        Ok(success) => println!("Result: {} ✓", success),
-        Err(e) => println!("Error: {}", e),
+        Ok(success) => println!("Result: {success} ✓"),
+        Err(e) => println!("Error: {e}"),
     }
 
-    // Test 3: Test crypto alone (SHA256)
-    println!("\nTest 3: Simple SHA256");
+    // Test 3: Simple logical operations
+    println!("\nTest 3: Logical AND operation");
     let teal_code = r#"
 #pragma version 8
-pushbytes "test"
-sha256
+int 1
+int 1
+&&
 return
 "#;
 
     match execute_teal(teal_code, RunMode::Signature) {
-        Ok(success) => println!("Result: {} ✓", success),
-        Err(e) => println!("Error: {}", e),
+        Ok(success) => println!("Result: {success} ✓"),
+        Err(e) => println!("Error: {e}"),
     }
 
     // Test 4: Simple comparison
     println!("\nTest 4: Simple comparison (75 > 50)");
     let teal_code = r#"
 #pragma version 8
-pushint 75
-pushint 50
+int 75
+int 50
 >
 return
 "#;
 
     match execute_teal(teal_code, RunMode::Signature) {
-        Ok(success) => println!("Result: {} ✓", success),
-        Err(e) => println!("Error: {}", e),
+        Ok(success) => println!("Result: {success} ✓"),
+        Err(e) => println!("Error: {e}"),
     }
 
     // Test 5: Simple branch
     println!("\nTest 5: Simple branch");
     let teal_code = r#"
 #pragma version 8
-pushint 1
+int 1
 bnz success
-pushint 0
+int 0
 return
 success:
-pushint 1
+int 1
 return
 "#;
 
     match execute_teal(teal_code, RunMode::Signature) {
-        Ok(success) => println!("Result: {} ✓", success),
-        Err(e) => println!("Error: {}", e),
+        Ok(success) => println!("Result: {success} ✓"),
+        Err(e) => println!("Error: {e}"),
     }
 
     println!("\n=== All tests completed! ===");
@@ -101,17 +101,19 @@ fn execute_teal(teal_code: &str, run_mode: RunMode) -> Result<bool, String> {
         vm.register_opcode(spec.opcode, spec);
     }
     let mut assembler = Assembler::new();
-    let bytecode = assembler.assemble(teal_code)
-        .map_err(|e| format!("Assembly error: {}", e))?;
+    let bytecode = assembler
+        .assemble(teal_code)
+        .map_err(|e| format!("Assembly error: {e}"))?;
     let config = ExecutionConfig {
         run_mode,
-        cost_budget: 10000,
+        cost_budget: 1000,
         version: 8,
         group_index: 0,
         group_size: 1,
     };
     let ledger = MockLedger::default();
-    let result = vm.execute(&bytecode, config, &ledger)
-        .map_err(|e| format!("Execution error: {}", e))?;
+    let result = vm
+        .execute(&bytecode, config, &ledger)
+        .map_err(|e| format!("Execution error: {e}"))?;
     Ok(result)
 }

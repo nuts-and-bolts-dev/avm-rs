@@ -37,7 +37,7 @@ mod tests {
     fn test_config() -> ExecutionConfig {
         ExecutionConfig {
             run_mode: RunMode::Signature,
-            cost_budget: 1000,  // Reasonable limit for tests
+            cost_budget: 1000, // Reasonable limit for tests
             version: 6,
             group_index: 0,
             group_size: 1,
@@ -59,12 +59,14 @@ return      ; Return the result (true/false)
 
         let mut assembler = Assembler::new();
         let bytecode = assembler.assemble(teal_program).expect("Assembly failed");
-        
-        let mut vm = setup_vm();
+
+        let vm = setup_vm();
         let ledger = MockLedger::new();
-        let result = vm.execute(&bytecode, test_config(), &ledger).expect("Execution failed");
-        
-        assert_eq!(result, true);
+        let result = vm
+            .execute(&bytecode, test_config(), &ledger)
+            .expect("Execution failed");
+
+        assert!(result);
     }
 
     #[test]
@@ -83,12 +85,14 @@ return
 
         let mut assembler = Assembler::new();
         let bytecode = assembler.assemble(teal_program).expect("Assembly failed");
-        
-        let mut vm = setup_vm();
+
+        let vm = setup_vm();
         let ledger = MockLedger::new();
-        let result = vm.execute(&bytecode, test_config(), &ledger).expect("Execution failed");
-        
-        assert_eq!(result, true);
+        let result = vm
+            .execute(&bytecode, test_config(), &ledger)
+            .expect("Execution failed");
+
+        assert!(result);
     }
 
     #[test]
@@ -103,12 +107,14 @@ return
 
         let mut assembler = Assembler::new();
         let bytecode = assembler.assemble(teal_program).expect("Assembly failed");
-        
-        let mut vm = setup_vm();
+
+        let vm = setup_vm();
         let ledger = MockLedger::new();
-        let result = vm.execute(&bytecode, test_config(), &ledger).expect("Execution failed");
-        
-        assert_eq!(result, true);
+        let result = vm
+            .execute(&bytecode, test_config(), &ledger)
+            .expect("Execution failed");
+
+        assert!(result);
     }
 
     #[test]
@@ -125,12 +131,14 @@ return
 
         let mut assembler = Assembler::new();
         let bytecode = assembler.assemble(teal_program).expect("Assembly failed");
-        
-        let mut vm = setup_vm();
+
+        let vm = setup_vm();
         let ledger = MockLedger::new();
-        let result = vm.execute(&bytecode, test_config(), &ledger).expect("Execution failed");
-        
-        assert_eq!(result, true);
+        let result = vm
+            .execute(&bytecode, test_config(), &ledger)
+            .expect("Execution failed");
+
+        assert!(result);
     }
 
     #[test]
@@ -148,12 +156,14 @@ return      ; Return the result
 
         let mut assembler = Assembler::new();
         let bytecode = assembler.assemble(teal_program).expect("Assembly failed");
-        
-        let mut vm = setup_vm();
+
+        let vm = setup_vm();
         let ledger = MockLedger::new();
-        let result = vm.execute(&bytecode, test_config(), &ledger).expect("Execution failed");
-        
-        assert_eq!(result, true);
+        let result = vm
+            .execute(&bytecode, test_config(), &ledger)
+            .expect("Execution failed");
+
+        assert!(result);
     }
 
     #[test]
@@ -169,7 +179,7 @@ return
 
         let mut assembler = Assembler::new();
         let bytecode = assembler.assemble(teal_program).expect("Assembly failed");
-        
+
         // Should assemble without error
         assert!(!bytecode.is_empty());
     }
@@ -188,11 +198,13 @@ return          // Return result
 
         let mut assembler = Assembler::new();
         let bytecode = assembler.assemble(teal_program).expect("Assembly failed");
-        
-        let mut vm = setup_vm();
+
+        let vm = setup_vm();
         let ledger = MockLedger::new();
-        let result = vm.execute(&bytecode, test_config(), &ledger).expect("Execution failed");
-        
-        assert_eq!(result, true);
+        let result = vm
+            .execute(&bytecode, test_config(), &ledger)
+            .expect("Execution failed");
+
+        assert!(result);
     }
 }

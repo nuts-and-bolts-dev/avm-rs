@@ -53,7 +53,7 @@ use rust_avm::{
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create a simple TEAL program: pushint 1, return
     let program = vec![
-        0x82, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, // pushint 1
+        0x81, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, // pushint 1
         0x43, // return
     ];
 
@@ -89,8 +89,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 use rust_avm::assembler::Assembler;
 
 let source = r#"
-    pushint 42
-    pushint 24
+    int 42
+    int 24
     +
     return
 "#;
@@ -98,6 +98,41 @@ let source = r#"
 let mut assembler = Assembler::new();
 let bytecode = assembler.assemble(source)?;
 ```
+
+## Examples
+
+The project includes comprehensive examples demonstrating various TEAL patterns and AVM features:
+
+### Running Examples
+
+```bash
+# Build all examples
+make examples
+
+# Run all examples sequentially
+make run-examples
+
+# Run individual examples
+cargo run --example basic_arithmetic
+cargo run --example crypto_operations
+cargo run --example smart_contract
+cargo run --example control_flow
+cargo run --example teal_assembly
+cargo run --example transaction_fields
+cargo run --example simple_test
+```
+
+### Example Categories
+
+- **`basic_arithmetic`**: Fundamental arithmetic operations, comparisons, and bitwise operations
+- **`crypto_operations`**: Cryptographic patterns including multi-signature logic and hash verification
+- **`smart_contract`**: Stateful application patterns with global and local state management
+- **`control_flow`**: Branching, conditional logic, and program flow control
+- **`teal_assembly`**: TEAL compilation, optimization, and bytecode patterns
+- **`transaction_fields`**: Transaction validation and field access patterns
+- **`simple_test`**: Basic functionality verification and testing patterns
+
+All examples use official Algorand TEAL syntax and demonstrate real-world smart contract patterns from the Algorand ecosystem.
 
 ## Supported Opcodes
 
@@ -139,7 +174,12 @@ let bytecode = assembler.assemble(source)?;
 ### Running Tests
 
 ```bash
+# Run unit tests
 cargo test
+
+# Build and test examples
+make examples
+make run-examples
 ```
 
 ### Code Quality
@@ -147,14 +187,17 @@ cargo test
 The project uses comprehensive linting and formatting:
 
 ```bash
-# Run all CI checks
+# Run all CI checks (includes example building)
 make ci
 
 # Individual commands
-make fmt      # Format code
-make clippy   # Run linter
-make test     # Run tests
-make build    # Build project
+make fmt          # Format code
+make clippy       # Run linter
+make test         # Run tests
+make build        # Build project
+make examples     # Build all examples
+make run-examples # Run all examples
+make help         # Show all available targets
 ```
 
 ### Project Structure

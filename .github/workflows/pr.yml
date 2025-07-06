@@ -34,3 +34,6 @@ jobs:
       
       - name: Check documentation
         run: cargo doc --no-deps --all-features
+      
+      - name: Build examples
+        run: cargo build --examples
