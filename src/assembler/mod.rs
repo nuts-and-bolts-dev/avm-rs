@@ -426,7 +426,12 @@ impl Assembler {
 
         // Check if it's a label
         if let Some(&addr) = self.labels.get(target) {
-            let offset = (addr as i32) - (bytecode.len() as i32) - 2;
+            // The offset is calculated from the PC position when the branch executes
+            // At that point, PC has advanced past the entire instruction (opcode + 2 bytes)
+            // So the target calculation is: target_addr = (pc_after_instruction) + offset
+            // Therefore: offset = target_addr - pc_after_instruction
+            let pc_after_instruction = bytecode.len() + 2; // bytecode.len() is where offset goes, +2 gets past it
+            let offset = (addr as i32) - (pc_after_instruction as i32);
             bytecode.extend_from_slice(&(offset as i16).to_be_bytes());
         } else {
             // Forward reference - add placeholder and record for later resolution
@@ -908,7 +913,12 @@ impl Assembler {
                 .get(label)
                 .ok_or_else(|| AvmError::assembly_error(format!("Undefined label: {label}")))?;
 
-            let offset = (*target_addr as i32) - (*addr as i32) - 2;
+            // The offset is calculated from the PC position when the branch executes
+            // At that point, PC has advanced past the entire instruction (opcode + 2 bytes)
+            // So the target calculation is: target_addr = (pc_after_instruction) + offset
+            // Therefore: offset = target_addr - pc_after_instruction
+            let pc_after_instruction = *addr + 2; // addr points to offset bytes, +2 gets past them
+            let offset = (*target_addr as i32) - (pc_after_instruction as i32);
             let offset_bytes = (offset as i16).to_be_bytes();
             bytecode[*addr] = offset_bytes[0];
             bytecode[*addr + 1] = offset_bytes[1];
@@ -953,6 +963,33 @@ pub fn disassemble(bytecode: &[u8]) -> AvmResult<String> {
             OP_DUP2 => ("dup2".to_string(), 1),
             OP_SWAP => ("swap".to_string(), 1),
             OP_SELECT => ("select".to_string(), 1),
+            OP_BNZ => {
+                if pc + 2 < bytecode.len() {
+                    let offset = i16::from_be_bytes([bytecode[pc + 1], bytecode[pc + 2]]);
+                    let target = (pc as i32 + 3 + offset as i32) as usize;
+                    (format!("bnz {target:04x}"), 3)
+                } else {
+                    ("bnz <invalid>".to_string(), 1)
+                }
+            }
+            OP_BZ => {
+                if pc + 2 < bytecode.len() {
+                    let offset = i16::from_be_bytes([bytecode[pc + 1], bytecode[pc + 2]]);
+                    let target = (pc as i32 + 3 + offset as i32) as usize;
+                    (format!("bz {target:04x}"), 3)
+                } else {
+                    ("bz <invalid>".to_string(), 1)
+                }
+            }
+            OP_B => {
+                if pc + 2 < bytecode.len() {
+                    let offset = i16::from_be_bytes([bytecode[pc + 1], bytecode[pc + 2]]);
+                    let target = (pc as i32 + 3 + offset as i32) as usize;
+                    (format!("b {target:04x}"), 3)
+                } else {
+                    ("b <invalid>".to_string(), 1)
+                }
+            }
             OP_RETURN => ("return".to_string(), 1),
             OP_ASSERT => ("assert".to_string(), 1),
             OP_RETSUB => ("retsub".to_string(), 1),

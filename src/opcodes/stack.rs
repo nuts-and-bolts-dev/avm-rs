@@ -7,6 +7,7 @@ use crate::vm::EvalContext;
 /// Pop the top stack value
 pub fn op_pop(ctx: &mut EvalContext) -> AvmResult<()> {
     ctx.pop()?;
+    ctx.advance_pc(1)?;
     Ok(())
 }
 
@@ -14,6 +15,7 @@ pub fn op_pop(ctx: &mut EvalContext) -> AvmResult<()> {
 pub fn op_dup(ctx: &mut EvalContext) -> AvmResult<()> {
     let val = ctx.peek()?.clone();
     ctx.push(val)?;
+    ctx.advance_pc(1)?;
     Ok(())
 }
 
@@ -30,6 +32,7 @@ pub fn op_dup2(ctx: &mut EvalContext) -> AvmResult<()> {
     ctx.push(b.clone())?;
     ctx.push(a)?;
     ctx.push(b)?;
+    ctx.advance_pc(1)?;
     Ok(())
 }
 
@@ -40,6 +43,7 @@ pub fn op_swap(ctx: &mut EvalContext) -> AvmResult<()> {
 
     ctx.push(b)?;
     ctx.push(a)?;
+    ctx.advance_pc(1)?;
     Ok(())
 }
 
@@ -53,6 +57,7 @@ pub fn op_select(ctx: &mut EvalContext) -> AvmResult<()> {
     let result = if condition { a } else { b };
 
     ctx.push(result)?;
+    ctx.advance_pc(1)?;
     Ok(())
 }
 
@@ -153,6 +158,7 @@ pub fn op_len(ctx: &mut EvalContext) -> AvmResult<()> {
     };
 
     ctx.push(StackValue::Uint(len))?;
+    ctx.advance_pc(1)?;
     Ok(())
 }
 
@@ -163,6 +169,7 @@ pub fn op_itob(ctx: &mut EvalContext) -> AvmResult<()> {
 
     let bytes = int_val.to_be_bytes().to_vec();
     ctx.push(StackValue::Bytes(bytes))?;
+    ctx.advance_pc(1)?;
     Ok(())
 }
 
@@ -173,6 +180,7 @@ pub fn op_btoi(ctx: &mut EvalContext) -> AvmResult<()> {
 
     if bytes.is_empty() {
         ctx.push(StackValue::Uint(0))?;
+        ctx.advance_pc(1)?;
         return Ok(());
     }
 
@@ -190,6 +198,7 @@ pub fn op_btoi(ctx: &mut EvalContext) -> AvmResult<()> {
 
     let int_val = u64::from_be_bytes(padded.try_into().unwrap());
     ctx.push(StackValue::Uint(int_val))?;
+    ctx.advance_pc(1)?;
     Ok(())
 }
 
@@ -206,6 +215,7 @@ pub fn op_concat(ctx: &mut EvalContext) -> AvmResult<()> {
     result.extend_from_slice(b_bytes);
 
     ctx.push(StackValue::Bytes(result))?;
+    ctx.advance_pc(1)?;
     Ok(())
 }
 
@@ -249,6 +259,7 @@ pub fn op_substring3(ctx: &mut EvalContext) -> AvmResult<()> {
 
     let result = bytes[start_idx..end_idx].to_vec();
     ctx.push(StackValue::Bytes(result))?;
+    ctx.advance_pc(1)?;
     Ok(())
 }
 
