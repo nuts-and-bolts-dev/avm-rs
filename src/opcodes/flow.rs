@@ -5,8 +5,12 @@ use crate::vm::EvalContext;
 
 /// Branch if not zero
 pub fn op_bnz(ctx: &mut EvalContext) -> AvmResult<()> {
-    let offset = i16::from_be_bytes([ctx.read_bytes(1)?[0], ctx.read_bytes(1)?[0]]);
+    // Advance past the opcode first
+    ctx.advance_pc(1)?;
+    // Read 2-byte offset
+    let offset_bytes = ctx.read_bytes(2)?.to_vec();
     ctx.advance_pc(2)?;
+    let offset = i16::from_be_bytes([offset_bytes[0], offset_bytes[1]]);
 
     let val = ctx.pop()?;
     let condition = val.as_bool()?;
@@ -21,8 +25,12 @@ pub fn op_bnz(ctx: &mut EvalContext) -> AvmResult<()> {
 
 /// Branch if zero
 pub fn op_bz(ctx: &mut EvalContext) -> AvmResult<()> {
-    let offset = i16::from_be_bytes([ctx.read_bytes(1)?[0], ctx.read_bytes(1)?[0]]);
+    // Advance past the opcode first
+    ctx.advance_pc(1)?;
+    // Read 2-byte offset
+    let offset_bytes = ctx.read_bytes(2)?.to_vec();
     ctx.advance_pc(2)?;
+    let offset = i16::from_be_bytes([offset_bytes[0], offset_bytes[1]]);
 
     let val = ctx.pop()?;
     let condition = val.as_bool()?;
@@ -37,8 +45,12 @@ pub fn op_bz(ctx: &mut EvalContext) -> AvmResult<()> {
 
 /// Unconditional branch
 pub fn op_b(ctx: &mut EvalContext) -> AvmResult<()> {
-    let offset = i16::from_be_bytes([ctx.read_bytes(1)?[0], ctx.read_bytes(1)?[0]]);
+    // Advance past the opcode first
+    ctx.advance_pc(1)?;
+    // Read 2-byte offset
+    let offset_bytes = ctx.read_bytes(2)?.to_vec();
     ctx.advance_pc(2)?;
+    let offset = i16::from_be_bytes([offset_bytes[0], offset_bytes[1]]);
 
     let target = (ctx.pc() as i32 + offset as i32) as usize;
     ctx.set_pc(target)?;
@@ -69,8 +81,12 @@ pub fn op_assert(ctx: &mut EvalContext) -> AvmResult<()> {
 
 /// Call subroutine
 pub fn op_callsub(ctx: &mut EvalContext) -> AvmResult<()> {
-    let offset = i16::from_be_bytes([ctx.read_bytes(1)?[0], ctx.read_bytes(1)?[0]]);
+    // Advance past the opcode first
+    ctx.advance_pc(1)?;
+    // Read 2-byte offset
+    let offset_bytes = ctx.read_bytes(2)?.to_vec();
     ctx.advance_pc(2)?;
+    let offset = i16::from_be_bytes([offset_bytes[0], offset_bytes[1]]);
 
     let target = (ctx.pc() as i32 + offset as i32) as usize;
     ctx.call_subroutine(target)?;

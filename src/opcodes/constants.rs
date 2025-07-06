@@ -19,6 +19,8 @@ pub fn op_pushint(ctx: &mut EvalContext) -> AvmResult<()> {
 
 /// Push immediate byte array
 pub fn op_pushbytes(ctx: &mut EvalContext) -> AvmResult<()> {
+    // Advance past the opcode first
+    ctx.advance_pc(1)?;
     // Read the length byte
     let length = ctx.read_bytes(1)?[0] as usize;
     ctx.advance_pc(1)?;
@@ -33,6 +35,8 @@ pub fn op_pushbytes(ctx: &mut EvalContext) -> AvmResult<()> {
 
 /// Push multiple integers
 pub fn op_pushints(ctx: &mut EvalContext) -> AvmResult<()> {
+    // Advance past the opcode first
+    ctx.advance_pc(1)?;
     // Read count
     let count = ctx.read_bytes(1)?[0] as usize;
     ctx.advance_pc(1)?;
@@ -51,6 +55,8 @@ pub fn op_pushints(ctx: &mut EvalContext) -> AvmResult<()> {
 
 /// Push multiple byte arrays
 pub fn op_pushbytess(ctx: &mut EvalContext) -> AvmResult<()> {
+    // Advance past the opcode first
+    ctx.advance_pc(1)?;
     // Read count
     let count = ctx.read_bytes(1)?[0] as usize;
     ctx.advance_pc(1)?;
@@ -71,6 +77,8 @@ pub fn op_pushbytess(ctx: &mut EvalContext) -> AvmResult<()> {
 
 /// Integer constant block
 pub fn op_intcblock(ctx: &mut EvalContext) -> AvmResult<()> {
+    // Advance past the opcode first
+    ctx.advance_pc(1)?;
     // Read count
     let count = ctx.read_bytes(1)?[0] as usize;
     ctx.advance_pc(1)?;
@@ -86,6 +94,8 @@ pub fn op_intcblock(ctx: &mut EvalContext) -> AvmResult<()> {
 
 /// Load integer constant
 pub fn op_intc(ctx: &mut EvalContext) -> AvmResult<()> {
+    // Advance past the opcode first
+    ctx.advance_pc(1)?;
     let index = ctx.read_bytes(1)?[0];
     ctx.advance_pc(1)?;
 
@@ -120,6 +130,8 @@ pub fn op_intc_3(ctx: &mut EvalContext) -> AvmResult<()> {
 
 /// Byte constant block
 pub fn op_bytecblock(ctx: &mut EvalContext) -> AvmResult<()> {
+    // Advance past the opcode first
+    ctx.advance_pc(1)?;
     // Read count
     let count = ctx.read_bytes(1)?[0] as usize;
     ctx.advance_pc(1)?;
@@ -136,6 +148,8 @@ pub fn op_bytecblock(ctx: &mut EvalContext) -> AvmResult<()> {
 
 /// Load byte constant
 pub fn op_bytec(ctx: &mut EvalContext) -> AvmResult<()> {
+    // Advance past the opcode first
+    ctx.advance_pc(1)?;
     let index = ctx.read_bytes(1)?[0];
     ctx.advance_pc(1)?;
 
