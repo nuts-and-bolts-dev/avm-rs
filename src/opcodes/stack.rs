@@ -251,3 +251,51 @@ pub fn op_substring3(ctx: &mut EvalContext) -> AvmResult<()> {
     ctx.push(StackValue::Bytes(result))?;
     Ok(())
 }
+
+/// Duplicate N values from top of stack
+pub fn op_dupn(ctx: &mut EvalContext) -> AvmResult<()> {
+    let n = ctx.read_bytes(1)?[0] as usize;
+    ctx.advance_pc(1)?;
+
+    if n == 0 {
+        return Ok(());
+    }
+
+    if ctx.stack_size() < n {
+        return Err(AvmError::StackUnderflow);
+    }
+
+    // This is a simplified implementation - would need direct stack access for efficiency
+    let mut values = Vec::new();
+    for _ in 0..n {
+        values.push(ctx.pop()?);
+    }
+
+    // Restore original values
+    for val in values.iter().rev() {
+        ctx.push(val.clone())?;
+    }
+
+    // Push duplicated values
+    for val in values.iter().rev() {
+        ctx.push(val.clone())?;
+    }
+
+    Ok(())
+}
+
+/// Pop N values from top of stack
+pub fn op_popn(ctx: &mut EvalContext) -> AvmResult<()> {
+    let n = ctx.read_bytes(1)?[0] as usize;
+    ctx.advance_pc(1)?;
+
+    if ctx.stack_size() < n {
+        return Err(AvmError::StackUnderflow);
+    }
+
+    for _ in 0..n {
+        ctx.pop()?;
+    }
+
+    Ok(())
+}

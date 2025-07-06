@@ -109,6 +109,55 @@ pub fn op_ed25519verify(ctx: &mut EvalContext) -> AvmResult<()> {
     Ok(())
 }
 
+/// Ed25519 signature verification without prefix
+pub fn op_ed25519verify_bare(ctx: &mut EvalContext) -> AvmResult<()> {
+    let public_key = ctx.pop()?;
+    let signature = ctx.pop()?;
+    let data = ctx.pop()?;
+
+    let pub_key_bytes = public_key.as_bytes()?;
+    let sig_bytes = signature.as_bytes()?;
+    let data_bytes = data.as_bytes()?;
+
+    // Validate input lengths
+    if pub_key_bytes.len() != 32 {
+        return Err(AvmError::InvalidByteArrayLength {
+            expected: 32,
+            actual: pub_key_bytes.len(),
+        });
+    }
+
+    if sig_bytes.len() != 64 {
+        return Err(AvmError::InvalidByteArrayLength {
+            expected: 64,
+            actual: sig_bytes.len(),
+        });
+    }
+
+    // Create verifying key and signature
+    let verifying_key = VerifyingKey::from_bytes(
+        pub_key_bytes
+            .try_into()
+            .map_err(|_| AvmError::crypto_error("Invalid public key format"))?,
+    )
+    .map_err(|e| AvmError::crypto_error(format!("Invalid public key: {e}")))?;
+
+    let signature = Signature::from_bytes(
+        sig_bytes
+            .try_into()
+            .map_err(|_| AvmError::crypto_error("Invalid signature format"))?,
+    );
+
+    // Verify signature directly on the data without prefix (bare verification)
+    let result = match verifying_key.verify(data_bytes, &signature) {
+        Ok(()) => 1,
+        Err(_) => 0,
+    };
+
+    ctx.push(StackValue::Uint(result))?;
+    Ok(())
+}
+
 /// ECDSA signature verification (secp256k1)
 pub fn op_ecdsa_verify(ctx: &mut EvalContext) -> AvmResult<()> {
     let public_key = ctx.pop()?;

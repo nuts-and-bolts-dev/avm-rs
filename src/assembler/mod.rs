@@ -107,8 +107,32 @@ impl Assembler {
             "pop" => bytecode.push(OP_POP),
             "dup" => bytecode.push(OP_DUP),
             "dup2" => bytecode.push(OP_DUP2),
+            "dig" => {
+                bytecode.push(OP_DIG);
+                self.assemble_byte_immediate(bytecode, args, line_num)?;
+            }
+            "bury" => {
+                bytecode.push(OP_BURY);
+                self.assemble_byte_immediate(bytecode, args, line_num)?;
+            }
+            "cover" => {
+                bytecode.push(OP_COVER);
+                self.assemble_byte_immediate(bytecode, args, line_num)?;
+            }
+            "uncover" => {
+                bytecode.push(OP_UNCOVER);
+                self.assemble_byte_immediate(bytecode, args, line_num)?;
+            }
             "swap" => bytecode.push(OP_SWAP),
             "select" => bytecode.push(OP_SELECT),
+            "dupn" => {
+                bytecode.push(OP_DUPN);
+                self.assemble_byte_immediate(bytecode, args, line_num)?;
+            }
+            "popn" => {
+                bytecode.push(OP_POPN);
+                self.assemble_byte_immediate(bytecode, args, line_num)?;
+            }
 
             // Flow control
             "bnz" => {
@@ -130,6 +154,33 @@ impl Assembler {
                 self.assemble_branch_target(bytecode, args, line_num)?;
             }
             "retsub" => bytecode.push(OP_RETSUB),
+            "proto" => {
+                bytecode.push(OP_PROTO);
+                // Proto takes 2 byte immediates: args and returns
+                if args.len() < 2 {
+                    return Err(AvmError::assembly_error(format!(
+                        "proto requires args and returns count on line {line_num}"
+                    )));
+                }
+                self.assemble_byte_immediate(bytecode, &[args[0]], line_num)?;
+                self.assemble_byte_immediate(bytecode, &[args[1]], line_num)?;
+            }
+            "frame_dig" => {
+                bytecode.push(OP_FRAME_DIG);
+                self.assemble_byte_immediate(bytecode, args, line_num)?;
+            }
+            "frame_bury" => {
+                bytecode.push(OP_FRAME_BURY);
+                self.assemble_byte_immediate(bytecode, args, line_num)?;
+            }
+            "switch" => {
+                bytecode.push(OP_SWITCH);
+                self.assemble_branch_target(bytecode, args, line_num)?;
+            }
+            "match" => {
+                bytecode.push(OP_MATCH);
+                self.assemble_branch_target(bytecode, args, line_num)?;
+            }
 
             // Constants
             "pushint" => {
@@ -151,6 +202,40 @@ impl Assembler {
                 self.assemble_substring_args(bytecode, args, line_num)?;
             }
             "substring3" => bytecode.push(OP_SUBSTRING3),
+            "getbit" => bytecode.push(OP_GETBIT),
+            "setbit" => bytecode.push(OP_SETBIT),
+            "getbyte" => bytecode.push(OP_GETBYTE),
+            "setbyte" => bytecode.push(OP_SETBYTE),
+            "extract" => {
+                bytecode.push(OP_EXTRACT);
+                self.assemble_substring_args(bytecode, args, line_num)?;
+            }
+            "extract3" => bytecode.push(OP_EXTRACT3),
+            "extract_uint16" => {
+                bytecode.push(OP_EXTRACT_UINT16);
+                self.assemble_byte_immediate(bytecode, args, line_num)?;
+            }
+            "extract_uint32" => {
+                bytecode.push(OP_EXTRACT_UINT32);
+                self.assemble_byte_immediate(bytecode, args, line_num)?;
+            }
+            "extract_uint64" => {
+                bytecode.push(OP_EXTRACT_UINT64);
+                self.assemble_byte_immediate(bytecode, args, line_num)?;
+            }
+            "replace2" => {
+                bytecode.push(OP_REPLACE2);
+                self.assemble_byte_immediate(bytecode, args, line_num)?;
+            }
+            "replace3" => bytecode.push(OP_REPLACE3),
+            "base64_decode" => {
+                bytecode.push(OP_BASE64_DECODE);
+                self.assemble_byte_immediate(bytecode, args, line_num)?;
+            }
+            "json_ref" => {
+                bytecode.push(OP_JSON_REF);
+                self.assemble_byte_immediate(bytecode, args, line_num)?;
+            }
 
             // Crypto
             "sha256" => bytecode.push(OP_SHA256),
@@ -158,6 +243,8 @@ impl Assembler {
             "sha512_256" => bytecode.push(OP_SHA512_256),
             "sha3_256" => bytecode.push(OP_SHA3_256),
             "ed25519verify" => bytecode.push(OP_ED25519VERIFY),
+            "ed25519verify_bare" => bytecode.push(OP_ED25519VERIFY_BARE),
+            "vrf_verify" => bytecode.push(OP_VRF_VERIFY),
 
             // Scratch space
             "load" => {
@@ -184,14 +271,38 @@ impl Assembler {
             }
 
             // Application state
-            "app_global_get" => bytecode.push(OP_APP_GLOBAL_GET),
-            "app_global_put" => bytecode.push(OP_APP_GLOBAL_PUT),
-            "app_global_del" => bytecode.push(OP_APP_GLOBAL_DEL),
+            "app_opted_in" => bytecode.push(OP_APP_OPTED_IN),
             "app_local_get" => bytecode.push(OP_APP_LOCAL_GET),
+            "app_local_get_ex" => bytecode.push(OP_APP_LOCAL_GET_EX),
+            "app_global_get" => bytecode.push(OP_APP_GLOBAL_GET),
+            "app_global_get_ex" => bytecode.push(OP_APP_GLOBAL_GET_EX),
             "app_local_put" => bytecode.push(OP_APP_LOCAL_PUT),
+            "app_global_put" => bytecode.push(OP_APP_GLOBAL_PUT),
             "app_local_del" => bytecode.push(OP_APP_LOCAL_DEL),
+            "app_global_del" => bytecode.push(OP_APP_GLOBAL_DEL),
+            "asset_holding_get" => bytecode.push(OP_ASSET_HOLDING_GET),
+            "asset_params_get" => bytecode.push(OP_ASSET_PARAMS_GET),
+            "app_params_get" => bytecode.push(OP_APP_PARAMS_GET),
+            "acct_params_get" => bytecode.push(OP_ACCT_PARAMS_GET),
             "balance" => bytecode.push(OP_BALANCE),
             "min_balance" => bytecode.push(OP_MIN_BALANCE),
+
+            // Box operations (v8+)
+            "box_create" => bytecode.push(OP_BOX_CREATE),
+            "box_extract" => bytecode.push(OP_BOX_EXTRACT),
+            "box_replace" => bytecode.push(OP_BOX_REPLACE),
+            "box_del" => bytecode.push(OP_BOX_DEL),
+            "box_len" => bytecode.push(OP_BOX_LEN),
+            "box_get" => bytecode.push(OP_BOX_GET),
+            "box_put" => bytecode.push(OP_BOX_PUT),
+            "box_splice" => bytecode.push(OP_BOX_SPLICE),
+            "box_resize" => bytecode.push(OP_BOX_RESIZE),
+
+            // Block operations
+            "block" => {
+                bytecode.push(OP_BLOCK);
+                self.assemble_byte_immediate(bytecode, args, line_num)?;
+            }
 
             "err" => bytecode.push(OP_ERR),
 
@@ -369,15 +480,71 @@ impl Assembler {
             "Sender" => 0,
             "Fee" => 1,
             "FirstValid" => 2,
+            "FirstValidTime" => 3,
             "LastValid" => 4,
             "Note" => 5,
+            "Lease" => 6,
             "Receiver" => 7,
             "Amount" => 8,
+            "CloseRemainderTo" => 9,
+            "VotePK" => 10,
+            "SelectionPK" => 11,
+            "VoteFirst" => 12,
+            "VoteLast" => 13,
+            "VoteKeyDilution" => 14,
             "Type" => 15,
             "TypeEnum" => 16,
+            "XferAsset" => 17,
+            "AssetAmount" => 18,
+            "AssetSender" => 19,
+            "AssetReceiver" => 20,
+            "AssetCloseTo" => 21,
             "GroupIndex" => 22,
             "TxID" => 23,
             "ApplicationID" => 24,
+            "OnCompletion" => 25,
+            "ApplicationArgs" => 26,
+            "NumAppArgs" => 27,
+            "Accounts" => 28,
+            "NumAccounts" => 29,
+            "ApprovalProgram" => 30,
+            "ClearStateProgram" => 31,
+            "RekeyTo" => 32,
+            "ConfigAsset" => 33,
+            "ConfigAssetTotal" => 34,
+            "ConfigAssetDecimals" => 35,
+            "ConfigAssetDefaultFrozen" => 36,
+            "ConfigAssetUnitName" => 37,
+            "ConfigAssetName" => 38,
+            "ConfigAssetURL" => 39,
+            "ConfigAssetMetadataHash" => 40,
+            "ConfigAssetManager" => 41,
+            "ConfigAssetReserve" => 42,
+            "ConfigAssetFreeze" => 43,
+            "ConfigAssetClawback" => 44,
+            "FreezeAsset" => 45,
+            "FreezeAssetAccount" => 46,
+            "FreezeAssetFrozen" => 47,
+            "Assets" => 48,
+            "NumAssets" => 49,
+            "Applications" => 50,
+            "NumApplications" => 51,
+            "GlobalNumUint" => 52,
+            "GlobalNumByteSlice" => 53,
+            "LocalNumUint" => 54,
+            "LocalNumByteSlice" => 55,
+            "ExtraProgramPages" => 56,
+            "Nonparticipation" => 57,
+            "Logs" => 58,
+            "NumLogs" => 59,
+            "CreatedAssetID" => 60,
+            "CreatedApplicationID" => 61,
+            "LastLog" => 62,
+            "StateProofPK" => 63,
+            "ApprovalProgramPages" => 64,
+            "NumApprovalProgramPages" => 65,
+            "ClearStateProgramPages" => 66,
+            "NumClearStateProgramPages" => 67,
             _ => {
                 return Err(AvmError::assembly_error(format!(
                     "Unknown transaction field '{}' on line {}",
@@ -439,6 +606,14 @@ impl Assembler {
             "LatestTimestamp" => 7,
             "CurrentApplicationID" => 8,
             "CreatorAddress" => 9,
+            "CurrentApplicationAddress" => 10,
+            "GroupID" => 11,
+            "OpcodeBudget" => 12,
+            "CallerApplicationID" => 13,
+            "CallerApplicationAddress" => 14,
+            "AssetCreateMinBalance" => 15,
+            "AssetOptInMinBalance" => 16,
+            "GenesisHash" => 17,
             _ => {
                 return Err(AvmError::assembly_error(format!(
                     "Unknown global field '{}' on line {}",
