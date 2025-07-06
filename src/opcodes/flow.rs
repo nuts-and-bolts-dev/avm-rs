@@ -76,6 +76,7 @@ pub fn op_assert(ctx: &mut EvalContext) -> AvmResult<()> {
         return Err(AvmError::execution_halted("assert failed"));
     }
 
+    ctx.advance_pc(1)?;
     Ok(())
 }
 

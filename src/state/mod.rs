@@ -1,7 +1,7 @@
 //! State management interfaces and implementations
 
 use crate::error::AvmResult;
-use crate::types::TealValue;
+use crate::types::{GlobalField, TealValue, TxnField};
 use std::collections::HashMap;
 
 /// Account address type
@@ -15,6 +15,187 @@ pub type AssetId = u64;
 
 /// Micro Algos type
 pub type MicroAlgos = u64;
+
+/// Transaction type
+#[derive(Debug, Clone, PartialEq)]
+pub enum TransactionType {
+    Payment,
+    KeyRegistration,
+    AssetConfig,
+    AssetTransfer,
+    AssetFreeze,
+    ApplicationCall,
+    StateProof,
+}
+
+/// Transaction data
+#[derive(Debug, Clone)]
+pub struct Transaction {
+    pub sender: Address,
+    pub fee: MicroAlgos,
+    pub first_valid: u64,
+    pub first_valid_time: u64,
+    pub last_valid: u64,
+    pub note: Vec<u8>,
+    pub lease: Vec<u8>,
+    pub receiver: Option<Address>,
+    pub amount: Option<MicroAlgos>,
+    pub close_remainder_to: Option<Address>,
+    pub vote_pk: Option<Vec<u8>>,
+    pub selection_pk: Option<Vec<u8>>,
+    pub vote_first: Option<u64>,
+    pub vote_last: Option<u64>,
+    pub vote_key_dilution: Option<u64>,
+    pub tx_type: TransactionType,
+    pub type_enum: u64,
+    pub xfer_asset: Option<AssetId>,
+    pub asset_amount: Option<u64>,
+    pub asset_sender: Option<Address>,
+    pub asset_receiver: Option<Address>,
+    pub asset_close_to: Option<Address>,
+    pub group_index: u64,
+    pub tx_id: Vec<u8>,
+    pub application_id: Option<AppId>,
+    pub on_completion: Option<u64>,
+    pub application_args: Vec<Vec<u8>>,
+    pub accounts: Vec<Address>,
+    pub approval_program: Option<Vec<u8>>,
+    pub clear_state_program: Option<Vec<u8>>,
+    pub rekey_to: Option<Address>,
+    pub config_asset: Option<AssetId>,
+    pub config_asset_total: Option<u64>,
+    pub config_asset_decimals: Option<u8>,
+    pub config_asset_default_frozen: Option<bool>,
+    pub config_asset_unit_name: Option<String>,
+    pub config_asset_name: Option<String>,
+    pub config_asset_url: Option<String>,
+    pub config_asset_metadata_hash: Option<Vec<u8>>,
+    pub config_asset_manager: Option<Address>,
+    pub config_asset_reserve: Option<Address>,
+    pub config_asset_freeze: Option<Address>,
+    pub config_asset_clawback: Option<Address>,
+    pub freeze_asset: Option<AssetId>,
+    pub freeze_asset_account: Option<Address>,
+    pub freeze_asset_frozen: Option<bool>,
+    pub assets: Vec<AssetId>,
+    pub applications: Vec<AppId>,
+    pub global_num_uint: Option<u64>,
+    pub global_num_byte_slice: Option<u64>,
+    pub local_num_uint: Option<u64>,
+    pub local_num_byte_slice: Option<u64>,
+    pub extra_program_pages: Option<u32>,
+    pub nonparticipation: Option<bool>,
+    pub logs: Vec<Vec<u8>>,
+    pub created_asset_id: Option<AssetId>,
+    pub created_application_id: Option<AppId>,
+    pub last_log: Option<Vec<u8>>,
+    pub state_proof_pk: Option<Vec<u8>>,
+    pub approval_program_pages: Vec<Vec<u8>>,
+    pub clear_state_program_pages: Vec<Vec<u8>>,
+}
+
+impl Default for Transaction {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl Transaction {
+    /// Create a new default transaction
+    pub fn new() -> Self {
+        Self {
+            sender: vec![0; 32],
+            fee: 1000,
+            first_valid: 1,
+            first_valid_time: 0,
+            last_valid: 1000,
+            note: Vec::new(),
+            lease: vec![0; 32],
+            receiver: None,
+            amount: None,
+            close_remainder_to: None,
+            vote_pk: None,
+            selection_pk: None,
+            vote_first: None,
+            vote_last: None,
+            vote_key_dilution: None,
+            tx_type: TransactionType::Payment,
+            type_enum: 1,
+            xfer_asset: None,
+            asset_amount: None,
+            asset_sender: None,
+            asset_receiver: None,
+            asset_close_to: None,
+            group_index: 0,
+            tx_id: vec![0; 32],
+            application_id: None,
+            on_completion: None,
+            application_args: Vec::new(),
+            accounts: Vec::new(),
+            approval_program: None,
+            clear_state_program: None,
+            rekey_to: None,
+            config_asset: None,
+            config_asset_total: None,
+            config_asset_decimals: None,
+            config_asset_default_frozen: None,
+            config_asset_unit_name: None,
+            config_asset_name: None,
+            config_asset_url: None,
+            config_asset_metadata_hash: None,
+            config_asset_manager: None,
+            config_asset_reserve: None,
+            config_asset_freeze: None,
+            config_asset_clawback: None,
+            freeze_asset: None,
+            freeze_asset_account: None,
+            freeze_asset_frozen: None,
+            assets: Vec::new(),
+            applications: Vec::new(),
+            global_num_uint: None,
+            global_num_byte_slice: None,
+            local_num_uint: None,
+            local_num_byte_slice: None,
+            extra_program_pages: None,
+            nonparticipation: None,
+            logs: Vec::new(),
+            created_asset_id: None,
+            created_application_id: None,
+            last_log: None,
+            state_proof_pk: None,
+            approval_program_pages: Vec::new(),
+            clear_state_program_pages: Vec::new(),
+        }
+    }
+
+    /// Create a payment transaction
+    pub fn payment(sender: Address, receiver: Address, amount: MicroAlgos) -> Self {
+        let mut tx = Self::new();
+        tx.sender = sender;
+        tx.receiver = Some(receiver);
+        tx.amount = Some(amount);
+        tx.tx_type = TransactionType::Payment;
+        tx.type_enum = 1;
+        tx
+    }
+
+    /// Create an asset transfer transaction
+    pub fn asset_transfer(
+        sender: Address,
+        receiver: Address,
+        asset_id: AssetId,
+        amount: u64,
+    ) -> Self {
+        let mut tx = Self::new();
+        tx.sender = sender;
+        tx.asset_receiver = Some(receiver);
+        tx.xfer_asset = Some(asset_id);
+        tx.asset_amount = Some(amount);
+        tx.tx_type = TransactionType::AssetTransfer;
+        tx.type_enum = 4;
+        tx
+    }
+}
 
 /// Asset holding information
 #[derive(Debug, Clone)]
@@ -155,10 +336,22 @@ pub trait LedgerAccess: std::fmt::Debug {
 
     /// Get caller application address (for inner transactions)
     fn caller_application_address(&self) -> AvmResult<Option<Address>>;
+
+    /// Get transaction field value
+    fn get_txn_field(&self, txn_index: usize, field: TxnField) -> AvmResult<TealValue>;
+
+    /// Get global field value
+    fn get_global_field(&self, field: GlobalField) -> AvmResult<TealValue>;
+
+    /// Get current transaction
+    fn current_transaction(&self) -> AvmResult<&Transaction>;
+
+    /// Get transaction group
+    fn transaction_group(&self) -> AvmResult<&[Transaction]>;
 }
 
 /// Mock ledger implementation for testing
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct MockLedger {
     balances: HashMap<Address, MicroAlgos>,
     min_balances: HashMap<Address, MicroAlgos>,
@@ -179,6 +372,8 @@ pub struct MockLedger {
     opcode_budget: u64,
     caller_app_id: Option<AppId>,
     caller_app_addr: Option<Address>,
+    transactions: Vec<Transaction>,
+    current_txn_index: usize,
 }
 
 impl MockLedger {
@@ -280,6 +475,89 @@ impl MockLedger {
     /// Set caller application address
     pub fn set_caller_application_address(&mut self, addr: Option<Address>) {
         self.caller_app_addr = addr;
+    }
+
+    /// Add a transaction to the group
+    pub fn add_transaction(&mut self, transaction: Transaction) {
+        self.transactions.push(transaction);
+    }
+
+    /// Set the current transaction index
+    pub fn set_current_transaction_index(&mut self, index: usize) {
+        self.current_txn_index = index;
+    }
+
+    /// Set up a simple payment transaction group
+    pub fn setup_payment_transaction(
+        &mut self,
+        sender: Address,
+        receiver: Address,
+        amount: MicroAlgos,
+    ) {
+        let tx = Transaction::payment(sender, receiver, amount);
+        self.transactions.clear();
+        self.transactions.push(tx);
+        self.current_txn_index = 0;
+    }
+
+    /// Set up an asset transfer transaction group
+    pub fn setup_asset_transfer(
+        &mut self,
+        sender: Address,
+        receiver: Address,
+        asset_id: AssetId,
+        amount: u64,
+    ) {
+        let tx = Transaction::asset_transfer(sender, receiver, asset_id, amount);
+        self.transactions.clear();
+        self.transactions.push(tx);
+        self.current_txn_index = 0;
+    }
+
+    /// Clear all transactions
+    pub fn clear_transactions(&mut self) {
+        self.transactions.clear();
+        self.current_txn_index = 0;
+    }
+
+    /// Create a mock ledger with realistic defaults
+    pub fn with_defaults() -> Self {
+        let mut ledger = Self {
+            balances: HashMap::new(),
+            min_balances: HashMap::new(),
+            global_state: HashMap::new(),
+            local_state: HashMap::new(),
+            opted_in: HashMap::new(),
+            asset_holdings: HashMap::new(),
+            asset_params: HashMap::new(),
+            app_params: HashMap::new(),
+            account_params: HashMap::new(),
+            current_round: 1000,
+            latest_timestamp: 1640995200, // 2022-01-01
+            genesis_hash: vec![0; 32],
+            current_app_id: 0,
+            creator_addr: Vec::new(),
+            current_app_addr: Vec::new(),
+            group_id: Vec::new(),
+            opcode_budget: 700,
+            caller_app_id: None,
+            caller_app_addr: None,
+            transactions: Vec::new(),
+            current_txn_index: 0,
+        };
+
+        // Add a default payment transaction
+        let sender = vec![1; 32];
+        let receiver = vec![2; 32];
+        ledger.setup_payment_transaction(sender, receiver, 1_000_000);
+
+        ledger
+    }
+}
+
+impl Default for MockLedger {
+    fn default() -> Self {
+        Self::with_defaults()
     }
 }
 
@@ -398,5 +676,108 @@ impl LedgerAccess for MockLedger {
 
     fn caller_application_address(&self) -> AvmResult<Option<Address>> {
         Ok(self.caller_app_addr.clone())
+    }
+
+    fn get_txn_field(&self, txn_index: usize, field: TxnField) -> AvmResult<TealValue> {
+        let tx = self.transactions.get(txn_index).ok_or_else(|| {
+            crate::error::AvmError::InvalidTransactionField {
+                field: format!("transaction index {txn_index}"),
+            }
+        })?;
+
+        use TxnField::*;
+        let value = match field {
+            Sender => TealValue::Bytes(tx.sender.clone()),
+            Fee => TealValue::Uint(tx.fee),
+            FirstValid => TealValue::Uint(tx.first_valid),
+            FirstValidTime => TealValue::Uint(tx.first_valid_time),
+            LastValid => TealValue::Uint(tx.last_valid),
+            Note => TealValue::Bytes(tx.note.clone()),
+            Lease => TealValue::Bytes(tx.lease.clone()),
+            Receiver => TealValue::Bytes(tx.receiver.clone().unwrap_or_default()),
+            Amount => TealValue::Uint(tx.amount.unwrap_or(0)),
+            CloseRemainderTo => TealValue::Bytes(tx.close_remainder_to.clone().unwrap_or_default()),
+            VotePK => TealValue::Bytes(tx.vote_pk.clone().unwrap_or_default()),
+            SelectionPK => TealValue::Bytes(tx.selection_pk.clone().unwrap_or_default()),
+            VoteFirst => TealValue::Uint(tx.vote_first.unwrap_or(0)),
+            VoteLast => TealValue::Uint(tx.vote_last.unwrap_or(0)),
+            VoteKeyDilution => TealValue::Uint(tx.vote_key_dilution.unwrap_or(0)),
+            Type => TealValue::Bytes(match tx.tx_type {
+                TransactionType::Payment => b"pay".to_vec(),
+                TransactionType::KeyRegistration => b"keyreg".to_vec(),
+                TransactionType::AssetConfig => b"acfg".to_vec(),
+                TransactionType::AssetTransfer => b"axfer".to_vec(),
+                TransactionType::AssetFreeze => b"afrz".to_vec(),
+                TransactionType::ApplicationCall => b"appl".to_vec(),
+                TransactionType::StateProof => b"stpf".to_vec(),
+            }),
+            TypeEnum => TealValue::Uint(tx.type_enum),
+            XferAsset => TealValue::Uint(tx.xfer_asset.unwrap_or(0)),
+            AssetAmount => TealValue::Uint(tx.asset_amount.unwrap_or(0)),
+            AssetSender => TealValue::Bytes(tx.asset_sender.clone().unwrap_or_default()),
+            AssetReceiver => TealValue::Bytes(tx.asset_receiver.clone().unwrap_or_default()),
+            AssetCloseTo => TealValue::Bytes(tx.asset_close_to.clone().unwrap_or_default()),
+            GroupIndex => TealValue::Uint(tx.group_index),
+            TxID => TealValue::Bytes(tx.tx_id.clone()),
+            ApplicationID => TealValue::Uint(tx.application_id.unwrap_or(0)),
+            OnCompletion => TealValue::Uint(tx.on_completion.unwrap_or(0)),
+            ApplicationArgs => {
+                // For now, return the first application arg if it exists
+                TealValue::Bytes(tx.application_args.first().cloned().unwrap_or_default())
+            }
+            NumAppArgs => TealValue::Uint(tx.application_args.len() as u64),
+            Accounts => {
+                // For now, return the first account if it exists
+                TealValue::Bytes(tx.accounts.first().cloned().unwrap_or_default())
+            }
+            NumAccounts => TealValue::Uint(tx.accounts.len() as u64),
+            ApprovalProgram => TealValue::Bytes(tx.approval_program.clone().unwrap_or_default()),
+            ClearStateProgram => {
+                TealValue::Bytes(tx.clear_state_program.clone().unwrap_or_default())
+            }
+            RekeyTo => TealValue::Bytes(tx.rekey_to.clone().unwrap_or_default()),
+            _ => TealValue::Uint(0), // Default for other fields
+        };
+
+        Ok(value)
+    }
+
+    fn get_global_field(&self, field: GlobalField) -> AvmResult<TealValue> {
+        use GlobalField::*;
+        let value = match field {
+            MinTxnFee => TealValue::Uint(1000),
+            MinBalance => TealValue::Uint(100000),
+            MaxTxnLife => TealValue::Uint(1000),
+            ZeroAddress => TealValue::Bytes(vec![0; 32]),
+            GroupSize => TealValue::Uint(self.transactions.len() as u64),
+            LogicSigVersion => TealValue::Uint(8),
+            Round => TealValue::Uint(self.current_round),
+            LatestTimestamp => TealValue::Uint(self.latest_timestamp),
+            CurrentApplicationID => TealValue::Uint(self.current_app_id),
+            CreatorAddress => TealValue::Bytes(self.creator_addr.clone()),
+            CurrentApplicationAddress => TealValue::Bytes(self.current_app_addr.clone()),
+            GroupID => TealValue::Bytes(self.group_id.clone()),
+            OpcodeBudget => TealValue::Uint(self.opcode_budget),
+            CallerApplicationID => TealValue::Uint(self.caller_app_id.unwrap_or(0)),
+            CallerApplicationAddress => {
+                TealValue::Bytes(self.caller_app_addr.clone().unwrap_or_default())
+            }
+            GenesisHash => TealValue::Bytes(self.genesis_hash.clone()),
+            _ => TealValue::Uint(0), // Default for other fields
+        };
+
+        Ok(value)
+    }
+
+    fn current_transaction(&self) -> AvmResult<&Transaction> {
+        self.transactions
+            .get(self.current_txn_index)
+            .ok_or_else(|| crate::error::AvmError::InvalidTransactionField {
+                field: format!("current transaction index {}", self.current_txn_index),
+            })
+    }
+
+    fn transaction_group(&self) -> AvmResult<&[Transaction]> {
+        Ok(&self.transactions)
     }
 }

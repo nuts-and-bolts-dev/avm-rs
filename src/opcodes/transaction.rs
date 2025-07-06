@@ -6,6 +6,9 @@ use crate::vm::EvalContext;
 
 /// Access transaction field
 pub fn op_txn(ctx: &mut EvalContext) -> AvmResult<()> {
+    // Advance past the opcode first
+    ctx.advance_pc(1)?;
+    // Read the field ID parameter
     let field_id = ctx.read_bytes(1)?[0];
     ctx.advance_pc(1)?;
 
@@ -18,6 +21,8 @@ pub fn op_txn(ctx: &mut EvalContext) -> AvmResult<()> {
 
 /// Access transaction field array element
 pub fn op_txna(ctx: &mut EvalContext) -> AvmResult<()> {
+    // Advance past the opcode first
+    ctx.advance_pc(1)?;
     let field_id = ctx.read_bytes(1)?[0];
     let array_index = ctx.read_bytes(1)?[0];
     ctx.advance_pc(2)?;
@@ -31,6 +36,8 @@ pub fn op_txna(ctx: &mut EvalContext) -> AvmResult<()> {
 
 /// Access transaction field with stack index
 pub fn op_txnas(ctx: &mut EvalContext) -> AvmResult<()> {
+    // Advance past the opcode first
+    ctx.advance_pc(1)?;
     let field_id = ctx.read_bytes(1)?[0];
     ctx.advance_pc(1)?;
 
@@ -46,6 +53,8 @@ pub fn op_txnas(ctx: &mut EvalContext) -> AvmResult<()> {
 
 /// Access group transaction field
 pub fn op_gtxn(ctx: &mut EvalContext) -> AvmResult<()> {
+    // Advance past the opcode first
+    ctx.advance_pc(1)?;
     let group_index = ctx.read_bytes(1)?[0] as usize;
     let field_id = ctx.read_bytes(1)?[0];
     ctx.advance_pc(2)?;
@@ -67,6 +76,8 @@ pub fn op_gtxn(ctx: &mut EvalContext) -> AvmResult<()> {
 
 /// Access group transaction field array element
 pub fn op_gtxna(ctx: &mut EvalContext) -> AvmResult<()> {
+    // Advance past the opcode first
+    ctx.advance_pc(1)?;
     let group_index = ctx.read_bytes(1)?[0] as usize;
     let field_id = ctx.read_bytes(1)?[0];
     let array_index = ctx.read_bytes(1)?[0] as usize;
@@ -89,6 +100,8 @@ pub fn op_gtxna(ctx: &mut EvalContext) -> AvmResult<()> {
 
 /// Access group transaction field with stack index
 pub fn op_gtxns(ctx: &mut EvalContext) -> AvmResult<()> {
+    // Advance past the opcode first
+    ctx.advance_pc(1)?;
     let field_id = ctx.read_bytes(1)?[0];
     ctx.advance_pc(1)?;
 
@@ -112,6 +125,8 @@ pub fn op_gtxns(ctx: &mut EvalContext) -> AvmResult<()> {
 
 /// Access group transaction field array with stack indices
 pub fn op_gtxnsa(ctx: &mut EvalContext) -> AvmResult<()> {
+    // Advance past the opcode first
+    ctx.advance_pc(1)?;
     let field_id = ctx.read_bytes(1)?[0];
     ctx.advance_pc(1)?;
 
@@ -138,6 +153,8 @@ pub fn op_gtxnsa(ctx: &mut EvalContext) -> AvmResult<()> {
 
 /// Access global field
 pub fn op_global(ctx: &mut EvalContext) -> AvmResult<()> {
+    // Advance past the opcode first
+    ctx.advance_pc(1)?;
     let field_id = ctx.read_bytes(1)?[0];
     ctx.advance_pc(1)?;
 
@@ -184,6 +201,41 @@ fn parse_txn_field(field_id: u8) -> AvmResult<TxnField> {
         30 => Ok(TxnField::ApprovalProgram),
         31 => Ok(TxnField::ClearStateProgram),
         32 => Ok(TxnField::RekeyTo),
+        33 => Ok(TxnField::ConfigAsset),
+        34 => Ok(TxnField::ConfigAssetTotal),
+        35 => Ok(TxnField::ConfigAssetDecimals),
+        36 => Ok(TxnField::ConfigAssetDefaultFrozen),
+        37 => Ok(TxnField::ConfigAssetName), // ConfigAssetUnitName in assembler
+        38 => Ok(TxnField::ConfigAssetName),
+        39 => Ok(TxnField::ConfigAssetURL),
+        40 => Ok(TxnField::ConfigAssetMetadataHash),
+        41 => Ok(TxnField::ConfigAssetManager),
+        42 => Ok(TxnField::ConfigAssetReserve),
+        43 => Ok(TxnField::ConfigAssetFreeze),
+        44 => Ok(TxnField::ConfigAssetClawback),
+        45 => Ok(TxnField::FreezeAsset),
+        46 => Ok(TxnField::FreezeAssetAccount),
+        47 => Ok(TxnField::FreezeAssetFrozen),
+        48 => Ok(TxnField::Assets),
+        49 => Ok(TxnField::NumAssets),
+        50 => Ok(TxnField::Applications),
+        51 => Ok(TxnField::NumApplications),
+        52 => Ok(TxnField::GlobalNumUint),
+        53 => Ok(TxnField::GlobalNumByteSlice),
+        54 => Ok(TxnField::LocalNumUint),
+        55 => Ok(TxnField::LocalNumByteSlice),
+        56 => Ok(TxnField::ExtraProgramPages),
+        57 => Ok(TxnField::Nonparticipation),
+        58 => Ok(TxnField::Logs),
+        59 => Ok(TxnField::NumLogs),
+        60 => Ok(TxnField::CreatedAssetID),
+        61 => Ok(TxnField::CreatedApplicationID),
+        62 => Ok(TxnField::LastLog),
+        63 => Ok(TxnField::StateProofPK),
+        64 => Ok(TxnField::ApprovalProgramPages),
+        65 => Ok(TxnField::NumApprovalProgramPages),
+        66 => Ok(TxnField::ClearStateProgramPages),
+        67 => Ok(TxnField::NumClearStateProgramPages),
         _ => Err(AvmError::InvalidTransactionField {
             field: format!("Unknown field ID: {field_id}"),
         }),
@@ -208,114 +260,100 @@ fn parse_global_field(field_id: u8) -> AvmResult<GlobalField> {
         12 => Ok(GlobalField::OpcodeBudget),
         13 => Ok(GlobalField::CallerApplicationID),
         14 => Ok(GlobalField::CallerApplicationAddress),
+        15 => Ok(GlobalField::AssetCreateMinBalance),
+        16 => Ok(GlobalField::AssetOptInMinBalance),
+        17 => Ok(GlobalField::GenesisHash),
         _ => Err(AvmError::InvalidGlobalField {
             field: format!("Unknown field ID: {field_id}"),
         }),
     }
 }
 
-/// Get transaction field value (placeholder implementation)
-fn get_txn_field(_ctx: &EvalContext, field: TxnField) -> AvmResult<StackValue> {
-    // Placeholder implementation - in a real implementation,
-    // this would access the actual transaction data
-    match field {
-        TxnField::Sender => Ok(StackValue::Bytes(vec![0u8; 32])),
-        TxnField::Fee => Ok(StackValue::Uint(1000)),
-        TxnField::FirstValid => Ok(StackValue::Uint(1000)),
-        TxnField::LastValid => Ok(StackValue::Uint(2000)),
-        TxnField::Note => Ok(StackValue::Bytes(vec![])),
-        TxnField::Lease => Ok(StackValue::Bytes(vec![0u8; 32])),
-        TxnField::Receiver => Ok(StackValue::Bytes(vec![0u8; 32])),
-        TxnField::Amount => Ok(StackValue::Uint(0)),
-        TxnField::GroupIndex => Ok(StackValue::Uint(0)),
-        TxnField::TxID => Ok(StackValue::Bytes(vec![0u8; 32])),
-        TxnField::ApplicationID => Ok(StackValue::Uint(0)),
-        TxnField::TypeEnum => Ok(StackValue::Uint(6)), // Application call
-        _ => Ok(StackValue::Uint(0)),
-    }
+/// Get transaction field value from the current transaction
+fn get_txn_field(ctx: &EvalContext, field: TxnField) -> AvmResult<StackValue> {
+    let teal_value = ctx.ledger().get_txn_field(ctx.group_index(), field)?;
+    Ok(teal_value.to_stack_value())
 }
 
-/// Get transaction field array value (placeholder)
-fn get_txn_field_array(
-    _ctx: &EvalContext,
-    field: TxnField,
-    _index: usize,
-) -> AvmResult<StackValue> {
+/// Get transaction field array value from the current transaction
+fn get_txn_field_array(ctx: &EvalContext, field: TxnField, index: usize) -> AvmResult<StackValue> {
+    // For array fields, we need special handling
     match field {
-        TxnField::ApplicationArgs => Ok(StackValue::Bytes(vec![])),
-        TxnField::Accounts => Ok(StackValue::Bytes(vec![0u8; 32])),
+        TxnField::ApplicationArgs => {
+            let current_tx = ctx.ledger().current_transaction()?;
+            if index < current_tx.application_args.len() {
+                Ok(StackValue::Bytes(
+                    current_tx.application_args[index].clone(),
+                ))
+            } else {
+                Ok(StackValue::Bytes(vec![]))
+            }
+        }
+        TxnField::Accounts => {
+            let current_tx = ctx.ledger().current_transaction()?;
+            if index < current_tx.accounts.len() {
+                Ok(StackValue::Bytes(current_tx.accounts[index].clone()))
+            } else {
+                Ok(StackValue::Bytes(vec![0u8; 32]))
+            }
+        }
         _ => Err(AvmError::InvalidTransactionField {
             field: format!("Field {field:?} is not an array"),
         }),
     }
 }
 
-/// Get group transaction field value (placeholder)
+/// Get group transaction field value from a specific transaction in the group
 fn get_group_txn_field(
     ctx: &EvalContext,
-    _group_index: usize,
+    group_index: usize,
     field: TxnField,
 ) -> AvmResult<StackValue> {
-    // For now, just delegate to current transaction
-    get_txn_field(ctx, field)
+    let teal_value = ctx.ledger().get_txn_field(group_index, field)?;
+    Ok(teal_value.to_stack_value())
 }
 
-/// Get group transaction field array value (placeholder)
+/// Get group transaction field array value from a specific transaction in the group
 fn get_group_txn_field_array(
     ctx: &EvalContext,
-    _group_index: usize,
+    group_index: usize,
     field: TxnField,
     index: usize,
 ) -> AvmResult<StackValue> {
-    // For now, just delegate to current transaction
-    get_txn_field_array(ctx, field, index)
+    // Get the specific transaction from the group
+    let transactions = ctx.ledger().transaction_group()?;
+    if group_index >= transactions.len() {
+        return Err(AvmError::invalid_program(format!(
+            "Group index {} out of bounds (group size: {})",
+            group_index,
+            transactions.len()
+        )));
+    }
+
+    let tx = &transactions[group_index];
+    match field {
+        TxnField::ApplicationArgs => {
+            if index < tx.application_args.len() {
+                Ok(StackValue::Bytes(tx.application_args[index].clone()))
+            } else {
+                Ok(StackValue::Bytes(vec![]))
+            }
+        }
+        TxnField::Accounts => {
+            if index < tx.accounts.len() {
+                Ok(StackValue::Bytes(tx.accounts[index].clone()))
+            } else {
+                Ok(StackValue::Bytes(vec![0u8; 32]))
+            }
+        }
+        _ => Err(AvmError::InvalidTransactionField {
+            field: format!("Field {field:?} is not an array"),
+        }),
+    }
 }
 
-/// Get global field value
+/// Get global field value using the ledger interface
 fn get_global_field(ctx: &EvalContext, field: GlobalField) -> AvmResult<StackValue> {
-    match field {
-        GlobalField::MinTxnFee => Ok(StackValue::Uint(1000)),
-        GlobalField::MinBalance => Ok(StackValue::Uint(100000)),
-        GlobalField::MaxTxnLife => Ok(StackValue::Uint(1000)),
-        GlobalField::ZeroAddress => Ok(StackValue::Bytes(vec![0u8; 32])),
-        GlobalField::GroupSize => Ok(StackValue::Uint(ctx.group_size() as u64)),
-        GlobalField::LogicSigVersion => Ok(StackValue::Uint(ctx.version() as u64)),
-        GlobalField::Round => {
-            let round = ctx.ledger().current_round()?;
-            Ok(StackValue::Uint(round))
-        }
-        GlobalField::LatestTimestamp => {
-            let timestamp = ctx.ledger().latest_timestamp()?;
-            Ok(StackValue::Uint(timestamp))
-        }
-        GlobalField::CurrentApplicationID => {
-            let app_id = ctx.ledger().current_application_id()?;
-            Ok(StackValue::Uint(app_id))
-        }
-        GlobalField::CreatorAddress => {
-            let addr = ctx.ledger().creator_address()?;
-            Ok(StackValue::Bytes(addr))
-        }
-        GlobalField::CurrentApplicationAddress => {
-            let addr = ctx.ledger().current_application_address()?;
-            Ok(StackValue::Bytes(addr))
-        }
-        GlobalField::GroupID => {
-            let group_id = ctx.ledger().group_id()?;
-            Ok(StackValue::Bytes(group_id))
-        }
-        GlobalField::OpcodeBudget => {
-            let budget = ctx.ledger().opcode_budget()?;
-            Ok(StackValue::Uint(budget))
-        }
-        GlobalField::CallerApplicationID => {
-            let caller_id = ctx.ledger().caller_application_id()?;
-            Ok(StackValue::Uint(caller_id.unwrap_or(0)))
-        }
-        GlobalField::CallerApplicationAddress => {
-            let caller_addr = ctx.ledger().caller_application_address()?;
-            Ok(StackValue::Bytes(caller_addr.unwrap_or_default()))
-        }
-        _ => Ok(StackValue::Uint(0)),
-    }
+    let teal_value = ctx.ledger().get_global_field(field)?;
+    Ok(teal_value.to_stack_value())
 }

@@ -21,7 +21,9 @@ fn execute_teal_signature(teal_code: &str) -> Result<bool, String> {
     // Use the fluent configuration API
     let config = ExecutionConfig::new(TealVersion::V8).with_cost_budget(100000);
 
+    // Use the default ledger which already has a transaction set up
     let ledger = MockLedger::default();
+
     let result = vm
         .execute(&bytecode, config, &ledger)
         .map_err(|e| format!("Execution error: {e}"))?;
@@ -36,9 +38,19 @@ fn main() {
 
     let teal_code = r#"
 #pragma version 8
-// Simulate basic transaction validation
-// In real scenarios, these would access actual transaction fields
-int 1  // Simulate all validations pass
+// Validate transaction sender and fee
+txn Sender
+len
+int 32
+==
+assert       // Sender address must be 32 bytes
+
+txn Fee
+int 1000
+>=
+assert       // Fee must be at least 1000 microAlgos
+
+int 1
 return
 "#;
 
@@ -57,11 +69,23 @@ return
 
     let teal_code = r#"
 #pragma version 8
-// Simulate payment validation
-int 1000000  // Amount in microAlgos
-int 1000000  // Minimum 1 ALGO
+// Validate payment transaction
+txn TypeEnum
+int 1
+==
+assert       // Must be payment transaction
+
+txn Amount
+int 1000000
 >=
-assert
+assert       // Amount must be at least 1 ALGO
+
+txn Receiver
+len
+int 32
+==
+assert       // Receiver must be valid address
+
 int 1
 return
 "#;
@@ -81,15 +105,28 @@ return
 
     let teal_code = r#"
 #pragma version 8
-// Simulate asset transfer validation
-int 12345    // Asset ID
+// Validate asset transfer transaction
+txn TypeEnum
+int 4
+==
+assert       // Must be asset transfer transaction
+
+txn XferAsset
 int 0
 >
-assert       // Valid asset ID
-int 100      // Transfer amount
+assert       // Must have valid asset ID
+
+txn AssetAmount
 int 0
 >
-assert       // Positive amount
+assert       // Transfer amount must be positive
+
+txn AssetReceiver
+len
+int 32
+==
+assert       // Asset receiver must be valid address
+
 int 1
 return
 "#;
@@ -109,15 +146,23 @@ return
 
     let teal_code = r#"
 #pragma version 8
-// Simulate group transaction checks
-int 3        // Group size
-int 2
->=
-assert       // At least 2 transactions
-int 1        // This transaction index
+// Validate group transaction properties
+global GroupSize
+int 1
+>
+assert       // Must be in a group with more than 1 transaction
+
+txn GroupIndex
 int 0
 >=
-assert       // Valid index
+assert       // Group index must be valid
+
+// Check current transaction type
+txn TypeEnum
+int 1
+==
+assert       // This transaction must be payment
+
 int 1
 return
 "#;
@@ -137,15 +182,27 @@ return
 
     let teal_code = r#"
 #pragma version 8
-// Simulate time-based checks
-int 2000000  // Current timestamp
-int 1000000  // Required time
+// Validate time-based constraints
+global LatestTimestamp
+int 1000000
 >
-assert       // Must be after certain time
-int 2000000  // Current timestamp  
-int 3000000  // Expiry time
+assert       // Must be after a certain time
+
+global LatestTimestamp
+int 3000000
 <
-assert       // Must be before expiry
+assert       // Must be before expiry time
+
+txn FirstValid
+global Round
+<=
+assert       // First valid round must not be in future
+
+txn LastValid
+global Round
+>=
+assert       // Last valid round must not be in past
+
 int 1
 return
 "#;
@@ -165,15 +222,25 @@ return
 
     let teal_code = r#"
 #pragma version 8
-// Simulate fee validation
-int 1000     // Transaction fee
-int 1000     // Minimum fee
+// Validate transaction fee constraints
+txn Fee
+global MinTxnFee
 >=
-assert       // Fee must be at least minimum
-int 1000     // Transaction fee
-int 10000    // Maximum allowed fee
+assert       // Fee must be at least minimum network fee
+
+txn Fee
+int 10000
 <=
-assert       // Fee must not be excessive
+assert       // Fee must not be excessive (custom limit)
+
+// Ensure no fee overpayment for simple transactions
+txn Fee
+global MinTxnFee
+int 5
+*
+<=
+assert       // Fee should not exceed 5x minimum
+
 int 1
 return
 "#;
@@ -193,9 +260,9 @@ return
 
     let teal_code = r#"
 #pragma version 8
-// Complex validation combining multiple checks
-// Payment between 0.1 and 10 ALGO
-int 5000000   // 5 ALGO amount
+// Complex validation combining multiple transaction fields
+// Validate payment amount range
+txn Amount
 dup
 int 100000    // 0.1 ALGO minimum
 >=
@@ -204,18 +271,30 @@ int 10000000  // 10 ALGO maximum
 <=
 assert
 
-// Note field validation
-pushbytes "ALGO"   // Required note prefix
+// Validate note field has reasonable length
+txn Note
 len
 int 4
-==
-assert
+>=
+assert        // Note must be at least 4 bytes
 
-// Rekey protection
-int 0         // No rekey (ZeroAddress)
-int 0
+// Ensure no rekeying
+txn RekeyTo
+global ZeroAddress
 ==
-assert
+assert        // RekeyTo must be zero address
+
+// Validate lease is zero (no conflicts)
+txn Lease
+global ZeroAddress
+==
+assert        // Lease must be zero
+
+// Validate transaction type
+txn TypeEnum
+int 1
+==
+assert        // Must be payment transaction
 
 int 1
 return
