@@ -9,6 +9,8 @@ use std::collections::HashMap;
 pub struct Assembler {
     /// Program version
     version: u8,
+    /// Type tracking enabled
+    typetrack: bool,
     /// Label to address mapping
     labels: HashMap<String, usize>,
     /// Forward label references to resolve
@@ -31,20 +33,58 @@ impl Assembler {
             let line = line.trim();
 
             // Skip empty lines and comments
-            if line.is_empty() || line.starts_with("//") {
+            if line.is_empty() || line.starts_with("//") || line.starts_with(";") {
                 continue;
             }
 
-            // Handle version pragma
-            if line.starts_with("#pragma version") {
+            // Handle inline comments (remove everything after ; or //)
+            let line = if let Some(pos) = line.find(';') {
+                line[..pos].trim()
+            } else if let Some(pos) = line.find("//") {
+                line[..pos].trim()
+            } else {
+                line
+            };
+
+            // Skip if line becomes empty after comment removal
+            if line.is_empty() {
+                continue;
+            }
+
+            // Handle pragma directives
+            if line.starts_with("#pragma") {
                 let parts: Vec<&str> = line.split_whitespace().collect();
                 if parts.len() >= 3 {
-                    self.version = parts[2].parse().map_err(|_| {
-                        AvmError::assembly_error(format!(
-                            "Invalid version on line {}",
-                            line_num + 1
-                        ))
-                    })?;
+                    match parts[1] {
+                        "version" => {
+                            self.version = parts[2].parse().map_err(|_| {
+                                AvmError::assembly_error(format!(
+                                    "Invalid version on line {}",
+                                    line_num + 1
+                                ))
+                            })?;
+                        }
+                        "typetrack" => {
+                            self.typetrack = parts[2].parse().map_err(|_| {
+                                AvmError::assembly_error(format!(
+                                    "Invalid typetrack value on line {}",
+                                    line_num + 1
+                                ))
+                            })?;
+                        }
+                        _ => {
+                            return Err(AvmError::assembly_error(format!(
+                                "Unknown pragma directive '{}' on line {}",
+                                parts[1],
+                                line_num + 1
+                            )));
+                        }
+                    }
+                } else {
+                    return Err(AvmError::assembly_error(format!(
+                        "Invalid pragma syntax on line {}",
+                        line_num + 1
+                    )));
                 }
                 continue;
             }
@@ -182,7 +222,24 @@ impl Assembler {
                 self.assemble_branch_target(bytecode, args, line_num)?;
             }
 
-            // Constants
+            // Constants (high-level syntax)
+            "int" => {
+                bytecode.push(OP_PUSHINT);
+                self.assemble_int_immediate(bytecode, args, line_num)?;
+            }
+            "byte" => {
+                bytecode.push(OP_PUSHBYTES);
+                self.assemble_bytes_immediate(bytecode, args, line_num)?;
+            }
+            "addr" => {
+                bytecode.push(OP_PUSHBYTES);
+                self.assemble_addr_immediate(bytecode, args, line_num)?;
+            }
+            "method" => {
+                bytecode.push(OP_PUSHBYTES);
+                self.assemble_method_immediate(bytecode, args, line_num)?;
+            }
+            // Low-level opcodes (for direct use if needed)
             "pushint" => {
                 bytecode.push(OP_PUSHINT);
                 self.assemble_int_immediate(bytecode, args, line_num)?;
@@ -191,6 +248,42 @@ impl Assembler {
                 bytecode.push(OP_PUSHBYTES);
                 self.assemble_bytes_immediate(bytecode, args, line_num)?;
             }
+
+            // Constant block opcodes
+            "intcblock" => {
+                bytecode.push(OP_INTCBLOCK);
+                // TODO: Implement intcblock assembly with multiple constants
+            }
+            "intc" => {
+                bytecode.push(OP_INTC);
+                self.assemble_byte_immediate(bytecode, args, line_num)?;
+            }
+            "intc_0" => bytecode.push(OP_INTC_0),
+            "intc_1" => bytecode.push(OP_INTC_1),
+            "intc_2" => bytecode.push(OP_INTC_2),
+            "intc_3" => bytecode.push(OP_INTC_3),
+            "bytecblock" => {
+                bytecode.push(OP_BYTECBLOCK);
+                // TODO: Implement bytecblock assembly with multiple constants
+            }
+            "bytec" => {
+                bytecode.push(OP_BYTEC);
+                self.assemble_byte_immediate(bytecode, args, line_num)?;
+            }
+            "bytec_0" => bytecode.push(OP_BYTEC_0),
+            "bytec_1" => bytecode.push(OP_BYTEC_1),
+            "bytec_2" => bytecode.push(OP_BYTEC_2),
+            "bytec_3" => bytecode.push(OP_BYTEC_3),
+
+            // Arguments
+            "arg" => {
+                bytecode.push(OP_ARG);
+                self.assemble_byte_immediate(bytecode, args, line_num)?;
+            }
+            "arg_0" => bytecode.push(OP_ARG_0),
+            "arg_1" => bytecode.push(OP_ARG_1),
+            "arg_2" => bytecode.push(OP_ARG_2),
+            "arg_3" => bytecode.push(OP_ARG_3),
 
             // Utility
             "len" => bytecode.push(OP_LEN),
@@ -357,15 +450,30 @@ impl Assembler {
             )));
         }
 
-        let value: u64 = args[0].parse().map_err(|_| {
-            AvmError::assembly_error(format!(
-                "Invalid integer '{}' on line {}",
-                args[0], line_num
-            ))
-        })?;
-
+        let value = self.parse_integer(args[0], line_num)?;
         bytecode.extend_from_slice(&value.to_be_bytes());
         Ok(())
+    }
+
+    /// Parse integer from various formats (decimal, hex, octal, binary)
+    fn parse_integer(&self, input: &str, line_num: usize) -> AvmResult<u64> {
+        let value = if input.starts_with("0x") || input.starts_with("0X") {
+            // Hexadecimal
+            u64::from_str_radix(&input[2..], 16)
+        } else if input.starts_with("0o") || input.starts_with("0O") {
+            // Octal
+            u64::from_str_radix(&input[2..], 8)
+        } else if input.starts_with("0b") || input.starts_with("0B") {
+            // Binary
+            u64::from_str_radix(&input[2..], 2)
+        } else {
+            // Decimal
+            input.parse::<u64>()
+        };
+
+        value.map_err(|_| {
+            AvmError::assembly_error(format!("Invalid integer '{input}' on line {line_num}"))
+        })
     }
 
     /// Assemble byte immediate value
@@ -405,18 +513,7 @@ impl Assembler {
             )));
         }
 
-        let arg = args[0];
-        let bytes = if let Some(stripped) = arg.strip_prefix("0x") {
-            hex::decode(stripped).map_err(|_| {
-                AvmError::assembly_error(format!("Invalid hex bytes '{arg}' on line {line_num}"))
-            })?
-        } else if arg.starts_with('"') && arg.ends_with('"') {
-            arg.as_bytes()[1..arg.len() - 1].to_vec()
-        } else {
-            return Err(AvmError::assembly_error(format!(
-                "Invalid bytes format '{arg}' on line {line_num}"
-            )));
-        };
+        let bytes = self.parse_bytes(args, line_num)?;
 
         if bytes.len() > 255 {
             return Err(AvmError::assembly_error(format!(
@@ -429,6 +526,183 @@ impl Assembler {
         bytecode.push(bytes.len() as u8);
         bytecode.extend_from_slice(&bytes);
         Ok(())
+    }
+
+    /// Parse bytes from various formats
+    fn parse_bytes(&self, args: &[&str], line_num: usize) -> AvmResult<Vec<u8>> {
+        if args.is_empty() {
+            return Err(AvmError::assembly_error(format!(
+                "Missing bytes value on line {line_num}"
+            )));
+        }
+
+        // Handle different byte formats
+        if args.len() >= 2 && (args[0] == "base64" || args[0] == "b64") {
+            // base64 format: byte base64 AAAA... or byte b64 AAAA...
+            let b64_data = args[1..].join("");
+            use base64::{Engine as _, engine::general_purpose};
+            general_purpose::STANDARD
+                .decode(b64_data)
+                .map_err(|_| AvmError::assembly_error(format!("Invalid base64 on line {line_num}")))
+        } else if args.len() == 1 {
+            let arg = args[0];
+            if let Some(stripped) = arg.strip_prefix("0x") {
+                // Hex format: byte 0x1234...
+                hex::decode(stripped).map_err(|_| {
+                    AvmError::assembly_error(format!(
+                        "Invalid hex bytes '{arg}' on line {line_num}"
+                    ))
+                })
+            } else if arg.starts_with('"') && arg.ends_with('"') {
+                // String literal: byte "hello"
+                let content = &arg[1..arg.len() - 1];
+                Ok(self.parse_string_literal(content)?)
+            } else {
+                // Try to parse as base32 (Algorand address)
+                self.try_parse_base32(arg, line_num)
+            }
+        } else {
+            Err(AvmError::assembly_error(format!(
+                "Invalid bytes format on line {line_num}"
+            )))
+        }
+    }
+
+    /// Parse string literal with escape sequences
+    fn parse_string_literal(&self, content: &str) -> AvmResult<Vec<u8>> {
+        let mut result = Vec::new();
+        let mut chars = content.chars();
+
+        while let Some(ch) = chars.next() {
+            if ch == '\\' {
+                match chars.next() {
+                    Some('n') => result.push(b'\n'),
+                    Some('t') => result.push(b'\t'),
+                    Some('r') => result.push(b'\r'),
+                    Some('\\') => result.push(b'\\'),
+                    Some('"') => result.push(b'"'),
+                    Some('x') => {
+                        // Hex escape: \x41
+                        let c1 = chars.next();
+                        let c2 = chars.next();
+                        if let (Some(c1), Some(c2)) = (c1, c2) {
+                            let hex = format!("{c1}{c2}");
+                            if let Ok(byte) = u8::from_str_radix(&hex, 16) {
+                                result.push(byte);
+                            } else {
+                                return Err(AvmError::assembly_error(
+                                    "Invalid hex escape sequence".to_string(),
+                                ));
+                            }
+                        } else {
+                            return Err(AvmError::assembly_error(
+                                "Invalid hex escape sequence".to_string(),
+                            ));
+                        }
+                    }
+                    Some(c) => result.push(c as u8),
+                    None => {
+                        return Err(AvmError::assembly_error(
+                            "Incomplete escape sequence".to_string(),
+                        ));
+                    }
+                }
+            } else {
+                result.push(ch as u8);
+            }
+        }
+
+        Ok(result)
+    }
+
+    /// Try to parse as base32 (Algorand address format)
+    fn try_parse_base32(&self, input: &str, line_num: usize) -> AvmResult<Vec<u8>> {
+        // For now, just return an error since we'd need a base32 library
+        Err(AvmError::assembly_error(format!(
+            "Base32 addresses not yet supported: '{input}' on line {line_num}"
+        )))
+    }
+
+    /// Assemble address immediate value
+    fn assemble_addr_immediate(
+        &mut self,
+        bytecode: &mut Vec<u8>,
+        args: &[&str],
+        line_num: usize,
+    ) -> AvmResult<()> {
+        if args.is_empty() {
+            return Err(AvmError::assembly_error(format!(
+                "Missing address value on line {line_num}"
+            )));
+        }
+
+        // Parse Algorand address (base32) and convert to bytes
+        let addr_bytes = self.parse_algorand_address(args[0], line_num)?;
+
+        if addr_bytes.len() > 255 {
+            return Err(AvmError::assembly_error(format!(
+                "Address too long ({} > 255) on line {}",
+                addr_bytes.len(),
+                line_num
+            )));
+        }
+
+        bytecode.push(addr_bytes.len() as u8);
+        bytecode.extend_from_slice(&addr_bytes);
+        Ok(())
+    }
+
+    /// Assemble method selector immediate value
+    fn assemble_method_immediate(
+        &mut self,
+        bytecode: &mut Vec<u8>,
+        args: &[&str],
+        line_num: usize,
+    ) -> AvmResult<()> {
+        if args.is_empty() {
+            return Err(AvmError::assembly_error(format!(
+                "Missing method signature on line {line_num}"
+            )));
+        }
+
+        // Join all args to form method signature, then compute selector
+        let method_sig = args.join(" ");
+        let selector = self.compute_method_selector(&method_sig)?;
+
+        bytecode.push(4); // Method selector is always 4 bytes
+        bytecode.extend_from_slice(&selector);
+        Ok(())
+    }
+
+    /// Parse Algorand address from base32 format
+    fn parse_algorand_address(&self, addr: &str, line_num: usize) -> AvmResult<Vec<u8>> {
+        // For now, return a placeholder since we'd need a proper base32 decoder
+        // In a full implementation, this would decode the base32 address
+        // and validate the checksum
+        if addr.len() != 58 {
+            return Err(AvmError::assembly_error(format!(
+                "Invalid Algorand address length on line {line_num}: expected 58 characters"
+            )));
+        }
+
+        // Placeholder implementation - return 32 zero bytes
+        // Real implementation would use base32 decoding
+        Ok(vec![0u8; 32])
+    }
+
+    /// Compute ARC-4 method selector from method signature
+    fn compute_method_selector(&self, method_sig: &str) -> AvmResult<[u8; 4]> {
+        use sha2::{Digest, Sha256};
+
+        // Compute SHA-256 hash of method signature
+        let mut hasher = Sha256::new();
+        hasher.update(method_sig.as_bytes());
+        let hash = hasher.finalize();
+
+        // Take first 4 bytes as method selector
+        let mut selector = [0u8; 4];
+        selector.copy_from_slice(&hash[..4]);
+        Ok(selector)
     }
 
     /// Assemble substring arguments
@@ -700,12 +974,54 @@ pub fn disassemble(bytecode: &[u8]) -> AvmResult<String> {
             OP_BALANCE => ("balance".to_string(), 1),
             OP_MIN_BALANCE => ("min_balance".to_string(), 1),
 
+            // Constant block opcodes
+            OP_INTCBLOCK => ("intcblock".to_string(), 1), // TODO: Parse multiple constants
+            OP_INTC => {
+                if pc + 1 < bytecode.len() {
+                    let index = bytecode[pc + 1];
+                    (format!("intc {index}"), 2)
+                } else {
+                    ("intc <invalid>".to_string(), 1)
+                }
+            }
+            OP_INTC_0 => ("intc_0".to_string(), 1),
+            OP_INTC_1 => ("intc_1".to_string(), 1),
+            OP_INTC_2 => ("intc_2".to_string(), 1),
+            OP_INTC_3 => ("intc_3".to_string(), 1),
+            OP_BYTECBLOCK => ("bytecblock".to_string(), 1), // TODO: Parse multiple constants
+            OP_BYTEC => {
+                if pc + 1 < bytecode.len() {
+                    let index = bytecode[pc + 1];
+                    (format!("bytec {index}"), 2)
+                } else {
+                    ("bytec <invalid>".to_string(), 1)
+                }
+            }
+            OP_BYTEC_0 => ("bytec_0".to_string(), 1),
+            OP_BYTEC_1 => ("bytec_1".to_string(), 1),
+            OP_BYTEC_2 => ("bytec_2".to_string(), 1),
+            OP_BYTEC_3 => ("bytec_3".to_string(), 1),
+
+            // Argument opcodes
+            OP_ARG => {
+                if pc + 1 < bytecode.len() {
+                    let index = bytecode[pc + 1];
+                    (format!("arg {index}"), 2)
+                } else {
+                    ("arg <invalid>".to_string(), 1)
+                }
+            }
+            OP_ARG_0 => ("arg_0".to_string(), 1),
+            OP_ARG_1 => ("arg_1".to_string(), 1),
+            OP_ARG_2 => ("arg_2".to_string(), 1),
+            OP_ARG_3 => ("arg_3".to_string(), 1),
+
             OP_PUSHINT => {
                 if pc + 8 < bytecode.len() {
                     let value = u64::from_be_bytes(bytecode[pc + 1..pc + 9].try_into().unwrap());
-                    (format!("pushint {value}"), 9)
+                    (format!("int {value}"), 9)
                 } else {
-                    ("pushint <invalid>".to_string(), 1)
+                    ("int <invalid>".to_string(), 1)
                 }
             }
 
@@ -714,12 +1030,19 @@ pub fn disassemble(bytecode: &[u8]) -> AvmResult<String> {
                     let len = bytecode[pc + 1] as usize;
                     if pc + 1 + len < bytecode.len() {
                         let bytes = &bytecode[pc + 2..pc + 2 + len];
-                        (format!("pushbytes 0x{}", hex::encode(bytes)), 2 + len)
+                        if bytes.iter().all(|&b| b.is_ascii() && !b.is_ascii_control()) {
+                            (
+                                format!("byte \"{}\"", String::from_utf8_lossy(bytes)),
+                                2 + len,
+                            )
+                        } else {
+                            (format!("byte 0x{}", hex::encode(bytes)), 2 + len)
+                        }
                     } else {
-                        ("pushbytes <invalid>".to_string(), 1)
+                        ("byte <invalid>".to_string(), 1)
                     }
                 } else {
-                    ("pushbytes <invalid>".to_string(), 1)
+                    ("byte <invalid>".to_string(), 1)
                 }
             }
 
