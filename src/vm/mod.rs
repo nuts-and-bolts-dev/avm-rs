@@ -120,6 +120,12 @@ pub struct EvalContext<'a> {
 
     /// Enable tracing
     trace_enabled: bool,
+
+    /// Function frame stack
+    frame_stack: Vec<Vec<StackValue>>,
+
+    /// Current function prototype (args, returns)
+    function_prototype: Option<(usize, usize)>,
 }
 
 impl<'a> EvalContext<'a> {
@@ -150,6 +156,8 @@ impl<'a> EvalContext<'a> {
             local_state_cache: HashMap::new(),
             trace: Vec::new(),
             trace_enabled: false,
+            frame_stack: Vec::new(),
+            function_prototype: None,
         }
     }
 
@@ -345,6 +353,77 @@ impl<'a> EvalContext<'a> {
     /// Check if execution is finished
     pub fn is_finished(&self) -> bool {
         self.pc >= self.program.len()
+    }
+
+    /// Set function prototype
+    pub fn set_function_prototype(&mut self, args: usize, returns: usize) -> AvmResult<()> {
+        self.function_prototype = Some((args, returns));
+        Ok(())
+    }
+
+    /// Dig value from function frame
+    pub fn frame_dig(&self, depth: i8) -> AvmResult<StackValue> {
+        if self.frame_stack.is_empty() {
+            return Err(AvmError::invalid_program("No function frame available"));
+        }
+
+        let current_frame = self.frame_stack.last().unwrap();
+        let index = if depth < 0 {
+            // Negative depth: access from bottom of frame
+            (-depth - 1) as usize
+        } else {
+            // Positive depth: access from top of frame
+            if current_frame.len() <= depth as usize {
+                return Err(AvmError::invalid_program("Frame dig index out of bounds"));
+            }
+            current_frame.len() - 1 - (depth as usize)
+        };
+
+        if index >= current_frame.len() {
+            return Err(AvmError::invalid_program("Frame dig index out of bounds"));
+        }
+
+        Ok(current_frame[index].clone())
+    }
+
+    /// Bury value in function frame
+    pub fn frame_bury(&mut self, depth: i8, value: StackValue) -> AvmResult<()> {
+        if self.frame_stack.is_empty() {
+            return Err(AvmError::invalid_program("No function frame available"));
+        }
+
+        let current_frame = self.frame_stack.last_mut().unwrap();
+        let index = if depth < 0 {
+            // Negative depth: access from bottom of frame
+            (-depth - 1) as usize
+        } else {
+            // Positive depth: access from top of frame
+            if current_frame.len() <= depth as usize {
+                return Err(AvmError::invalid_program("Frame bury index out of bounds"));
+            }
+            current_frame.len() - 1 - (depth as usize)
+        };
+
+        if index >= current_frame.len() {
+            return Err(AvmError::invalid_program("Frame bury index out of bounds"));
+        }
+
+        current_frame[index] = value;
+        Ok(())
+    }
+
+    /// Branch to a relative target
+    pub fn branch(&mut self, target: i16) -> AvmResult<()> {
+        let new_pc = if target < 0 {
+            self.pc.checked_sub((-target) as usize)
+        } else {
+            self.pc.checked_add(target as usize)
+        }
+        .ok_or(AvmError::InvalidBranchTarget {
+            target: target as i32,
+        })?;
+
+        self.set_pc(new_pc)
     }
 }
 

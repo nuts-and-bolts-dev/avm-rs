@@ -32,6 +32,9 @@ pub enum AvmError {
     #[error("Integer overflow in arithmetic operation")]
     IntegerOverflow,
 
+    #[error("Integer underflow in arithmetic operation")]
+    IntegerUnderflow,
+
     #[error("Invalid branch target: {target}")]
     InvalidBranchTarget { target: i32 },
 

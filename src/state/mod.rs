@@ -348,6 +348,9 @@ pub trait LedgerAccess: std::fmt::Debug {
 
     /// Get transaction group
     fn transaction_group(&self) -> AvmResult<&[Transaction]>;
+
+    /// Get program arguments for current transaction
+    fn program_args(&self) -> AvmResult<&[Vec<u8>]>;
 }
 
 /// Mock ledger implementation for testing
@@ -374,6 +377,7 @@ pub struct MockLedger {
     caller_app_addr: Option<Address>,
     transactions: Vec<Transaction>,
     current_txn_index: usize,
+    program_args: Vec<Vec<u8>>,
 }
 
 impl MockLedger {
@@ -487,6 +491,11 @@ impl MockLedger {
         self.current_txn_index = index;
     }
 
+    /// Set program arguments
+    pub fn set_program_args(&mut self, args: Vec<Vec<u8>>) {
+        self.program_args = args;
+    }
+
     /// Set up a simple payment transaction group
     pub fn setup_payment_transaction(
         &mut self,
@@ -544,6 +553,7 @@ impl MockLedger {
             caller_app_addr: None,
             transactions: Vec::new(),
             current_txn_index: 0,
+            program_args: Vec::new(),
         };
 
         // Add a default payment transaction
@@ -779,5 +789,9 @@ impl LedgerAccess for MockLedger {
 
     fn transaction_group(&self) -> AvmResult<&[Transaction]> {
         Ok(&self.transactions)
+    }
+
+    fn program_args(&self) -> AvmResult<&[Vec<u8>]> {
+        Ok(&self.program_args)
     }
 }
