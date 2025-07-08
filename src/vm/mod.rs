@@ -450,6 +450,16 @@ impl VirtualMachine {
         self.opcodes.insert(opcode, spec);
     }
 
+    /// Get the number of registered opcodes (for debugging)
+    pub fn opcode_count(&self) -> usize {
+        self.opcodes.len()
+    }
+
+    /// Check if an opcode is registered (for debugging)
+    pub fn has_opcode(&self, opcode: u8) -> bool {
+        self.opcodes.contains_key(&opcode)
+    }
+
     /// Execute a TEAL program with automatic configuration
     pub fn execute_simple(
         &self,
