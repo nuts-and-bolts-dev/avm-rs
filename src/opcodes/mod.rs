@@ -289,9 +289,11 @@ pub const OP_MIMC: u8 = 0xe6;
 // Opcode execution functions - these will be implemented in separate modules
 pub mod arguments;
 pub mod arithmetic;
+pub mod box_storage;
 pub mod bytes;
 pub mod constants;
 pub mod crypto;
+pub mod elliptic_curve;
 pub mod flow;
 pub mod functions;
 pub mod inner_transactions;
@@ -301,9 +303,11 @@ pub mod transaction;
 
 pub use arguments::*;
 pub use arithmetic::*;
+pub use box_storage::*;
 pub use bytes::*;
 pub use constants::*;
 pub use crypto::*;
+pub use elliptic_curve::*;
 pub use flow::*;
 pub use functions::*;
 pub use inner_transactions::*;
@@ -1458,6 +1462,163 @@ pub fn get_standard_opcodes() -> Vec<OpSpec> {
             1,
             3,
             "Access array field from specific inner transaction in group (stack index).",
+        ),
+        // Box storage operations
+        OpSpec::app_only(
+            OP_BOX_CREATE,
+            "box_create",
+            op_box_create,
+            8,
+            400,
+            1,
+            "Create a new box with the given name and size.",
+        ),
+        OpSpec::app_only(
+            OP_BOX_EXTRACT,
+            "box_extract",
+            op_box_extract,
+            8,
+            40,
+            1,
+            "Extract bytes from a box.",
+        ),
+        OpSpec::app_only(
+            OP_BOX_REPLACE,
+            "box_replace",
+            op_box_replace,
+            8,
+            40,
+            1,
+            "Replace bytes in a box.",
+        ),
+        OpSpec::app_only(OP_BOX_DEL, "box_del", op_box_del, 8, 40, 1, "Delete a box."),
+        OpSpec::app_only(
+            OP_BOX_LEN,
+            "box_len",
+            op_box_len,
+            8,
+            40,
+            1,
+            "Get the length of a box.",
+        ),
+        OpSpec::app_only(
+            OP_BOX_GET,
+            "box_get",
+            op_box_get,
+            8,
+            40,
+            1,
+            "Get the entire contents of a box.",
+        ),
+        OpSpec::app_only(
+            OP_BOX_PUT,
+            "box_put",
+            op_box_put,
+            8,
+            40,
+            1,
+            "Put bytes into a box (overwrite entire contents).",
+        ),
+        OpSpec::app_only(
+            OP_BOX_SPLICE,
+            "box_splice",
+            op_box_splice,
+            9,
+            40,
+            1,
+            "Splice bytes into a box (insert/replace with size change).",
+        ),
+        OpSpec::app_only(
+            OP_BOX_RESIZE,
+            "box_resize",
+            op_box_resize,
+            9,
+            40,
+            1,
+            "Resize a box.",
+        ),
+        // Elliptic curve operations
+        OpSpec::app_only(
+            OP_EC_ADD,
+            "ec_add",
+            op_ec_add,
+            10,
+            100,
+            2,
+            "Add two points on an elliptic curve.",
+        ),
+        OpSpec::app_only(
+            OP_EC_SCALAR_MUL,
+            "ec_scalar_mul",
+            op_ec_scalar_mul,
+            10,
+            1000,
+            2,
+            "Multiply a point by a scalar on an elliptic curve.",
+        ),
+        OpSpec::app_only(
+            OP_EC_PAIRING_CHECK,
+            "ec_pairing_check",
+            op_ec_pairing_check,
+            10,
+            8000,
+            2,
+            "Check if pairing equation holds for given points.",
+        ),
+        OpSpec::app_only(
+            OP_EC_MULTI_SCALAR_MUL,
+            "ec_multi_scalar_mul",
+            op_ec_multi_scalar_mul,
+            10,
+            3000,
+            2,
+            "Multi-scalar multiplication on elliptic curves.",
+        ),
+        OpSpec::app_only(
+            OP_EC_SUBGROUP_CHECK,
+            "ec_subgroup_check",
+            op_ec_subgroup_check,
+            10,
+            500,
+            2,
+            "Check if a point is in the correct subgroup.",
+        ),
+        OpSpec::app_only(
+            OP_EC_MAP_TO,
+            "ec_map_to",
+            op_ec_map_to,
+            10,
+            200,
+            2,
+            "Map field element to curve point.",
+        ),
+        // Advanced cryptography operations
+        OpSpec::app_only(
+            OP_VRF_VERIFY,
+            "vrf_verify",
+            op_vrf_verify,
+            7,
+            5700,
+            1,
+            "Verify a VRF proof and return the VRF output.",
+        ),
+        OpSpec::app_only(
+            OP_MIMC,
+            "mimc",
+            op_mimc,
+            11,
+            100,
+            2,
+            "Advanced cryptographic hash function (MiMC).",
+        ),
+        OpSpec::app_only(
+            OP_BLOCK,
+            "block",
+            op_block,
+            11,
+            1,
+            2,
+            "Get random bytes from blockchain randomness beacon.",
         ),
     ]
 }

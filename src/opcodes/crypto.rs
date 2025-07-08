@@ -229,3 +229,62 @@ pub fn op_vrf_verify(ctx: &mut EvalContext) -> AvmResult<()> {
     ctx.advance_pc(1)?;
     Ok(())
 }
+
+/// Advanced cryptographic hash function (MiMC)
+pub fn op_mimc(ctx: &mut EvalContext) -> AvmResult<()> {
+    ctx.advance_pc(1)?;
+    let round_count = ctx.read_bytes(1)?[0] as usize;
+    ctx.advance_pc(1)?;
+
+    let message = ctx.pop()?;
+    let key = ctx.pop()?;
+
+    let _message_bytes = message.as_bytes()?;
+    let _key_bytes = key.as_bytes()?;
+
+    // Validate round count
+    if round_count == 0 || round_count > 255 {
+        return Err(AvmError::invalid_program("Invalid MiMC round count"));
+    }
+
+    // In a real implementation, this would:
+    // 1. Implement the MiMC hash function
+    // 2. Use the specified number of rounds
+    // 3. Apply the key and message according to MiMC specification
+
+    // For now, return placeholder hash
+    ctx.push(StackValue::Bytes(vec![0u8; 32]))?;
+    Ok(())
+}
+
+/// Get random bytes from blockchain randomness beacon
+pub fn op_block(ctx: &mut EvalContext) -> AvmResult<()> {
+    ctx.advance_pc(1)?;
+    let field_id = ctx.read_bytes(1)?[0];
+    ctx.advance_pc(1)?;
+
+    let block_num = ctx.pop()?;
+    let _block_number = block_num.as_uint()?;
+
+    // Block fields:
+    // 0 - BlkSeed: randomness seed for the block
+    // 1 - BlkTimestamp: timestamp of the block
+    match field_id {
+        0 => {
+            // BlkSeed - return 32 bytes of randomness
+            ctx.push(StackValue::Bytes(vec![0u8; 32]))?;
+        }
+        1 => {
+            // BlkTimestamp - return timestamp as uint64
+            ctx.push(StackValue::Uint(0))?;
+        }
+        _ => {
+            return Err(AvmError::invalid_program(format!(
+                "Invalid block field: {}",
+                field_id
+            )));
+        }
+    }
+
+    Ok(())
+}

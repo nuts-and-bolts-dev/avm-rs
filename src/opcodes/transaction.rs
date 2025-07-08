@@ -357,3 +357,119 @@ fn get_global_field(ctx: &EvalContext, field: GlobalField) -> AvmResult<StackVal
     let teal_value = ctx.ledger().get_global_field(field)?;
     Ok(teal_value.to_stack_value())
 }
+
+/// Access group transaction field with both group and field from stack (v5 enhanced)
+pub fn op_gtxnsas(ctx: &mut EvalContext) -> AvmResult<()> {
+    ctx.advance_pc(1)?;
+
+    let array_index = ctx.pop()?;
+    let field_index = ctx.pop()?;
+    let group_index = ctx.pop()?;
+
+    let field_id = field_index.as_uint()? as u8;
+    let field = parse_txn_field(field_id)?;
+    let group_idx = group_index.as_uint()? as usize;
+    let array_idx = array_index.as_uint()? as usize;
+
+    let result = get_group_txn_field_array(ctx, group_idx, field, array_idx)?;
+    ctx.push(result)?;
+    Ok(())
+}
+
+/// Get scratch space value from specific slot and account (enhanced)
+pub fn op_gloadss(ctx: &mut EvalContext) -> AvmResult<()> {
+    ctx.advance_pc(1)?;
+
+    let slot = ctx.pop()?;
+    let account = ctx.pop()?;
+
+    let slot_idx = slot.as_uint()? as u8;
+    let _account_idx = account.as_uint()? as usize;
+
+    // In a real implementation, this would access scratch space for a specific account
+    // For now, use the current scratch space
+    let value = ctx.get_scratch(slot_idx)?;
+    ctx.push(value.clone())?;
+    Ok(())
+}
+
+/// Get application ID from current or specific app call transaction
+pub fn op_gaid(ctx: &mut EvalContext) -> AvmResult<()> {
+    ctx.advance_pc(1)?;
+    let _group_index = ctx.read_bytes(1)?[0] as usize;
+    ctx.advance_pc(1)?;
+
+    // In a real implementation, this would get the application ID from the specified transaction
+    // For now, return placeholder value
+    ctx.push(StackValue::Uint(0))?;
+    Ok(())
+}
+
+/// Get application ID from current or specific app call transaction (stack index)
+pub fn op_gaids(ctx: &mut EvalContext) -> AvmResult<()> {
+    ctx.advance_pc(1)?;
+
+    let group_index = ctx.pop()?;
+    let _group_idx = group_index.as_uint()? as usize;
+
+    // In a real implementation, this would get the application ID from the specified transaction
+    // For now, return placeholder value
+    ctx.push(StackValue::Uint(0))?;
+    Ok(())
+}
+
+/// Load value from scratch space with stack index
+pub fn op_loads(ctx: &mut EvalContext) -> AvmResult<()> {
+    ctx.advance_pc(1)?;
+
+    let slot = ctx.pop()?;
+    let slot_idx = slot.as_uint()? as u8;
+
+    let value = ctx.get_scratch(slot_idx)?;
+    ctx.push(value.clone())?;
+    Ok(())
+}
+
+/// Store value to scratch space with stack index
+pub fn op_stores(ctx: &mut EvalContext) -> AvmResult<()> {
+    ctx.advance_pc(1)?;
+
+    let value = ctx.pop()?;
+    let slot = ctx.pop()?;
+    let slot_idx = slot.as_uint()? as u8;
+
+    ctx.set_scratch(slot_idx, value)?;
+    Ok(())
+}
+
+/// Get scratch space value from specific slot (immediate index)
+pub fn op_gload(ctx: &mut EvalContext) -> AvmResult<()> {
+    ctx.advance_pc(1)?;
+    let _group_index = ctx.read_bytes(1)?[0] as usize;
+    ctx.advance_pc(1)?;
+    let slot = ctx.read_bytes(1)?[0];
+    ctx.advance_pc(1)?;
+
+    // In a real implementation, this would access scratch space from a specific transaction
+    // For now, use the current scratch space
+    let value = ctx.get_scratch(slot)?;
+    ctx.push(value.clone())?;
+    Ok(())
+}
+
+/// Get scratch space value from specific slot (stack indices)
+pub fn op_gloads(ctx: &mut EvalContext) -> AvmResult<()> {
+    ctx.advance_pc(1)?;
+
+    let slot = ctx.pop()?;
+    let group_index = ctx.pop()?;
+
+    let slot_idx = slot.as_uint()? as u8;
+    let _group_idx = group_index.as_uint()? as usize;
+
+    // In a real implementation, this would access scratch space from a specific transaction
+    // For now, use the current scratch space
+    let value = ctx.get_scratch(slot_idx)?;
+    ctx.push(value.clone())?;
+    Ok(())
+}
