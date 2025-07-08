@@ -23,6 +23,7 @@ pub fn op_app_global_get(ctx: &mut EvalContext) -> AvmResult<()> {
         }
     }
 
+    ctx.advance_pc(1)?;
     Ok(())
 }
 
@@ -46,6 +47,7 @@ pub fn op_app_global_get_ex(ctx: &mut EvalContext) -> AvmResult<()> {
         }
     }
 
+    ctx.advance_pc(1)?;
     Ok(())
 }
 
@@ -107,6 +109,7 @@ pub fn op_app_local_get(ctx: &mut EvalContext) -> AvmResult<()> {
         }
     }
 
+    ctx.advance_pc(1)?;
     Ok(())
 }
 
@@ -135,6 +138,7 @@ pub fn op_app_local_get_ex(ctx: &mut EvalContext) -> AvmResult<()> {
         }
     }
 
+    ctx.advance_pc(1)?;
     Ok(())
 }
 
@@ -185,6 +189,7 @@ pub fn op_app_opted_in(ctx: &mut EvalContext) -> AvmResult<()> {
     let opted_in = ctx.ledger().app_opted_in(&account_addr, app_id_val)?;
     ctx.push(StackValue::Uint(if opted_in { 1 } else { 0 }))?;
 
+    ctx.advance_pc(1)?;
     Ok(())
 }
 
@@ -196,6 +201,7 @@ pub fn op_balance(ctx: &mut EvalContext) -> AvmResult<()> {
     let balance = ctx.ledger().balance(&account_addr)?;
     ctx.push(StackValue::Uint(balance))?;
 
+    ctx.advance_pc(1)?;
     Ok(())
 }
 
@@ -207,6 +213,7 @@ pub fn op_min_balance(ctx: &mut EvalContext) -> AvmResult<()> {
     let min_balance = ctx.ledger().min_balance(&account_addr)?;
     ctx.push(StackValue::Uint(min_balance))?;
 
+    ctx.advance_pc(1)?;
     Ok(())
 }
 

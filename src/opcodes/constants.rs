@@ -204,5 +204,6 @@ pub fn op_bzero(ctx: &mut EvalContext) -> AvmResult<()> {
 
     let result = vec![0u8; len];
     ctx.push(StackValue::Bytes(result))?;
+    ctx.advance_pc(1)?;
     Ok(())
 }

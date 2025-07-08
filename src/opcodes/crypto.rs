@@ -17,6 +17,7 @@ pub fn op_sha256(ctx: &mut EvalContext) -> AvmResult<()> {
     let result = hasher.finalize();
 
     ctx.push(StackValue::Bytes(result.to_vec()))?;
+    ctx.advance_pc(1)?;
     Ok(())
 }
 
@@ -30,6 +31,7 @@ pub fn op_keccak256(ctx: &mut EvalContext) -> AvmResult<()> {
     let result = hasher.finalize();
 
     ctx.push(StackValue::Bytes(result.to_vec()))?;
+    ctx.advance_pc(1)?;
     Ok(())
 }
 
@@ -44,6 +46,7 @@ pub fn op_sha512_256(ctx: &mut EvalContext) -> AvmResult<()> {
 
     // Take first 32 bytes for SHA512/256
     ctx.push(StackValue::Bytes(result[..32].to_vec()))?;
+    ctx.advance_pc(1)?;
     Ok(())
 }
 
@@ -57,6 +60,7 @@ pub fn op_sha3_256(ctx: &mut EvalContext) -> AvmResult<()> {
     let result = hasher.finalize();
 
     ctx.push(StackValue::Bytes(result.to_vec()))?;
+    ctx.advance_pc(1)?;
     Ok(())
 }
 
@@ -106,6 +110,7 @@ pub fn op_ed25519verify(ctx: &mut EvalContext) -> AvmResult<()> {
     };
 
     ctx.push(StackValue::Uint(result))?;
+    ctx.advance_pc(1)?;
     Ok(())
 }
 
@@ -155,6 +160,7 @@ pub fn op_ed25519verify_bare(ctx: &mut EvalContext) -> AvmResult<()> {
     };
 
     ctx.push(StackValue::Uint(result))?;
+    ctx.advance_pc(1)?;
     Ok(())
 }
 
@@ -173,6 +179,7 @@ pub fn op_ecdsa_verify(ctx: &mut EvalContext) -> AvmResult<()> {
     // For now, return a placeholder implementation
     // Full ECDSA verification would require secp256k1 library
     ctx.push(StackValue::Uint(0))?;
+    ctx.advance_pc(1)?;
     Ok(())
 }
 
@@ -184,6 +191,7 @@ pub fn op_ecdsa_pk_decompress(ctx: &mut EvalContext) -> AvmResult<()> {
     // Placeholder implementation
     // Full implementation would decompress the public key
     ctx.push(StackValue::Bytes(vec![0u8; 64]))?;
+    ctx.advance_pc(1)?;
     Ok(())
 }
 
@@ -200,6 +208,7 @@ pub fn op_ecdsa_pk_recover(ctx: &mut EvalContext) -> AvmResult<()> {
     // Placeholder implementation
     // Full implementation would recover the public key
     ctx.push(StackValue::Bytes(vec![0u8; 64]))?;
+    ctx.advance_pc(1)?;
     Ok(())
 }
 
@@ -217,5 +226,6 @@ pub fn op_vrf_verify(ctx: &mut EvalContext) -> AvmResult<()> {
     // Full VRF verification would be implemented here
     ctx.push(StackValue::Bytes(vec![0u8; 64]))?; // VRF output
     ctx.push(StackValue::Uint(0))?; // Verification result
+    ctx.advance_pc(1)?;
     Ok(())
 }
