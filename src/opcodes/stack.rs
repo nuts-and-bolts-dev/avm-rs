@@ -131,8 +131,9 @@ pub fn op_uncover(ctx: &mut EvalContext) -> AvmResult<()> {
 
 /// Load value from scratch space
 pub fn op_load(ctx: &mut EvalContext) -> AvmResult<()> {
+    ctx.advance_pc(1)?; // advance past opcode
     let index = ctx.read_bytes(1)?[0];
-    ctx.advance_pc(1)?;
+    ctx.advance_pc(1)?; // advance past immediate
 
     let value = ctx.get_scratch(index)?.clone();
     ctx.push(value)?;
@@ -141,8 +142,9 @@ pub fn op_load(ctx: &mut EvalContext) -> AvmResult<()> {
 
 /// Store value to scratch space
 pub fn op_store(ctx: &mut EvalContext) -> AvmResult<()> {
+    ctx.advance_pc(1)?; // advance past opcode
     let index = ctx.read_bytes(1)?[0];
-    ctx.advance_pc(1)?;
+    ctx.advance_pc(1)?; // advance past immediate
 
     let value = ctx.pop()?;
     ctx.set_scratch(index, value)?;
