@@ -107,24 +107,28 @@ pub fn op_intc(ctx: &mut EvalContext) -> AvmResult<()> {
 /// Load integer constant 0
 pub fn op_intc_0(ctx: &mut EvalContext) -> AvmResult<()> {
     ctx.push(StackValue::Uint(0))?;
+    ctx.advance_pc(1)?;
     Ok(())
 }
 
 /// Load integer constant 1
 pub fn op_intc_1(ctx: &mut EvalContext) -> AvmResult<()> {
     ctx.push(StackValue::Uint(1))?;
+    ctx.advance_pc(1)?;
     Ok(())
 }
 
 /// Load integer constant 2
 pub fn op_intc_2(ctx: &mut EvalContext) -> AvmResult<()> {
     ctx.push(StackValue::Uint(2))?;
+    ctx.advance_pc(1)?;
     Ok(())
 }
 
 /// Load integer constant 3
 pub fn op_intc_3(ctx: &mut EvalContext) -> AvmResult<()> {
     ctx.push(StackValue::Uint(3))?;
+    ctx.advance_pc(1)?;
     Ok(())
 }
 
@@ -161,24 +165,28 @@ pub fn op_bytec(ctx: &mut EvalContext) -> AvmResult<()> {
 /// Load byte constant 0
 pub fn op_bytec_0(ctx: &mut EvalContext) -> AvmResult<()> {
     ctx.push(StackValue::Bytes(vec![0]))?;
+    ctx.advance_pc(1)?;
     Ok(())
 }
 
 /// Load byte constant 1
 pub fn op_bytec_1(ctx: &mut EvalContext) -> AvmResult<()> {
     ctx.push(StackValue::Bytes(vec![1]))?;
+    ctx.advance_pc(1)?;
     Ok(())
 }
 
 /// Load byte constant 2
 pub fn op_bytec_2(ctx: &mut EvalContext) -> AvmResult<()> {
     ctx.push(StackValue::Bytes(vec![2]))?;
+    ctx.advance_pc(1)?;
     Ok(())
 }
 
 /// Load byte constant 3
 pub fn op_bytec_3(ctx: &mut EvalContext) -> AvmResult<()> {
     ctx.push(StackValue::Bytes(vec![3]))?;
+    ctx.advance_pc(1)?;
     Ok(())
 }
 
