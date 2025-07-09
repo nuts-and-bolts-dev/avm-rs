@@ -334,7 +334,6 @@ pub fn op_b_not(ctx: &mut EvalContext) -> AvmResult<()> {
 }
 
 /// Byte manipulation operations
-
 /// Get bit from bytes
 pub fn op_getbit(ctx: &mut EvalContext) -> AvmResult<()> {
     ctx.advance_pc(1)?;
@@ -347,8 +346,7 @@ pub fn op_getbit(ctx: &mut EvalContext) -> AvmResult<()> {
     let total_bits = bytes.len() * 8;
     if bit_idx >= total_bits {
         return Err(AvmError::invalid_program(format!(
-            "Bit index {} out of bounds for {} bits",
-            bit_idx, total_bits
+            "Bit index {bit_idx} out of bounds for {total_bits} bits"
         )));
     }
 
@@ -374,8 +372,7 @@ pub fn op_setbit(ctx: &mut EvalContext) -> AvmResult<()> {
     let total_bits = bytes.len() * 8;
     if bit_idx >= total_bits {
         return Err(AvmError::invalid_program(format!(
-            "Bit index {} out of bounds for {} bits",
-            bit_idx, total_bits
+            "Bit index {bit_idx} out of bounds for {total_bits} bits"
         )));
     }
 
@@ -676,7 +673,7 @@ pub fn op_json_ref(ctx: &mut EvalContext) -> AvmResult<()> {
         0 => {
             // JSONString
             // Very basic string extraction - in production use serde_json
-            let result = format!("\"{}\"", key_str); // Placeholder
+            let result = format!("\"{key_str}\""); // Placeholder
             ctx.push(StackValue::Bytes(result.into_bytes()))?;
         }
         1 => {

@@ -124,8 +124,7 @@ impl InnerTransactionField {
             53 => Ok(Self::LastLog),
             54 => Ok(Self::NumLogs),
             _ => Err(AvmError::invalid_program(format!(
-                "Invalid inner transaction field: {}",
-                id
+                "Invalid inner transaction field: {id}"
             ))),
         }
     }
@@ -228,7 +227,7 @@ pub fn op_itxna(ctx: &mut EvalContext) -> AvmResult<()> {
     // In a real implementation, this would get the indexed field from the last inner transaction
     // For now, return placeholder values
     match field_id {
-        40 | 41 | 42 | 43 => {
+        40..=43 => {
             // Array fields
             ctx.push(StackValue::Bytes(Vec::new()))?;
         }
@@ -291,7 +290,7 @@ pub fn op_gitxna(ctx: &mut EvalContext) -> AvmResult<()> {
     // In a real implementation, this would get the indexed field from the specified inner transaction
     // For now, return placeholder values
     match field_id {
-        40 | 41 | 42 | 43 => {
+        40..=43 => {
             // Array fields
             ctx.push(StackValue::Bytes(Vec::new()))?;
         }
@@ -317,7 +316,7 @@ pub fn op_itxnas(ctx: &mut EvalContext) -> AvmResult<()> {
     // In a real implementation, this would get the indexed field from the last inner transaction
     // For now, return placeholder values
     match field_id {
-        40 | 41 | 42 | 43 => {
+        40..=43 => {
             // Array fields
             ctx.push(StackValue::Bytes(Vec::new()))?;
         }
@@ -345,7 +344,7 @@ pub fn op_gitxnas(ctx: &mut EvalContext) -> AvmResult<()> {
     // In a real implementation, this would get the indexed field from the specified inner transaction
     // For now, return placeholder values
     match field_id {
-        40 | 41 | 42 | 43 => {
+        40..=43 => {
             // Array fields
             ctx.push(StackValue::Bytes(Vec::new()))?;
         }

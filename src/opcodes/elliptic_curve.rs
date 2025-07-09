@@ -22,8 +22,7 @@ impl EllipticCurve {
             2 => Ok(Self::BLS12_381g1),
             3 => Ok(Self::BLS12_381g2),
             _ => Err(AvmError::invalid_program(format!(
-                "Invalid elliptic curve: {}",
-                id
+                "Invalid elliptic curve: {id}"
             ))),
         }
     }

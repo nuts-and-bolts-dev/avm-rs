@@ -29,7 +29,7 @@ pub fn op_dup2(ctx: &mut EvalContext) -> AvmResult<()> {
     let top_val = ctx.peek()?.clone();
     ctx.push(top_val.clone())?;
     ctx.push(top_val)?;
-    
+
     ctx.advance_pc(1)?;
     Ok(())
 }

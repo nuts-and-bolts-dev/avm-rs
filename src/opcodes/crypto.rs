@@ -279,8 +279,7 @@ pub fn op_block(ctx: &mut EvalContext) -> AvmResult<()> {
         }
         _ => {
             return Err(AvmError::invalid_program(format!(
-                "Invalid block field: {}",
-                field_id
+                "Invalid block field: {field_id}"
             )));
         }
     }
