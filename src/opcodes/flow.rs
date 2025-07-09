@@ -16,6 +16,7 @@ pub fn op_bnz(ctx: &mut EvalContext) -> AvmResult<()> {
     let condition = val.as_bool()?;
 
     if condition {
+        // Offset is relative to the PC after the instruction
         let target = (ctx.pc() as i32 + offset as i32) as usize;
         ctx.set_pc(target)?;
     }
@@ -36,6 +37,7 @@ pub fn op_bz(ctx: &mut EvalContext) -> AvmResult<()> {
     let condition = val.as_bool()?;
 
     if !condition {
+        // Offset is relative to the PC after the instruction
         let target = (ctx.pc() as i32 + offset as i32) as usize;
         ctx.set_pc(target)?;
     }
@@ -52,6 +54,7 @@ pub fn op_b(ctx: &mut EvalContext) -> AvmResult<()> {
     ctx.advance_pc(2)?;
     let offset = i16::from_be_bytes([offset_bytes[0], offset_bytes[1]]);
 
+    // Offset is relative to the PC after the instruction
     let target = (ctx.pc() as i32 + offset as i32) as usize;
     ctx.set_pc(target)?;
 
@@ -89,6 +92,7 @@ pub fn op_callsub(ctx: &mut EvalContext) -> AvmResult<()> {
     ctx.advance_pc(2)?;
     let offset = i16::from_be_bytes([offset_bytes[0], offset_bytes[1]]);
 
+    // Offset is relative to the PC after the instruction
     let target = (ctx.pc() as i32 + offset as i32) as usize;
     ctx.call_subroutine(target)?;
 

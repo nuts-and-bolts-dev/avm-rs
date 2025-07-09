@@ -19,19 +19,17 @@ pub fn op_dup(ctx: &mut EvalContext) -> AvmResult<()> {
     Ok(())
 }
 
-/// Duplicate the top two stack values
+/// Duplicate the top two stack values  
 pub fn op_dup2(ctx: &mut EvalContext) -> AvmResult<()> {
     if ctx.stack_size() < 2 {
         return Err(AvmError::StackUnderflow);
     }
 
-    let b = ctx.pop()?;
-    let a = ctx.pop()?;
-
-    ctx.push(a.clone())?;
-    ctx.push(b.clone())?;
-    ctx.push(a)?;
-    ctx.push(b)?;
+    // Get the top value and duplicate it twice
+    let top_val = ctx.peek()?.clone();
+    ctx.push(top_val.clone())?;
+    ctx.push(top_val)?;
+    
     ctx.advance_pc(1)?;
     Ok(())
 }
@@ -223,9 +221,11 @@ pub fn op_concat(ctx: &mut EvalContext) -> AvmResult<()> {
 
 /// Extract substring with immediate start and length
 pub fn op_substring(ctx: &mut EvalContext) -> AvmResult<()> {
+    ctx.advance_pc(1)?; // advance past opcode
     let start = ctx.read_bytes(1)?[0] as usize;
+    ctx.advance_pc(1)?; // advance past start parameter
     let length = ctx.read_bytes(1)?[0] as usize;
-    ctx.advance_pc(2)?;
+    ctx.advance_pc(1)?; // advance past length parameter
 
     let val = ctx.pop()?;
     let bytes = val.as_bytes()?;
@@ -267,8 +267,9 @@ pub fn op_substring3(ctx: &mut EvalContext) -> AvmResult<()> {
 
 /// Duplicate N values from top of stack
 pub fn op_dupn(ctx: &mut EvalContext) -> AvmResult<()> {
+    ctx.advance_pc(1)?; // advance past opcode
     let n = ctx.read_bytes(1)?[0] as usize;
-    ctx.advance_pc(1)?;
+    ctx.advance_pc(1)?; // advance past parameter
 
     if n == 0 {
         return Ok(());
@@ -299,8 +300,9 @@ pub fn op_dupn(ctx: &mut EvalContext) -> AvmResult<()> {
 
 /// Pop N values from top of stack
 pub fn op_popn(ctx: &mut EvalContext) -> AvmResult<()> {
+    ctx.advance_pc(1)?; // advance past opcode
     let n = ctx.read_bytes(1)?[0] as usize;
-    ctx.advance_pc(1)?;
+    ctx.advance_pc(1)?; // advance past parameter
 
     if ctx.stack_size() < n {
         return Err(AvmError::StackUnderflow);
