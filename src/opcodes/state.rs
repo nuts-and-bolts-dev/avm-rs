@@ -53,34 +53,35 @@ pub fn op_app_global_get_ex(ctx: &mut EvalContext) -> AvmResult<()> {
 
 /// Set global state value
 pub fn op_app_global_put(ctx: &mut EvalContext) -> AvmResult<()> {
-    let _value = ctx.pop()?;
-    let _key = ctx.pop()?;
+    let value = ctx.pop()?;
+    let key = ctx.pop()?;
 
-    let _key_bytes = _key.as_bytes()?;
-    let _key_str = String::from_utf8_lossy(_key_bytes);
-    let _teal_value = TealValue::from_stack_value(&_value);
+    let key_bytes = key.as_bytes()?;
+    let key_str = String::from_utf8_lossy(key_bytes);
+    let teal_value = TealValue::from_stack_value(&value);
 
-    let _app_id = ctx.ledger().current_application_id()?;
+    let app_id = ctx.ledger().current_application_id()?;
 
-    // TODO: Restructure ledger access pattern to support mutable global state modification
-    // This requires a mutable reference to the ledger, which our current design doesn't support
-    Err(AvmError::state_error(
-        "Global state modification not implemented in current design",
-    ))
+    // Now we can call the mutable operation through interior mutability
+    ctx.ledger().app_global_put(app_id, &key_str, teal_value)?;
+    
+    ctx.advance_pc(1)?;
+    Ok(())
 }
 
 /// Delete global state value
 pub fn op_app_global_del(ctx: &mut EvalContext) -> AvmResult<()> {
-    let _key = ctx.pop()?;
-    let _key_bytes = _key.as_bytes()?;
-    let _key_str = String::from_utf8_lossy(_key_bytes);
+    let key = ctx.pop()?;
+    let key_bytes = key.as_bytes()?;
+    let key_str = String::from_utf8_lossy(key_bytes);
 
-    let _app_id = ctx.ledger().current_application_id()?;
+    let app_id = ctx.ledger().current_application_id()?;
 
-    // TODO: Implement global state deletion with mutable ledger access
-    Err(AvmError::state_error(
-        "Global state deletion not implemented in current design",
-    ))
+    // Now we can call the mutable operation through interior mutability
+    ctx.ledger().app_global_del(app_id, &key_str)?;
+    
+    ctx.advance_pc(1)?;
+    Ok(())
 }
 
 /// Get local state value
@@ -143,38 +144,40 @@ pub fn op_app_local_get_ex(ctx: &mut EvalContext) -> AvmResult<()> {
 
 /// Set local state value
 pub fn op_app_local_put(ctx: &mut EvalContext) -> AvmResult<()> {
-    let _value = ctx.pop()?;
-    let _key = ctx.pop()?;
-    let _account = ctx.pop()?;
+    let value = ctx.pop()?;
+    let key = ctx.pop()?;
+    let account = ctx.pop()?;
 
-    let _key_bytes = _key.as_bytes()?;
-    let _key_str = String::from_utf8_lossy(_key_bytes);
-    let _account_addr = _account.as_bytes()?.to_vec();
-    let _teal_value = TealValue::from_stack_value(&_value);
+    let key_bytes = key.as_bytes()?;
+    let key_str = String::from_utf8_lossy(key_bytes);
+    let account_addr = account.as_bytes()?.to_vec();
+    let teal_value = TealValue::from_stack_value(&value);
 
-    let _app_id = ctx.ledger().current_application_id()?;
+    let app_id = ctx.ledger().current_application_id()?;
 
-    // Note: Same issue - needs mutable ledger access
-    Err(AvmError::state_error(
-        "Local state modification not implemented in current design",
-    ))
+    // Now we can call the mutable operation through interior mutability
+    ctx.ledger().app_local_put(&account_addr, app_id, &key_str, teal_value)?;
+    
+    ctx.advance_pc(1)?;
+    Ok(())
 }
 
 /// Delete local state value
 pub fn op_app_local_del(ctx: &mut EvalContext) -> AvmResult<()> {
-    let _key = ctx.pop()?;
-    let _account = ctx.pop()?;
+    let key = ctx.pop()?;
+    let account = ctx.pop()?;
 
-    let _key_bytes = _key.as_bytes()?;
-    let _key_str = String::from_utf8_lossy(_key_bytes);
-    let _account_addr = _account.as_bytes()?.to_vec();
+    let key_bytes = key.as_bytes()?;
+    let key_str = String::from_utf8_lossy(key_bytes);
+    let account_addr = account.as_bytes()?.to_vec();
 
-    let _app_id = ctx.ledger().current_application_id()?;
+    let app_id = ctx.ledger().current_application_id()?;
 
-    // Note: Same issue - needs mutable ledger access
-    Err(AvmError::state_error(
-        "Local state deletion not implemented in current design",
-    ))
+    // Now we can call the mutable operation through interior mutability
+    ctx.ledger().app_local_del(&account_addr, app_id, &key_str)?;
+    
+    ctx.advance_pc(1)?;
+    Ok(())
 }
 
 /// Check if account has opted into application
