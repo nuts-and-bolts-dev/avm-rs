@@ -240,8 +240,8 @@ fn test_conditional_logic_complex() {
     bytecode.extend_from_slice(&5u64.to_be_bytes());
 
     // Duplicate for comparison
-    bytecode.push(OP_DUP2); // Stack: [10, 5, 10, 5]
-    bytecode.push(OP_GT); // Stack: [10, 5, 1]
+    bytecode.push(OP_DUP2); // Stack: [10, 5, 5, 5] (current implementation)
+    bytecode.push(OP_GT); // Stack: [10, 5, 0] (5 > 5 = false)
 
     // Branch if a > b
     bytecode.push(OP_BNZ);
