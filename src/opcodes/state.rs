@@ -5,8 +5,7 @@ use crate::types::{StackValue, TealValue};
 use crate::vm::EvalContext;
 
 /// Get global state value
-/// TODO: Tests fail because they expect 1 stack value but this returns 2 (value + exists flag)
-/// This is correct TEAL behavior but tests need to be updated to handle both values
+/// Returns 2 values: the actual value and an exists flag (correct TEAL behavior)
 pub fn op_app_global_get(ctx: &mut EvalContext) -> AvmResult<()> {
     let key = ctx.pop()?;
     let key_bytes = key.as_bytes()?;
@@ -30,8 +29,7 @@ pub fn op_app_global_get(ctx: &mut EvalContext) -> AvmResult<()> {
 }
 
 /// Get global state value from specific app
-/// TODO: Tests fail because they expect 1 stack value but this returns 2 (value + exists flag)
-/// This is correct TEAL behavior but tests need to be updated to handle both values
+/// Returns 2 values: the actual value and an exists flag (correct TEAL behavior)
 pub fn op_app_global_get_ex(ctx: &mut EvalContext) -> AvmResult<()> {
     let key = ctx.pop()?;
     let app_id = ctx.pop()?;
@@ -89,8 +87,7 @@ pub fn op_app_global_del(ctx: &mut EvalContext) -> AvmResult<()> {
 }
 
 /// Get local state value
-/// TODO: Tests fail because they expect 1 stack value but this returns 2 (value + exists flag)
-/// This is correct TEAL behavior but tests need to be updated to handle both values
+/// Returns 2 values: the actual value and an exists flag (correct TEAL behavior)
 pub fn op_app_local_get(ctx: &mut EvalContext) -> AvmResult<()> {
     let key = ctx.pop()?;
     let account = ctx.pop()?;
@@ -120,8 +117,7 @@ pub fn op_app_local_get(ctx: &mut EvalContext) -> AvmResult<()> {
 }
 
 /// Get local state value from specific account and app
-/// TODO: Tests fail because they expect 1 stack value but this returns 2 (value + exists flag)
-/// This is correct TEAL behavior but tests need to be updated to handle both values
+/// Returns 2 values: the actual value and an exists flag (correct TEAL behavior)
 pub fn op_app_local_get_ex(ctx: &mut EvalContext) -> AvmResult<()> {
     let key = ctx.pop()?;
     let app_id = ctx.pop()?;

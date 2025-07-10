@@ -53,9 +53,6 @@ pub fn op_txnas(ctx: &mut EvalContext) -> AvmResult<()> {
 }
 
 /// Access group transaction field
-/// TODO: Tests fail with "Group index 1 out of bounds (group size: 1)" 
-/// Tests expect multi-transaction groups but mock ledger only has 1 transaction
-/// Need to update test setup to create proper transaction groups
 pub fn op_gtxn(ctx: &mut EvalContext) -> AvmResult<()> {
     // Advance past the opcode first
     ctx.advance_pc(1)?;
@@ -80,9 +77,6 @@ pub fn op_gtxn(ctx: &mut EvalContext) -> AvmResult<()> {
 }
 
 /// Access group transaction field array element
-/// TODO: Tests fail with "Group index 1 out of bounds (group size: 1)"
-/// Tests expect multi-transaction groups but mock ledger only has 1 transaction
-/// Need to update test setup to create proper transaction groups
 pub fn op_gtxna(ctx: &mut EvalContext) -> AvmResult<()> {
     // Advance past the opcode first
     ctx.advance_pc(1)?;
@@ -109,9 +103,6 @@ pub fn op_gtxna(ctx: &mut EvalContext) -> AvmResult<()> {
 }
 
 /// Access group transaction field with stack index
-/// TODO: Tests fail with "Group index 1 out of bounds (group size: 1)"
-/// Tests expect multi-transaction groups but mock ledger only has 1 transaction
-/// Need to update test setup to create proper transaction groups
 pub fn op_gtxns(ctx: &mut EvalContext) -> AvmResult<()> {
     // Advance past the opcode first
     ctx.advance_pc(1)?;
@@ -137,9 +128,6 @@ pub fn op_gtxns(ctx: &mut EvalContext) -> AvmResult<()> {
 }
 
 /// Access group transaction field array with stack indices
-/// TODO: Tests fail with "Group index 1 out of bounds (group size: 1)"
-/// Tests expect multi-transaction groups but mock ledger only has 1 transaction
-/// Need to update test setup to create proper transaction groups
 pub fn op_gtxnsa(ctx: &mut EvalContext) -> AvmResult<()> {
     // Advance past the opcode first
     ctx.advance_pc(1)?;
@@ -168,8 +156,6 @@ pub fn op_gtxnsa(ctx: &mut EvalContext) -> AvmResult<()> {
 }
 
 /// Access global field
-/// TODO: Test for GroupSize expects 2 transactions but mock ledger has 1
-/// Global fields like GroupSize need proper transaction group setup in tests
 pub fn op_global(ctx: &mut EvalContext) -> AvmResult<()> {
     // Advance past the opcode first
     ctx.advance_pc(1)?;
