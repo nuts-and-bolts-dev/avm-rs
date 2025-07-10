@@ -213,8 +213,14 @@ pub enum TealVersion {
     V6 = 6,
     /// TEAL version 7 (added inner transactions)
     V7 = 7,
-    /// TEAL version 8 (latest version)
+    /// TEAL version 8 (added box storage)
     V8 = 8,
+    /// TEAL version 9 (added more box operations)
+    V9 = 9,
+    /// TEAL version 10 (added elliptic curve operations)
+    V10 = 10,
+    /// TEAL version 11 (added MIMC hash and block opcode)
+    V11 = 11,
 }
 
 impl TealVersion {
@@ -229,6 +235,9 @@ impl TealVersion {
             6 => Ok(Self::V6),
             7 => Ok(Self::V7),
             8 => Ok(Self::V8),
+            9 => Ok(Self::V9),
+            10 => Ok(Self::V10),
+            11 => Ok(Self::V11),
             _ => Err(crate::error::AvmError::UnsupportedVersion(version)),
         }
     }
@@ -240,7 +249,7 @@ impl TealVersion {
 
     /// Get the latest supported version
     pub const fn latest() -> Self {
-        Self::V8
+        Self::V11
     }
 
     /// Check if this version supports a specific feature
@@ -263,6 +272,21 @@ impl TealVersion {
         self >= Self::V5
     }
 
+    /// Check if this version supports extended box operations (splice, resize)
+    pub fn supports_extended_box_ops(self) -> bool {
+        self >= Self::V9
+    }
+
+    /// Check if this version supports elliptic curve operations
+    pub fn supports_elliptic_curve_ops(self) -> bool {
+        self >= Self::V10
+    }
+
+    /// Check if this version supports MIMC hash and block randomness
+    pub fn supports_mimc_and_block(self) -> bool {
+        self >= Self::V11
+    }
+
     /// Get all available versions
     pub const fn all() -> &'static [Self] {
         &[
@@ -274,6 +298,9 @@ impl TealVersion {
             Self::V6,
             Self::V7,
             Self::V8,
+            Self::V9,
+            Self::V10,
+            Self::V11,
         ]
     }
 }

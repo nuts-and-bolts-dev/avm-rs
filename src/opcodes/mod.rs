@@ -772,15 +772,6 @@ pub fn get_standard_opcodes() -> Vec<OpSpec> {
             1,
             "ECDSA public key recovery.",
         ),
-        OpSpec::both_modes(
-            OP_VRF_VERIFY,
-            "vrf_verify",
-            op_vrf_verify,
-            1,
-            5700,
-            1,
-            "VRF verification.",
-        ),
         // Constants
         OpSpec::both_modes(
             OP_PUSHINT,
