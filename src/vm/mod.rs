@@ -217,6 +217,34 @@ impl<'a> EvalContext<'a> {
         self.stack.is_empty()
     }
 
+    /// Get value at stack depth N (0 = top, 1 = one below top, etc.)
+    pub fn peek_at_depth(&self, depth: usize) -> AvmResult<&StackValue> {
+        if depth >= self.stack.len() {
+            return Err(AvmError::StackUnderflow);
+        }
+        let index = self.stack.len() - 1 - depth;
+        Ok(&self.stack[index])
+    }
+
+    /// Remove value at stack depth N and return it
+    pub fn remove_at_depth(&mut self, depth: usize) -> AvmResult<StackValue> {
+        if depth >= self.stack.len() {
+            return Err(AvmError::StackUnderflow);
+        }
+        let index = self.stack.len() - 1 - depth;
+        Ok(self.stack.remove(index))
+    }
+
+    /// Insert value at stack depth N (0 = top)
+    pub fn insert_at_depth(&mut self, depth: usize, value: StackValue) -> AvmResult<()> {
+        if depth > self.stack.len() {
+            return Err(AvmError::StackUnderflow);
+        }
+        let index = self.stack.len() - depth;
+        self.stack.insert(index, value);
+        Ok(())
+    }
+
     /// Get the current program counter
     pub fn pc(&self) -> usize {
         self.pc

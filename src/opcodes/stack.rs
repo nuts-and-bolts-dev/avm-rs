@@ -61,6 +61,7 @@ pub fn op_select(ctx: &mut EvalContext) -> AvmResult<()> {
 
 /// Dig value from stack depth N
 pub fn op_dig(ctx: &mut EvalContext) -> AvmResult<()> {
+    ctx.advance_pc(1)?;
     // Get the depth from the immediate value
     let depth = ctx.read_bytes(1)?[0] as usize;
     ctx.advance_pc(1)?;
@@ -69,19 +70,15 @@ pub fn op_dig(ctx: &mut EvalContext) -> AvmResult<()> {
         return Err(AvmError::StackUnderflow);
     }
 
-    // Get the value at depth N from the top
-    let stack_len = ctx.stack_size();
-    let _target_idx = stack_len - 1 - depth;
-
-    // TODO: Implement dig opcode with direct stack access
-    // Current API doesn't allow direct stack manipulation
-    Err(AvmError::invalid_program(
-        "dig opcode not fully implemented",
-    ))
+    // Get the value at depth N from the top and push a copy to the top
+    let value = ctx.peek_at_depth(depth)?.clone();
+    ctx.push(value)?;
+    Ok(())
 }
 
 /// Bury value at stack depth N
 pub fn op_bury(ctx: &mut EvalContext) -> AvmResult<()> {
+    ctx.advance_pc(1)?;
     // Get the depth from the immediate value
     let depth = ctx.read_bytes(1)?[0] as usize;
     ctx.advance_pc(1)?;
@@ -90,14 +87,16 @@ pub fn op_bury(ctx: &mut EvalContext) -> AvmResult<()> {
         return Err(AvmError::StackUnderflow);
     }
 
-    // Similar to dig, this needs direct stack access
-    Err(AvmError::invalid_program(
-        "bury opcode not fully implemented",
-    ))
+    // Pop the top value and replace the value at depth N
+    let value = ctx.pop()?;
+    let _ = ctx.remove_at_depth(depth)?; // Remove the old value
+    ctx.insert_at_depth(depth, value)?; // Insert the new value
+    Ok(())
 }
 
 /// Cover N values with top value
 pub fn op_cover(ctx: &mut EvalContext) -> AvmResult<()> {
+    ctx.advance_pc(1)?;
     let n = ctx.read_bytes(1)?[0] as usize;
     ctx.advance_pc(1)?;
 
@@ -105,14 +104,15 @@ pub fn op_cover(ctx: &mut EvalContext) -> AvmResult<()> {
         return Err(AvmError::StackUnderflow);
     }
 
-    // This needs direct stack manipulation
-    Err(AvmError::invalid_program(
-        "cover opcode not fully implemented",
-    ))
+    // Pop the top value and insert it at depth N+1
+    let value = ctx.pop()?;
+    ctx.insert_at_depth(n, value)?;
+    Ok(())
 }
 
 /// Uncover N values to top
 pub fn op_uncover(ctx: &mut EvalContext) -> AvmResult<()> {
+    ctx.advance_pc(1)?;
     let n = ctx.read_bytes(1)?[0] as usize;
     ctx.advance_pc(1)?;
 
@@ -120,10 +120,10 @@ pub fn op_uncover(ctx: &mut EvalContext) -> AvmResult<()> {
         return Err(AvmError::StackUnderflow);
     }
 
-    // This needs direct stack manipulation
-    Err(AvmError::invalid_program(
-        "uncover opcode not fully implemented",
-    ))
+    // Remove the value at depth N and push it to the top
+    let value = ctx.remove_at_depth(n)?;
+    ctx.push(value)?;
+    Ok(())
 }
 
 /// Load value from scratch space
