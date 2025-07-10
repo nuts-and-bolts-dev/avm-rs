@@ -21,7 +21,10 @@ fn test_op_app_global_get() {
     bytecode.extend_from_slice(b"counter");
     bytecode.push(OP_APP_GLOBAL_GET);
 
-    // app_global_get returns two values: value and exists flag
+    // app_global_get returns two values: [value, exists_flag] with exists_flag on top
+    // We want to test exists_flag, so swap to move value to top and pop it
+    bytecode.push(OP_SWAP);  // [exists_flag, value]  
+    bytecode.push(OP_POP);   // [exists_flag]
     // Check exists flag is 1
     bytecode = with_assert_equals(bytecode, StackValue::Uint(1));
 
@@ -74,6 +77,10 @@ fn test_op_app_global_get_ex() {
     bytecode.extend_from_slice(b"message");
     bytecode.push(OP_APP_GLOBAL_GET_EX);
 
+    // app_global_get_ex returns two values: [value, exists_flag] with exists_flag on top
+    // We want to test exists_flag, so swap to move value to top and pop it
+    bytecode.push(OP_SWAP);  // [exists_flag, value]  
+    bytecode.push(OP_POP);   // [exists_flag]
     // Check exists flag
     bytecode = with_assert_equals(bytecode, StackValue::Uint(1));
 
@@ -131,6 +138,10 @@ fn test_op_app_local_get() {
     bytecode.extend_from_slice(b"user_count");
     bytecode.push(OP_APP_LOCAL_GET);
 
+    // app_local_get returns two values: [value, exists_flag] with exists_flag on top
+    // We want to test exists_flag, so swap to move value to top and pop it
+    bytecode.push(OP_SWAP);  // [exists_flag, value]  
+    bytecode.push(OP_POP);   // [exists_flag]
     // Check exists flag
     bytecode = with_assert_equals(bytecode, StackValue::Uint(1));
 
@@ -243,6 +254,10 @@ fn test_op_asset_holding_get() {
     bytecode.push(OP_ASSET_HOLDING_GET);
     bytecode.push(0); // AssetBalance field
 
+    // asset_holding_get returns two values: [value, exists_flag] with exists_flag on top
+    // We want to test exists_flag, so swap to move value to top and pop it
+    bytecode.push(OP_SWAP);  // [exists_flag, value]  
+    bytecode.push(OP_POP);   // [exists_flag]
     // Check exists flag
     bytecode = with_assert_equals(bytecode, StackValue::Uint(1));
 
