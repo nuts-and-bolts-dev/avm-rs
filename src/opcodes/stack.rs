@@ -19,10 +19,7 @@ pub fn op_dup(ctx: &mut EvalContext) -> AvmResult<()> {
     Ok(())
 }
 
-/// Duplicate the top two stack values
-/// TODO: Implementation incorrect - currently duplicates top value twice instead of duplicating top TWO values
-/// Should copy values at positions 0,1 and push copies: [a,b] -> [a,b,a,b]
-/// Current implementation: [a,b] -> [a,b,b,b] (wrong!)
+/// Duplicate the top two stack values according to TEAL spec: [A, B] -> [A, B, A, B]
 pub fn op_dup2(ctx: &mut EvalContext) -> AvmResult<()> {
     if ctx.stack_size() < 2 {
         return Err(AvmError::StackUnderflow);

@@ -18,9 +18,9 @@
 //!    - Many opcodes read parameters before advancing PC
 //!    - Should advance PC past opcode first, then read parameters
 //!
-//! 4. **Stack Operation Bugs** (OP_DUP2, complex stack manipulation)
-//!    - OP_DUP2 duplicates top value twice instead of top TWO values
+//! 4. **Stack Operation Bugs** (complex stack manipulation)
 //!    - Large stack operations may hit size limits
+//!    - Complex combinations of stack ops may have edge cases
 //!
 //! 5. **Transaction Group Issues**
 //!    - Tests expect multi-transaction groups but mock ledger has only 1

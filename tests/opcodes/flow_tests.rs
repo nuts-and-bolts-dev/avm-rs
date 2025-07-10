@@ -239,22 +239,22 @@ fn test_conditional_logic_complex() {
     bytecode.push(0x81); // pushint b
     bytecode.extend_from_slice(&5u64.to_be_bytes());
 
-    // Duplicate for comparison
-    bytecode.push(OP_DUP2); // Stack: [10, 5, 5, 5] (current implementation)
-    bytecode.push(OP_GT); // Stack: [10, 5, 0] (5 > 5 = false)
+    // Duplicate top two values for comparison: [10, 5] -> [10, 5, 10, 5]
+    bytecode.push(OP_DUP2); // Stack: [10, 5, 10, 5] (TEAL spec)
+    bytecode.push(OP_GT); // Stack: [10, 5, 1] (10 > 5 = true)
 
     // Branch if a > b
     bytecode.push(OP_BNZ);
     bytecode.extend_from_slice(&0x0005u16.to_be_bytes()); // jump to a-b
 
-    // Else: b - a
-    bytecode.push(OP_SWAP);
-    bytecode.push(OP_MINUS);
+    // Else: b - a (stack: [10, 5])
+    bytecode.push(OP_SWAP); // [5, 10]
+    bytecode.push(OP_MINUS); // [5] (5 - 10 = -5, but we want b - a = 5 - 10)
     bytecode.push(OP_B); // jump to end
     bytecode.extend_from_slice(&0x0001u16.to_be_bytes());
 
-    // If: a - b
-    bytecode.push(OP_MINUS);
+    // If: a - b (stack: [10, 5])
+    bytecode.push(OP_MINUS); // [5] (10 - 5 = 5)
 
     // Result should be 5
     bytecode = with_assert_equals(bytecode, StackValue::Uint(5));
