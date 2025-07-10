@@ -5,6 +5,7 @@
 //! logic and transaction validation.
 
 pub mod assembler;
+pub mod cli;
 pub mod crypto;
 pub mod error;
 pub mod opcodes;
