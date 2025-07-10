@@ -97,6 +97,13 @@ fn test_factorial_computation() {
 fn test_fibonacci_iterative() {
     // Compute 10th Fibonacci number iteratively
     let mut bytecode = Vec::new();
+    
+    // Set up integer constants block: [0, 1, 2]
+    bytecode.push(OP_INTCBLOCK);
+    bytecode.push(3); // 3 constants
+    bytecode.extend_from_slice(&0u64.to_be_bytes()); // constant 0
+    bytecode.extend_from_slice(&1u64.to_be_bytes()); // constant 1
+    bytecode.extend_from_slice(&2u64.to_be_bytes()); // constant 2
 
     // Initialize: fib(0) = 0, fib(1) = 1
     bytecode.push(OP_INTC_0); // a = 0
