@@ -176,8 +176,8 @@ pub fn op_ecdsa_verify(ctx: &mut EvalContext) -> AvmResult<()> {
     let _data_bytes = data.as_bytes()?;
     let _recovery_id = recovery_id.as_uint()?;
 
+    // TODO: Implement ECDSA signature verification using secp256k1 library
     // For now, return a placeholder implementation
-    // Full ECDSA verification would require secp256k1 library
     ctx.push(StackValue::Uint(0))?;
     ctx.advance_pc(1)?;
     Ok(())
@@ -188,8 +188,8 @@ pub fn op_ecdsa_pk_decompress(ctx: &mut EvalContext) -> AvmResult<()> {
     let compressed_key = ctx.pop()?;
     let _key_bytes = compressed_key.as_bytes()?;
 
+    // TODO: Implement ECDSA public key decompression
     // Placeholder implementation
-    // Full implementation would decompress the public key
     ctx.push(StackValue::Bytes(vec![0u8; 64]))?;
     ctx.advance_pc(1)?;
     Ok(())
@@ -205,8 +205,8 @@ pub fn op_ecdsa_pk_recover(ctx: &mut EvalContext) -> AvmResult<()> {
     let _sig_bytes = signature.as_bytes()?;
     let _data_bytes = data.as_bytes()?;
 
+    // TODO: Implement ECDSA public key recovery from signature
     // Placeholder implementation
-    // Full implementation would recover the public key
     ctx.push(StackValue::Bytes(vec![0u8; 64]))?;
     ctx.advance_pc(1)?;
     Ok(())
@@ -222,8 +222,8 @@ pub fn op_vrf_verify(ctx: &mut EvalContext) -> AvmResult<()> {
     let _proof_bytes = proof.as_bytes()?;
     let _data_bytes = data.as_bytes()?;
 
+    // TODO: Implement VRF (Verifiable Random Function) verification
     // Placeholder implementation
-    // Full VRF verification would be implemented here
     ctx.push(StackValue::Bytes(vec![0u8; 64]))?; // VRF output
     ctx.push(StackValue::Uint(0))?; // Verification result
     ctx.advance_pc(1)?;
@@ -247,12 +247,11 @@ pub fn op_mimc(ctx: &mut EvalContext) -> AvmResult<()> {
         return Err(AvmError::invalid_program("Invalid MiMC round count"));
     }
 
-    // In a real implementation, this would:
+    // TODO: Implement MiMC hash function with configurable rounds
+    // Real implementation would:
     // 1. Implement the MiMC hash function
     // 2. Use the specified number of rounds
     // 3. Apply the key and message according to MiMC specification
-
-    // For now, return placeholder hash
     ctx.push(StackValue::Bytes(vec![0u8; 32]))?;
     Ok(())
 }

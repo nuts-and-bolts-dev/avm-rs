@@ -62,9 +62,8 @@ pub fn op_app_global_put(ctx: &mut EvalContext) -> AvmResult<()> {
 
     let _app_id = ctx.ledger().current_application_id()?;
 
-    // Note: This requires a mutable reference to the ledger, which our current
-    // design doesn't support. In a real implementation, we'd need to restructure
-    // the ledger access pattern.
+    // TODO: Restructure ledger access pattern to support mutable global state modification
+    // This requires a mutable reference to the ledger, which our current design doesn't support
     Err(AvmError::state_error(
         "Global state modification not implemented in current design",
     ))
@@ -78,7 +77,7 @@ pub fn op_app_global_del(ctx: &mut EvalContext) -> AvmResult<()> {
 
     let _app_id = ctx.ledger().current_application_id()?;
 
-    // Note: Same issue as app_global_put - needs mutable ledger access
+    // TODO: Implement global state deletion with mutable ledger access
     Err(AvmError::state_error(
         "Global state deletion not implemented in current design",
     ))

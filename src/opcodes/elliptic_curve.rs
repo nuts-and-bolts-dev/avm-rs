@@ -41,12 +41,11 @@ pub fn op_ec_add(ctx: &mut EvalContext) -> AvmResult<()> {
     let _a_bytes = point_a.as_bytes()?;
     let _b_bytes = point_b.as_bytes()?;
 
-    // In a real implementation, this would:
+    // TODO: Implement elliptic curve point addition for BN254 and BLS12-381
+    // Real implementation would:
     // 1. Parse the points according to curve format
     // 2. Perform elliptic curve point addition
     // 3. Return the result point
-
-    // For now, return empty point as placeholder
     ctx.push(StackValue::Bytes(Vec::new()))?;
     Ok(())
 }
@@ -64,12 +63,11 @@ pub fn op_ec_scalar_mul(ctx: &mut EvalContext) -> AvmResult<()> {
     let _point_bytes = point.as_bytes()?;
     let _scalar_bytes = scalar.as_bytes()?;
 
-    // In a real implementation, this would:
+    // TODO: Implement elliptic curve scalar multiplication
+    // Real implementation would:
     // 1. Parse the point and scalar according to curve format
     // 2. Perform elliptic curve scalar multiplication
     // 3. Return the result point
-
-    // For now, return empty point as placeholder
     ctx.push(StackValue::Bytes(Vec::new()))?;
     Ok(())
 }
@@ -85,12 +83,11 @@ pub fn op_ec_pairing_check(ctx: &mut EvalContext) -> AvmResult<()> {
     let _curve = EllipticCurve::from_id(curve_id)?;
     let _points_bytes = points.as_bytes()?;
 
-    // In a real implementation, this would:
+    // TODO: Implement pairing check for zero-knowledge proof verification
+    // Real implementation would:
     // 1. Parse the list of point pairs
     // 2. Compute the pairing for each pair
     // 3. Check if the product equals the identity element
-
-    // For now, return false as placeholder
     ctx.push(StackValue::Uint(0))?;
     Ok(())
 }

@@ -73,9 +73,8 @@ pub fn op_dig(ctx: &mut EvalContext) -> AvmResult<()> {
     let stack_len = ctx.stack_size();
     let _target_idx = stack_len - 1 - depth;
 
-    // We need to access the stack directly, but the current API doesn't allow it
-    // For now, we'll implement a simplified version
-    // This would need to be implemented with direct stack access
+    // TODO: Implement dig opcode with direct stack access
+    // Current API doesn't allow direct stack manipulation
     Err(AvmError::invalid_program(
         "dig opcode not fully implemented",
     ))

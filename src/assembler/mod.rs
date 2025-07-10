@@ -623,7 +623,7 @@ impl Assembler {
 
     /// Try to parse as base32 (Algorand address format)
     fn try_parse_base32(&self, input: &str, line_num: usize) -> AvmResult<Vec<u8>> {
-        // For now, just return an error since we'd need a base32 library
+        // TODO: Implement base32 address parsing with proper base32 decoder library
         Err(AvmError::assembly_error(format!(
             "Base32 addresses not yet supported: '{input}' on line {line_num}"
         )))
@@ -682,9 +682,8 @@ impl Assembler {
 
     /// Parse Algorand address from base32 format
     fn parse_algorand_address(&self, addr: &str, line_num: usize) -> AvmResult<Vec<u8>> {
-        // For now, return a placeholder since we'd need a proper base32 decoder
-        // In a full implementation, this would decode the base32 address
-        // and validate the checksum
+        // TODO: Implement proper base32 address decoding with checksum validation
+        // Real implementation would decode the base32 address and validate the checksum
         if addr.len() != 58 {
             return Err(AvmError::assembly_error(format!(
                 "Invalid Algorand address length on line {line_num}: expected 58 characters"
@@ -692,7 +691,6 @@ impl Assembler {
         }
 
         // Placeholder implementation - return 32 zero bytes
-        // Real implementation would use base32 decoding
         Ok(vec![0u8; 32])
     }
 

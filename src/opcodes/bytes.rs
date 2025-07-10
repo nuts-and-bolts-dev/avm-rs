@@ -668,11 +668,10 @@ pub fn op_json_ref(ctx: &mut EvalContext) -> AvmResult<()> {
     let key_str = std::str::from_utf8(key_bytes)
         .map_err(|_| AvmError::invalid_program("Invalid UTF-8 in JSON key"))?;
 
-    // Simple JSON parsing (in production, use a proper JSON library)
+    // TODO: Implement proper JSON parsing and field extraction using serde_json
     match return_type {
         0 => {
             // JSONString
-            // Very basic string extraction - in production use serde_json
             let result = format!("\"{key_str}\""); // Placeholder
             ctx.push(StackValue::Bytes(result.into_bytes()))?;
         }
