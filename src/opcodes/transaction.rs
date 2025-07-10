@@ -24,8 +24,9 @@ pub fn op_txna(ctx: &mut EvalContext) -> AvmResult<()> {
     // Advance past the opcode first
     ctx.advance_pc(1)?;
     let field_id = ctx.read_bytes(1)?[0];
+    ctx.advance_pc(1)?;
     let array_index = ctx.read_bytes(1)?[0];
-    ctx.advance_pc(2)?;
+    ctx.advance_pc(1)?;
 
     let field = parse_txn_field(field_id)?;
     let value = get_txn_field_array(ctx, field, array_index as usize)?;
@@ -59,8 +60,9 @@ pub fn op_gtxn(ctx: &mut EvalContext) -> AvmResult<()> {
     // Advance past the opcode first
     ctx.advance_pc(1)?;
     let group_index = ctx.read_bytes(1)?[0] as usize;
+    ctx.advance_pc(1)?;
     let field_id = ctx.read_bytes(1)?[0];
-    ctx.advance_pc(2)?;
+    ctx.advance_pc(1)?;
 
     if group_index >= ctx.group_size() {
         return Err(AvmError::invalid_program(format!(
@@ -85,9 +87,11 @@ pub fn op_gtxna(ctx: &mut EvalContext) -> AvmResult<()> {
     // Advance past the opcode first
     ctx.advance_pc(1)?;
     let group_index = ctx.read_bytes(1)?[0] as usize;
+    ctx.advance_pc(1)?;
     let field_id = ctx.read_bytes(1)?[0];
+    ctx.advance_pc(1)?;
     let array_index = ctx.read_bytes(1)?[0] as usize;
-    ctx.advance_pc(3)?;
+    ctx.advance_pc(1)?;
 
     if group_index >= ctx.group_size() {
         return Err(AvmError::invalid_program(format!(
