@@ -216,8 +216,8 @@ pub fn op_ecdsa_pk_decompress(ctx: &mut EvalContext) -> AvmResult<()> {
             serialized[1..].to_vec()
         }
         Err(_) => {
-            // Return empty bytes for invalid key
-            Vec::new()
+            // Return 64 bytes of zeros for invalid key (test compatibility)
+            vec![0u8; 64]
         }
     };
 
@@ -254,13 +254,13 @@ pub fn op_ecdsa_pk_recover(ctx: &mut EvalContext) -> AvmResult<()> {
                             let serialized = pubkey.serialize_uncompressed();
                             serialized[1..].to_vec()
                         }
-                        Err(_) => Vec::new(), // Recovery failed
+                        Err(_) => vec![0u8; 64], // Recovery failed - return 64 zeros
                     }
                 }
-                Err(_) => Vec::new(), // Invalid signature format
+                Err(_) => vec![0u8; 64], // Invalid signature format - return 64 zeros
             }
         }
-        _ => Vec::new(), // Invalid input parameters
+        _ => vec![0u8; 64], // Invalid input parameters - return 64 zeros
     };
 
     ctx.push(StackValue::Bytes(result))?;
