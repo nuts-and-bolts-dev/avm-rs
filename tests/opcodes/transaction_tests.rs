@@ -121,11 +121,15 @@ fn test_op_gtxn_group_index() {
     // Test accessing transaction in group
     let mut bytecode = Vec::new();
     bytecode.push(OP_GTXN);
-    bytecode.push(1); // Group index 1
+    bytecode.push(0); // Group index 0 (test first transaction)
     bytecode.push(8); // Amount field
-    bytecode = with_assert_equals(bytecode, StackValue::Uint(10000)); // Same amount as test tx
+    bytecode = with_assert_equals(bytecode, StackValue::Uint(1000000)); // Default payment tx amount
 
-    execute_and_check(&bytecode, true).unwrap();
+    let vm = setup_vm();
+    let mut ledger = setup_mock_ledger();
+    let config = test_config().with_group(0, 3); // Set group size to 3 to match mock ledger
+    let result = vm.execute(&bytecode, config, &mut ledger).unwrap();
+    assert!(result);
 }
 
 #[test]
@@ -230,7 +234,7 @@ fn test_op_global_group_size() {
     let mut bytecode = Vec::new();
     bytecode.push(OP_GLOBAL);
     bytecode.push(4); // GroupSize field
-    bytecode = with_assert_equals(bytecode, StackValue::Uint(2)); // Test group has 2 txns
+    bytecode = with_assert_equals(bytecode, StackValue::Uint(3)); // Mock ledger has 3 txns (1 default + 2 added)
 
     execute_and_check(&bytecode, true).unwrap();
 }

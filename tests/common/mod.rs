@@ -136,6 +136,9 @@ pub fn setup_mock_ledger() -> MockLedger {
     tx2.receiver = Some(vec![3u8; 32]);
     ledger.add_transaction(tx1);
     ledger.add_transaction(tx2);
+    
+    // Set current transaction index to first transaction
+    ledger.set_current_transaction_index(0);
 
     // Set account parameters
     ledger.set_account_params(
