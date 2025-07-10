@@ -1,4 +1,37 @@
 //! Integration tests for multi-opcode scenarios
+//!
+//! TODO: All integration tests currently fail with "err opcode executed" errors
+//! These tests combine multiple problematic opcode categories identified in individual tests:
+//!
+//! **Major Issue Categories:**
+//! 1. **Branching Logic Errors** (OP_BNZ, OP_BZ, OP_B, OP_CALLSUB)
+//!    - Jump offset calculations appear incorrect
+//!    - Negative offsets may cause PC underflow or wrong targets
+//!    - Subroutine call/return logic has stack management issues
+//!
+//! 2. **State Operation Return Values** (OP_APP_GLOBAL_GET, OP_APP_LOCAL_GET, etc.)
+//!    - State operations correctly return 2 values (value + exists flag)
+//!    - Tests expect only 1 value, causing stack misalignment
+//!    - POP operations needed to handle exists flags
+//!
+//! 3. **Parameter Parsing Order** (OP_ASSET_HOLDING_GET, OP_TXN, etc.)
+//!    - Many opcodes read parameters before advancing PC
+//!    - Should advance PC past opcode first, then read parameters
+//!
+//! 4. **Stack Operation Bugs** (OP_DUP2, complex stack manipulation)
+//!    - OP_DUP2 duplicates top value twice instead of top TWO values
+//!    - Large stack operations may hit size limits
+//!
+//! 5. **Transaction Group Issues**
+//!    - Tests expect multi-transaction groups but mock ledger has only 1
+//!    - Group index validation fails with "out of bounds" errors
+//!
+//! **Fix Priority:**
+//! 1. Fix branching logic and jump offset calculations (highest impact)
+//! 2. Update tests to handle 2-value returns from state operations  
+//! 3. Fix parameter parsing order in opcodes
+//! 4. Implement missing stack operations correctly
+//! 5. Update test setup for proper transaction groups
 
 use rust_avm::{
     opcodes::*,
@@ -7,6 +40,13 @@ use rust_avm::{
 
 use crate::common::*;
 
+/// TODO: Test fails with "err opcode executed" - complex branching logic errors
+/// Root causes:
+/// 1. Branching offsets may be calculated incorrectly in OP_BNZ/OP_BZ/OP_B operations
+/// 2. Subroutine call/return logic (OP_CALLSUB/OP_RETSUB) may have stack management issues
+/// 3. Recursive calls with negative offsets may cause execution path errors
+/// 4. Stack underflow may occur during complex arithmetic operations (5-10=underflow)
+/// This test combines multiple problematic opcodes: branching, subroutines, arithmetic
 #[test]
 fn test_factorial_computation() {
     // Compute factorial of 5 using subroutines and loops
@@ -46,6 +86,13 @@ fn test_factorial_computation() {
     execute_and_check(&bytecode, true).unwrap();
 }
 
+/// TODO: Test fails with "err opcode executed" - iterative loop with branching errors
+/// Root causes:
+/// 1. OP_BZ branching logic may calculate wrong jump targets causing invalid execution paths
+/// 2. OP_B negative offset jumps may cause PC underflow or wrong branch targets  
+/// 3. Scratch space operations (OP_LOAD/OP_STORE) may have parameter parsing issues
+/// 4. Complex loop with multiple stack operations may trigger arithmetic underflow
+/// This test combines: branching, scratch space, loops, arithmetic - all problematic areas
 #[test]
 fn test_fibonacci_iterative() {
     // Compute 10th Fibonacci number iteratively
@@ -109,6 +156,13 @@ fn test_fibonacci_iterative() {
     execute_and_check(&bytecode, true).unwrap();
 }
 
+/// TODO: Test fails with "err opcode executed" - string operations and hashing errors
+/// Root causes:
+/// 1. OP_SUBSTRING immediate parameter parsing may be incorrect (reading parameters in wrong order)
+/// 2. OP_SHA256/OP_KECCAK256 may not be implemented or have incorrect output format
+/// 3. OP_BTOI conversion may fail on hash outputs or have length validation issues
+/// 4. OP_ASSERT may trigger due to incorrect string comparison results
+/// This test combines: string ops, hashing, type conversion - multiple unimplemented areas
 #[test]
 fn test_string_manipulation_pipeline() {
     // Complex string manipulation: concatenate, hash, convert to int
@@ -153,6 +207,13 @@ fn test_string_manipulation_pipeline() {
     execute_and_check(&bytecode, true).unwrap();
 }
 
+/// TODO: Test fails with "err opcode executed" - large stack operations stress test
+/// Root causes:
+/// 1. Stack may have size limits that cause overflow with 100+ values
+/// 2. Scratch space operations (OP_LOAD/OP_STORE) may fail with many iterations
+/// 3. Arithmetic operations may cause integer overflow when summing 1..100
+/// 4. VM may have execution limits or cost budget exceeded with 100+ operations
+/// This test stresses: stack size, scratch space, arithmetic, execution limits
 #[test]
 fn test_stack_stress_test() {
     // Stress test stack operations with many values
@@ -188,6 +249,13 @@ fn test_stack_stress_test() {
     execute_and_check(&bytecode, true).unwrap();
 }
 
+/// TODO: Test fails with "err opcode executed" - cryptographic operations not implemented
+/// Root causes:
+/// 1. OP_SHA256 and OP_KECCAK256 may not be fully implemented or return wrong format
+/// 2. Hash length validation may fail causing OP_ASSERT to trigger
+/// 3. Hash comparison logic (OP_NE) may fail due to incorrect hash outputs
+/// 4. Multiple OP_DUP operations may cause stack management issues
+/// This test requires: working hash functions, length checks, stack management
 #[test]
 fn test_cryptographic_verification_flow() {
     // Simulate a complex cryptographic verification workflow
@@ -232,6 +300,13 @@ fn test_cryptographic_verification_flow() {
     execute_and_check(&bytecode, true).unwrap();
 }
 
+/// TODO: Test fails due to combination of transaction field access and state operations
+/// Root causes:
+/// 1. OP_APP_GLOBAL_GET returns 2 values (value + exists flag) but test expects 1
+/// 2. Transaction field access (OP_TXN) may have parameter parsing issues 
+/// 3. Branching logic (OP_BNZ) may calculate wrong offsets causing execution errors
+/// 4. Combination of transaction fields + state operations exposes multiple bugs
+/// This test combines: transaction fields, state access, branching - all problematic
 #[test]
 fn test_conditional_state_access() {
     // Test conditional state access based on transaction fields
@@ -276,6 +351,13 @@ fn test_conditional_state_access() {
     assert!(result); // 50000 > 25000 and 42 > 40
 }
 
+/// TODO: Test may fail due to balance operation implementation issues
+/// Root causes:
+/// 1. OP_BALANCE operations may not be fully implemented in mock ledger
+/// 2. Multiple balance checks may expose ledger state management bugs
+/// 3. Large number arithmetic (1,500,000) may trigger overflow checks
+/// 4. Mock ledger balance setup may not match expected test values
+/// This test requires: working balance operations, proper ledger state, arithmetic
 #[test]
 fn test_multi_asset_balance_check() {
     // Check balances across multiple assets and accounts

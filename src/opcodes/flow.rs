@@ -4,6 +4,9 @@ use crate::error::{AvmError, AvmResult};
 use crate::vm::EvalContext;
 
 /// Branch if not zero
+/// TODO: Conditional branches in complex tests cause arithmetic underflow
+/// Branch logic may execute wrong path leading to invalid operations (5-10=underflow)
+/// Jump offset calculations need verification against TEAL specification
 pub fn op_bnz(ctx: &mut EvalContext) -> AvmResult<()> {
     // Advance past the opcode first
     ctx.advance_pc(1)?;
@@ -25,6 +28,9 @@ pub fn op_bnz(ctx: &mut EvalContext) -> AvmResult<()> {
 }
 
 /// Branch if zero
+/// TODO: Conditional branches in complex tests cause arithmetic underflow
+/// Branch logic may execute wrong path leading to invalid operations (5-10=underflow)
+/// Jump offset calculations need verification against TEAL specification
 pub fn op_bz(ctx: &mut EvalContext) -> AvmResult<()> {
     // Advance past the opcode first
     ctx.advance_pc(1)?;
@@ -46,6 +52,9 @@ pub fn op_bz(ctx: &mut EvalContext) -> AvmResult<()> {
 }
 
 /// Unconditional branch
+/// TODO: Complex flow tests fail with IntegerOverflow - branching logic incorrect
+/// Jump offset calculations and conditional branches need debugging
+/// Branch targets may be calculated incorrectly causing wrong execution paths
 pub fn op_b(ctx: &mut EvalContext) -> AvmResult<()> {
     // Advance past the opcode first
     ctx.advance_pc(1)?;
