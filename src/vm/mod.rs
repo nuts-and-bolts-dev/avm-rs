@@ -105,7 +105,7 @@ pub struct EvalContext<'a> {
     group_size: usize,
 
     /// Ledger access interface
-    ledger: &'a dyn LedgerAccess,
+    ledger: &'a mut dyn LedgerAccess,
 
     /// Global state cache
     #[allow(dead_code)]
@@ -143,7 +143,7 @@ impl<'a> EvalContext<'a> {
         version: TealVersion,
         group_index: usize,
         group_size: usize,
-        ledger: &'a dyn LedgerAccess,
+        ledger: &'a mut dyn LedgerAccess,
     ) -> Self {
         Self {
             stack: Vec::new(),
@@ -386,6 +386,11 @@ impl<'a> EvalContext<'a> {
         self.ledger
     }
 
+    /// Get mutable access to the ledger
+    pub fn ledger_mut(&mut self) -> &mut dyn LedgerAccess {
+        self.ledger
+    }
+
     /// Check if execution is finished
     pub fn is_finished(&self) -> bool {
         self.pc >= self.program.len()
@@ -611,7 +616,7 @@ impl VirtualMachine {
         &self,
         program: &[u8],
         version: TealVersion,
-        ledger: &dyn LedgerAccess,
+        ledger: &mut dyn LedgerAccess,
     ) -> AvmResult<bool> {
         let config = ExecutionConfig::new(version);
         self.execute(program, config, ledger)
@@ -622,7 +627,7 @@ impl VirtualMachine {
         &self,
         program: &[u8],
         version: TealVersion,
-        ledger: &dyn LedgerAccess,
+        ledger: &mut dyn LedgerAccess,
     ) -> AvmResult<bool> {
         let config = ExecutionConfig::application(version);
         self.execute(program, config, ledger)
@@ -633,7 +638,7 @@ impl VirtualMachine {
         &self,
         program: &[u8],
         config: ExecutionConfig,
-        ledger: &dyn LedgerAccess,
+        ledger: &mut dyn LedgerAccess,
     ) -> AvmResult<bool> {
         if program.is_empty() {
             return Err(AvmError::invalid_program("Empty program"));

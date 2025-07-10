@@ -26,8 +26,8 @@ fn test_op_app_global_get() {
     bytecode = with_assert_equals(bytecode, StackValue::Uint(1));
 
     let vm = setup_vm();
-    let ledger = setup_mock_ledger();
-    let result = vm.execute(&bytecode, app_mode_config(), &ledger).unwrap();
+    let mut ledger = setup_mock_ledger();
+    let result = vm.execute(&bytecode, app_mode_config(), &mut ledger).unwrap();
     assert!(result);
 
     // Test getting the actual value
@@ -40,7 +40,7 @@ fn test_op_app_global_get() {
     // Value should be 42 (from mock ledger)
     bytecode = with_assert_equals(bytecode, StackValue::Uint(42));
 
-    let result = vm.execute(&bytecode, app_mode_config(), &ledger).unwrap();
+    let result = vm.execute(&bytecode, app_mode_config(), &mut ledger).unwrap();
     assert!(result);
 }
 
@@ -58,8 +58,8 @@ fn test_op_app_global_get_nonexistent() {
     bytecode = with_assert_equals(bytecode, StackValue::Uint(0));
 
     let vm = setup_vm();
-    let ledger = setup_mock_ledger();
-    let result = vm.execute(&bytecode, app_mode_config(), &ledger).unwrap();
+    let mut ledger = setup_mock_ledger();
+    let result = vm.execute(&bytecode, app_mode_config(), &mut ledger).unwrap();
     assert!(result);
 }
 
@@ -78,8 +78,8 @@ fn test_op_app_global_get_ex() {
     bytecode = with_assert_equals(bytecode, StackValue::Uint(1));
 
     let vm = setup_vm();
-    let ledger = setup_mock_ledger();
-    let result = vm.execute(&bytecode, app_mode_config(), &ledger).unwrap();
+    let mut ledger = setup_mock_ledger();
+    let result = vm.execute(&bytecode, app_mode_config(), &mut ledger).unwrap();
     assert!(result);
 }
 
@@ -95,8 +95,8 @@ fn test_op_app_global_put() {
     bytecode.push(OP_APP_GLOBAL_PUT);
 
     let vm = setup_vm();
-    let ledger = setup_mock_ledger();
-    let result = vm.execute(&bytecode, app_mode_config(), &ledger);
+    let mut ledger = setup_mock_ledger();
+    let result = vm.execute(&bytecode, app_mode_config(), &mut ledger);
 
     // Currently not implemented, should error
     assert!(result.is_err());
@@ -112,8 +112,8 @@ fn test_op_app_global_del() {
     bytecode.push(OP_APP_GLOBAL_DEL);
 
     let vm = setup_vm();
-    let ledger = setup_mock_ledger();
-    let result = vm.execute(&bytecode, app_mode_config(), &ledger);
+    let mut ledger = setup_mock_ledger();
+    let result = vm.execute(&bytecode, app_mode_config(), &mut ledger);
 
     // Currently not implemented, should error
     assert!(result.is_err());
@@ -135,8 +135,8 @@ fn test_op_app_local_get() {
     bytecode = with_assert_equals(bytecode, StackValue::Uint(1));
 
     let vm = setup_vm();
-    let ledger = setup_mock_ledger();
-    let result = vm.execute(&bytecode, app_mode_config(), &ledger).unwrap();
+    let mut ledger = setup_mock_ledger();
+    let result = vm.execute(&bytecode, app_mode_config(), &mut ledger).unwrap();
     assert!(result);
 }
 
@@ -159,8 +159,8 @@ fn test_op_app_local_get_ex() {
     bytecode = with_assert_equals(bytecode, StackValue::Uint(5)); // Mock value
 
     let vm = setup_vm();
-    let ledger = setup_mock_ledger();
-    let result = vm.execute(&bytecode, app_mode_config(), &ledger).unwrap();
+    let mut ledger = setup_mock_ledger();
+    let result = vm.execute(&bytecode, app_mode_config(), &mut ledger).unwrap();
     assert!(result);
 }
 
@@ -178,8 +178,8 @@ fn test_op_app_opted_in() {
     bytecode = with_assert_equals(bytecode, StackValue::Uint(1)); // Opted in
 
     let vm = setup_vm();
-    let ledger = setup_mock_ledger();
-    let result = vm.execute(&bytecode, app_mode_config(), &ledger).unwrap();
+    let mut ledger = setup_mock_ledger();
+    let result = vm.execute(&bytecode, app_mode_config(), &mut ledger).unwrap();
     assert!(result);
 
     // Test account not opted in
@@ -193,7 +193,7 @@ fn test_op_app_opted_in() {
 
     bytecode = with_assert_equals(bytecode, StackValue::Uint(0)); // Not opted in
 
-    let result = vm.execute(&bytecode, app_mode_config(), &ledger).unwrap();
+    let result = vm.execute(&bytecode, app_mode_config(), &mut ledger).unwrap();
     assert!(result);
 }
 
@@ -209,8 +209,8 @@ fn test_op_balance() {
     bytecode = with_assert_equals(bytecode, StackValue::Uint(1_000_000)); // Mock balance
 
     let vm = setup_vm();
-    let ledger = setup_mock_ledger();
-    let result = vm.execute(&bytecode, app_mode_config(), &ledger).unwrap();
+    let mut ledger = setup_mock_ledger();
+    let result = vm.execute(&bytecode, app_mode_config(), &mut ledger).unwrap();
     assert!(result);
 }
 
@@ -226,8 +226,8 @@ fn test_op_min_balance() {
     bytecode = with_assert_equals(bytecode, StackValue::Uint(100_000)); // Mock min balance
 
     let vm = setup_vm();
-    let ledger = setup_mock_ledger();
-    let result = vm.execute(&bytecode, app_mode_config(), &ledger).unwrap();
+    let mut ledger = setup_mock_ledger();
+    let result = vm.execute(&bytecode, app_mode_config(), &mut ledger).unwrap();
     assert!(result);
 }
 
@@ -247,8 +247,8 @@ fn test_op_asset_holding_get() {
     bytecode = with_assert_equals(bytecode, StackValue::Uint(1));
 
     let vm = setup_vm();
-    let ledger = setup_mock_ledger();
-    let result = vm.execute(&bytecode, app_mode_config(), &ledger).unwrap();
+    let mut ledger = setup_mock_ledger();
+    let result = vm.execute(&bytecode, app_mode_config(), &mut ledger).unwrap();
     assert!(result);
 
     // Test frozen field
@@ -264,7 +264,7 @@ fn test_op_asset_holding_get() {
     bytecode.push(OP_POP); // Pop exists flag
     bytecode = with_assert_equals(bytecode, StackValue::Uint(0)); // Not frozen
 
-    let result = vm.execute(&bytecode, app_mode_config(), &ledger).unwrap();
+    let result = vm.execute(&bytecode, app_mode_config(), &mut ledger).unwrap();
     assert!(result);
 }
 
@@ -281,8 +281,8 @@ fn test_op_asset_params_get() {
     bytecode = with_assert_equals(bytecode, StackValue::Uint(1_000_000)); // Total supply
 
     let vm = setup_vm();
-    let ledger = setup_mock_ledger();
-    let result = vm.execute(&bytecode, app_mode_config(), &ledger).unwrap();
+    let mut ledger = setup_mock_ledger();
+    let result = vm.execute(&bytecode, app_mode_config(), &mut ledger).unwrap();
     assert!(result);
 
     // Test decimals field
@@ -295,7 +295,7 @@ fn test_op_asset_params_get() {
     bytecode.push(OP_POP); // Pop exists flag
     bytecode = with_assert_equals(bytecode, StackValue::Uint(6)); // 6 decimals
 
-    let result = vm.execute(&bytecode, app_mode_config(), &ledger).unwrap();
+    let result = vm.execute(&bytecode, app_mode_config(), &mut ledger).unwrap();
     assert!(result);
 }
 
@@ -312,8 +312,8 @@ fn test_op_app_params_get() {
     bytecode = with_assert_equals(bytecode, StackValue::Uint(5)); // Global uints
 
     let vm = setup_vm();
-    let ledger = setup_mock_ledger();
-    let result = vm.execute(&bytecode, app_mode_config(), &ledger).unwrap();
+    let mut ledger = setup_mock_ledger();
+    let result = vm.execute(&bytecode, app_mode_config(), &mut ledger).unwrap();
     assert!(result);
 }
 
@@ -331,8 +331,8 @@ fn test_op_acct_params_get() {
     bytecode = with_assert_equals(bytecode, StackValue::Uint(1_000_000)); // Balance
 
     let vm = setup_vm();
-    let ledger = setup_mock_ledger();
-    let result = vm.execute(&bytecode, app_mode_config(), &ledger).unwrap();
+    let mut ledger = setup_mock_ledger();
+    let result = vm.execute(&bytecode, app_mode_config(), &mut ledger).unwrap();
     assert!(result);
 }
 
@@ -346,9 +346,9 @@ fn test_state_opcodes_require_app_mode() {
     bytecode.push(OP_APP_GLOBAL_GET);
 
     let vm = setup_vm();
-    let ledger = setup_mock_ledger();
+    let mut ledger = setup_mock_ledger();
     let sig_mode_config = test_config().with_run_mode(RunMode::Signature);
-    let result = vm.execute(&bytecode, sig_mode_config, &ledger);
+    let result = vm.execute(&bytecode, sig_mode_config, &mut ledger);
 
     // Should fail in signature mode
     assert!(result.is_err());

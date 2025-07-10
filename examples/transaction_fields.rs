@@ -22,10 +22,10 @@ fn execute_teal_signature(teal_code: &str) -> Result<bool, String> {
     let config = ExecutionConfig::new(TealVersion::V8).with_cost_budget(100000);
 
     // Use the default ledger which already has a transaction set up
-    let ledger = MockLedger::default();
+    let mut ledger = MockLedger::default();
 
     let result = vm
-        .execute(&bytecode, config, &ledger)
+        .execute(&bytecode, config, &mut ledger)
         .map_err(|e| format!("Execution error: {e}"))?;
     Ok(result)
 }

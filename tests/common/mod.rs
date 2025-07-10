@@ -165,9 +165,9 @@ pub fn setup_mock_ledger() -> MockLedger {
 /// Execute bytecode and check if it returns the expected result
 pub fn execute_and_check(bytecode: &[u8], expected: bool) -> AvmResult<()> {
     let vm = setup_vm();
-    let ledger = setup_mock_ledger();
+    let mut ledger = setup_mock_ledger();
 
-    let result = vm.execute(bytecode, test_config(), &ledger)?;
+    let result = vm.execute(bytecode, test_config(), &mut ledger)?;
     assert_eq!(result, expected, "Expected program to return {expected}");
     Ok(())
 }
@@ -175,8 +175,8 @@ pub fn execute_and_check(bytecode: &[u8], expected: bool) -> AvmResult<()> {
 /// Execute bytecode and check if it fails with an error
 pub fn execute_expect_error(bytecode: &[u8]) -> AvmResult<()> {
     let vm = setup_vm();
-    let ledger = setup_mock_ledger();
-    let result = vm.execute(bytecode, test_config(), &ledger);
+    let mut ledger = setup_mock_ledger();
+    let result = vm.execute(bytecode, test_config(), &mut ledger);
     assert!(result.is_err(), "Expected program to fail but it succeeded");
     Ok(())
 }

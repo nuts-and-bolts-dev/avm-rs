@@ -62,8 +62,8 @@ pub fn op_app_global_put(ctx: &mut EvalContext) -> AvmResult<()> {
 
     let app_id = ctx.ledger().current_application_id()?;
 
-    // Now we can call the mutable operation through interior mutability
-    ctx.ledger().app_global_put(app_id, &key_str, teal_value)?;
+    // Use mutable ledger access
+    ctx.ledger_mut().app_global_put(app_id, &key_str, teal_value)?;
     
     ctx.advance_pc(1)?;
     Ok(())
@@ -77,8 +77,8 @@ pub fn op_app_global_del(ctx: &mut EvalContext) -> AvmResult<()> {
 
     let app_id = ctx.ledger().current_application_id()?;
 
-    // Now we can call the mutable operation through interior mutability
-    ctx.ledger().app_global_del(app_id, &key_str)?;
+    // Use mutable ledger access
+    ctx.ledger_mut().app_global_del(app_id, &key_str)?;
     
     ctx.advance_pc(1)?;
     Ok(())
@@ -155,8 +155,8 @@ pub fn op_app_local_put(ctx: &mut EvalContext) -> AvmResult<()> {
 
     let app_id = ctx.ledger().current_application_id()?;
 
-    // Now we can call the mutable operation through interior mutability
-    ctx.ledger().app_local_put(&account_addr, app_id, &key_str, teal_value)?;
+    // Use mutable ledger access
+    ctx.ledger_mut().app_local_put(&account_addr, app_id, &key_str, teal_value)?;
     
     ctx.advance_pc(1)?;
     Ok(())
@@ -173,8 +173,8 @@ pub fn op_app_local_del(ctx: &mut EvalContext) -> AvmResult<()> {
 
     let app_id = ctx.ledger().current_application_id()?;
 
-    // Now we can call the mutable operation through interior mutability
-    ctx.ledger().app_local_del(&account_addr, app_id, &key_str)?;
+    // Use mutable ledger access
+    ctx.ledger_mut().app_local_del(&account_addr, app_id, &key_str)?;
     
     ctx.advance_pc(1)?;
     Ok(())

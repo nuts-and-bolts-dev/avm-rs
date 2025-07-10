@@ -49,9 +49,9 @@ return      ; Return the result (true/false)
         let bytecode = assembler.assemble(teal_program).expect("Assembly failed");
 
         let vm = setup_vm();
-        let ledger = MockLedger::new();
+        let mut ledger = MockLedger::new();
         let result = vm
-            .execute(&bytecode, test_config(), &ledger)
+            .execute(&bytecode, test_config(), &mut ledger)
             .expect("Execution failed");
 
         assert!(result);
@@ -75,9 +75,9 @@ return
         let bytecode = assembler.assemble(teal_program).expect("Assembly failed");
 
         let vm = setup_vm();
-        let ledger = MockLedger::new();
+        let mut ledger = MockLedger::new();
         let result = vm
-            .execute(&bytecode, test_config(), &ledger)
+            .execute(&bytecode, test_config(), &mut ledger)
             .expect("Execution failed");
 
         assert!(result);
@@ -97,9 +97,9 @@ return
         let bytecode = assembler.assemble(teal_program).expect("Assembly failed");
 
         let vm = setup_vm();
-        let ledger = MockLedger::new();
+        let mut ledger = MockLedger::new();
         let result = vm
-            .execute(&bytecode, test_config(), &ledger)
+            .execute(&bytecode, test_config(), &mut ledger)
             .expect("Execution failed");
 
         assert!(result);
@@ -121,9 +121,9 @@ return
         let bytecode = assembler.assemble(teal_program).expect("Assembly failed");
 
         let vm = setup_vm();
-        let ledger = MockLedger::new();
+        let mut ledger = MockLedger::new();
         let result = vm
-            .execute(&bytecode, test_config(), &ledger)
+            .execute(&bytecode, test_config(), &mut ledger)
             .expect("Execution failed");
 
         assert!(result);
@@ -146,9 +146,9 @@ return      ; Return the result
         let bytecode = assembler.assemble(teal_program).expect("Assembly failed");
 
         let vm = setup_vm();
-        let ledger = MockLedger::new();
+        let mut ledger = MockLedger::new();
         let result = vm
-            .execute(&bytecode, test_config(), &ledger)
+            .execute(&bytecode, test_config(), &mut ledger)
             .expect("Execution failed");
 
         assert!(result);
@@ -188,9 +188,9 @@ return          // Return result
         let bytecode = assembler.assemble(teal_program).expect("Assembly failed");
 
         let vm = setup_vm();
-        let ledger = MockLedger::new();
+        let mut ledger = MockLedger::new();
         let result = vm
-            .execute(&bytecode, test_config(), &ledger)
+            .execute(&bytecode, test_config(), &mut ledger)
             .expect("Execution failed");
 
         assert!(result);

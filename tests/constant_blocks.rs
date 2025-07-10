@@ -174,10 +174,10 @@ return
     
     // Create VM and execute
     let vm = VirtualMachine::with_version(TealVersion::V6);
-    let ledger = MockLedger::new();
+    let mut ledger = MockLedger::new();
     let config = rust_avm::vm::ExecutionConfig::new(TealVersion::V6).with_cost_budget(1000);
     
-    let result = vm.execute(&bytecode, config, &ledger).expect("Execution failed");
+    let result = vm.execute(&bytecode, config, &mut ledger).expect("Execution failed");
     assert!(result, "Program should return true");
 }
 

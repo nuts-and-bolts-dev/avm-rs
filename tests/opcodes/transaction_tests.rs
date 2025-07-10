@@ -76,7 +76,7 @@ fn test_op_txna_application_args() {
     bytecode = with_assert_equals(bytecode, StackValue::Bytes(b"arg1".to_vec()));
 
     let vm = setup_vm();
-    let result = vm.execute(&bytecode, test_config(), &ledger).unwrap();
+    let result = vm.execute(&bytecode, test_config(), &mut ledger).unwrap();
     assert!(result);
 }
 
@@ -112,7 +112,7 @@ fn test_op_txnas_with_stack_index() {
     bytecode = with_assert_equals(bytecode, StackValue::Bytes(b"second".to_vec()));
 
     let vm = setup_vm();
-    let result = vm.execute(&bytecode, test_config(), &ledger).unwrap();
+    let result = vm.execute(&bytecode, test_config(), &mut ledger).unwrap();
     assert!(result);
 }
 
@@ -159,7 +159,7 @@ fn test_op_gtxna_group_array() {
     bytecode = with_assert_equals(bytecode, StackValue::Bytes(b"tx2arg0".to_vec()));
 
     let vm = setup_vm();
-    let result = vm.execute(&bytecode, test_config(), &ledger).unwrap();
+    let result = vm.execute(&bytecode, test_config(), &mut ledger).unwrap();
     assert!(result);
 }
 
@@ -198,7 +198,7 @@ fn test_op_gtxnsa_with_stack_indices() {
     bytecode = with_assert_equals(bytecode, StackValue::Bytes(b"arg2".to_vec()));
 
     let vm = setup_vm();
-    let result = vm.execute(&bytecode, test_config(), &ledger).unwrap();
+    let result = vm.execute(&bytecode, test_config(), &mut ledger).unwrap();
     assert!(result);
 }
 

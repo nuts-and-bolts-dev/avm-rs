@@ -102,11 +102,11 @@ fn execute_teal(vm: &VirtualMachine, teal_code: &str) -> Result<bool, String> {
         .assemble(teal_code)
         .map_err(|e| format!("Assembly error: {e}"))?;
 
-    let ledger = MockLedger::default();
+    let mut ledger = MockLedger::default();
 
     // Use the simple execution method
     let result = vm
-        .execute_simple(&bytecode, TealVersion::V8, &ledger)
+        .execute_simple(&bytecode, TealVersion::V8, &mut ledger)
         .map_err(|e| format!("Execution error: {e}"))?;
     Ok(result)
 }

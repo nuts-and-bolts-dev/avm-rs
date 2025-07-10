@@ -272,7 +272,7 @@ fn test_conditional_state_access() {
 
     let vm = setup_vm();
     let config = test_config().with_run_mode(RunMode::Application);
-    let result = vm.execute(&bytecode, config, &ledger).unwrap();
+    let result = vm.execute(&bytecode, config, &mut ledger).unwrap();
     assert!(result); // 50000 > 25000 and 42 > 40
 }
 
@@ -300,8 +300,8 @@ fn test_multi_asset_balance_check() {
     bytecode = with_assert_equals(bytecode, StackValue::Uint(1_500_000));
 
     let vm = setup_vm();
-    let ledger = setup_mock_ledger();
+    let mut ledger = setup_mock_ledger();
     let config = test_config().with_run_mode(RunMode::Application);
-    let result = vm.execute(&bytecode, config, &ledger).unwrap();
+    let result = vm.execute(&bytecode, config, &mut ledger).unwrap();
     assert!(result);
 }

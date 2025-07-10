@@ -22,9 +22,9 @@ fn execute_teal_application(teal_code: &str) -> Result<bool, String> {
     // Use the fluent configuration API for application mode
     let config = ExecutionConfig::application(TealVersion::V8).with_cost_budget(10000);
 
-    let ledger = MockLedger::default();
+    let mut ledger = MockLedger::default();
     let result = vm
-        .execute(&bytecode, config, &ledger)
+        .execute(&bytecode, config, &mut ledger)
         .map_err(|e| format!("Execution error: {e}"))?;
     Ok(result)
 }

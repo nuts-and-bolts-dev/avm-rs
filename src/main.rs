@@ -14,10 +14,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let vm = VirtualMachine::with_version(TealVersion::V2);
 
     // Create mock ledger
-    let ledger = MockLedger::new();
+    let mut ledger = MockLedger::new();
 
     // Execute program with simple API
-    let result = vm.execute_simple(&program, TealVersion::V2, &ledger)?;
+    let result = vm.execute_simple(&program, TealVersion::V2, &mut ledger)?;
 
     println!("Program executed successfully: {result}");
 
