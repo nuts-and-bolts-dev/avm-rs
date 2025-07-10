@@ -33,7 +33,7 @@ fn test_op_txn_amount() {
     let mut bytecode = Vec::new();
     bytecode.push(OP_TXN);
     bytecode.push(8); // Amount field ID
-    bytecode = with_assert_equals(bytecode, StackValue::Uint(10000)); // Default test transaction amount
+    bytecode = with_assert_equals(bytecode, StackValue::Uint(1000000)); // Current transaction amount (default payment)
 
     execute_and_check(&bytecode, true).unwrap();
 }
@@ -163,7 +163,8 @@ fn test_op_gtxna_group_array() {
     bytecode = with_assert_equals(bytecode, StackValue::Bytes(b"tx2arg0".to_vec()));
 
     let vm = setup_vm();
-    let result = vm.execute(&bytecode, test_config(), &mut ledger).unwrap();
+    let config = test_config().with_group(0, 2); // Set group size to 2 to match cleared+added transactions
+    let result = vm.execute(&bytecode, config, &mut ledger).unwrap();
     assert!(result);
 }
 
@@ -178,7 +179,11 @@ fn test_op_gtxns_with_stack_index() {
     bytecode.push(OP_LEN); // Check receiver is 32 bytes
     bytecode = with_assert_equals(bytecode, StackValue::Uint(32));
 
-    execute_and_check(&bytecode, true).unwrap();
+    let vm = setup_vm();
+    let mut ledger = setup_mock_ledger();
+    let config = test_config().with_group(0, 3); // Set group size to 3 to match mock ledger
+    let result = vm.execute(&bytecode, config, &mut ledger).unwrap();
+    assert!(result);
 }
 
 #[test]
@@ -202,7 +207,8 @@ fn test_op_gtxnsa_with_stack_indices() {
     bytecode = with_assert_equals(bytecode, StackValue::Bytes(b"arg2".to_vec()));
 
     let vm = setup_vm();
-    let result = vm.execute(&bytecode, test_config(), &mut ledger).unwrap();
+    let config = test_config().with_group(0, 2); // Set group size to 2 to match cleared+added transactions
+    let result = vm.execute(&bytecode, config, &mut ledger).unwrap();
     assert!(result);
 }
 
