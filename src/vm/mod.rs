@@ -126,6 +126,12 @@ pub struct EvalContext<'a> {
 
     /// Current function prototype (args, returns)
     function_prototype: Option<(usize, usize)>,
+
+    /// Integer constants from intcblock
+    int_constants: Vec<u64>,
+
+    /// Byte constants from bytecblock
+    byte_constants: Vec<Vec<u8>>,
 }
 
 impl<'a> EvalContext<'a> {
@@ -158,6 +164,8 @@ impl<'a> EvalContext<'a> {
             trace_enabled: false,
             frame_stack: Vec::new(),
             function_prototype: None,
+            int_constants: Vec::new(),
+            byte_constants: Vec::new(),
         }
     }
 
@@ -410,6 +418,37 @@ impl<'a> EvalContext<'a> {
 
         current_frame[index] = value;
         Ok(())
+    }
+
+    /// Store integer constants from intcblock
+    pub fn set_int_constants(&mut self, constants: Vec<u64>) {
+        self.int_constants = constants;
+    }
+
+    /// Store byte constants from bytecblock
+    pub fn set_byte_constants(&mut self, constants: Vec<Vec<u8>>) {
+        self.byte_constants = constants;
+    }
+
+    /// Get integer constant by index
+    pub fn get_int_constant(&self, index: usize) -> AvmResult<u64> {
+        self.int_constants
+            .get(index)
+            .copied()
+            .ok_or_else(|| AvmError::InvalidProgram(format!("Integer constant index {} out of bounds", index)))
+    }
+
+    /// Get byte constant by index
+    pub fn get_byte_constant(&self, index: usize) -> AvmResult<&[u8]> {
+        self.byte_constants
+            .get(index)
+            .map(|v| v.as_slice())
+            .ok_or_else(|| AvmError::InvalidProgram(format!("Byte constant index {} out of bounds", index)))
+    }
+
+    /// Get program reference for reading bytes
+    pub fn get_program(&self) -> &[u8] {
+        self.program
     }
 
     /// Branch to a relative target

@@ -2,6 +2,7 @@
 
 use crate::error::{AvmError, AvmResult};
 use crate::opcodes::*;
+use crate::varuint::encode_varuint;
 use std::collections::HashMap;
 
 /// TEAL assembler
@@ -252,7 +253,7 @@ impl Assembler {
             // Constant block opcodes
             "intcblock" => {
                 bytecode.push(OP_INTCBLOCK);
-                // TODO: Implement intcblock assembly with multiple constants
+                self.assemble_intcblock(bytecode, args, line_num)?;
             }
             "intc" => {
                 bytecode.push(OP_INTC);
@@ -264,7 +265,7 @@ impl Assembler {
             "intc_3" => bytecode.push(OP_INTC_3),
             "bytecblock" => {
                 bytecode.push(OP_BYTECBLOCK);
-                // TODO: Implement bytecblock assembly with multiple constants
+                self.assemble_bytecblock(bytecode, args, line_num)?;
             }
             "bytec" => {
                 bytecode.push(OP_BYTEC);
@@ -905,6 +906,63 @@ impl Assembler {
         Ok(())
     }
 
+    /// Assemble integer constant block
+    fn assemble_intcblock(
+        &mut self,
+        bytecode: &mut Vec<u8>,
+        args: &[&str],
+        line_num: usize,
+    ) -> AvmResult<()> {
+        if args.is_empty() {
+            return Err(AvmError::assembly_error(format!(
+                "intcblock requires at least one integer constant on line {line_num}"
+            )));
+        }
+
+        // Write count as varuint
+        let count_bytes = encode_varuint(args.len() as u64);
+        bytecode.extend_from_slice(&count_bytes);
+
+        // Write each integer constant as varuint
+        for arg in args {
+            let value = self.parse_integer(arg, line_num)?;
+            let value_bytes = encode_varuint(value);
+            bytecode.extend_from_slice(&value_bytes);
+        }
+
+        Ok(())
+    }
+
+    /// Assemble byte constant block
+    fn assemble_bytecblock(
+        &mut self,
+        bytecode: &mut Vec<u8>,
+        args: &[&str],
+        line_num: usize,
+    ) -> AvmResult<()> {
+        if args.is_empty() {
+            return Err(AvmError::assembly_error(format!(
+                "bytecblock requires at least one byte constant on line {line_num}"
+            )));
+        }
+
+        // Write count as varuint
+        let count_bytes = encode_varuint(args.len() as u64);
+        bytecode.extend_from_slice(&count_bytes);
+
+        // Write each byte constant
+        for arg in args {
+            let bytes = self.parse_bytes(&[arg], line_num)?;
+            
+            // Write length as varuint followed by the bytes
+            let length_bytes = encode_varuint(bytes.len() as u64);
+            bytecode.extend_from_slice(&length_bytes);
+            bytecode.extend_from_slice(&bytes);
+        }
+
+        Ok(())
+    }
+
     /// Resolve forward label references
     fn resolve_forward_refs(&self, bytecode: &mut [u8]) -> AvmResult<()> {
         for (addr, label) in &self.forward_refs {
@@ -930,6 +988,7 @@ impl Assembler {
 
 /// Disassemble bytecode to TEAL source
 pub fn disassemble(bytecode: &[u8]) -> AvmResult<String> {
+    use crate::varuint::decode_varuint;
     let mut result = String::new();
     let mut pc = 0;
 
@@ -1012,7 +1071,34 @@ pub fn disassemble(bytecode: &[u8]) -> AvmResult<String> {
             OP_MIN_BALANCE => ("min_balance".to_string(), 1),
 
             // Constant block opcodes
-            OP_INTCBLOCK => ("intcblock".to_string(), 1), // TODO: Parse multiple constants
+            OP_INTCBLOCK => {
+                let mut offset = pc + 1;
+                
+                // Read count as varuint
+                if let Ok((count, consumed)) = decode_varuint(&bytecode[offset..]) {
+                    offset += consumed;
+                    let count = count as usize;
+                    let mut constants = Vec::new();
+                    
+                    // Read each integer constant as varuint
+                    for _ in 0..count {
+                        if let Ok((value, consumed)) = decode_varuint(&bytecode[offset..]) {
+                            constants.push(value.to_string());
+                            offset += consumed;
+                        } else {
+                            break;
+                        }
+                    }
+                    
+                    if constants.len() == count {
+                        (format!("intcblock {}", constants.join(" ")), offset - pc)
+                    } else {
+                        ("intcblock <invalid>".to_string(), 1)
+                    }
+                } else {
+                    ("intcblock <invalid>".to_string(), 1)
+                }
+            }
             OP_INTC => {
                 if pc + 1 < bytecode.len() {
                     let index = bytecode[pc + 1];
@@ -1025,7 +1111,46 @@ pub fn disassemble(bytecode: &[u8]) -> AvmResult<String> {
             OP_INTC_1 => ("intc_1".to_string(), 1),
             OP_INTC_2 => ("intc_2".to_string(), 1),
             OP_INTC_3 => ("intc_3".to_string(), 1),
-            OP_BYTECBLOCK => ("bytecblock".to_string(), 1), // TODO: Parse multiple constants
+            OP_BYTECBLOCK => {
+                let mut offset = pc + 1;
+                
+                // Read count as varuint
+                if let Ok((count, consumed)) = decode_varuint(&bytecode[offset..]) {
+                    offset += consumed;
+                    let count = count as usize;
+                    let mut constants = Vec::new();
+                    
+                    // Read each byte constant (length-prefixed)
+                    for _ in 0..count {
+                        if let Ok((length, consumed)) = decode_varuint(&bytecode[offset..]) {
+                            offset += consumed;
+                            let length = length as usize;
+                            
+                            if offset + length <= bytecode.len() {
+                                let bytes = &bytecode[offset..offset + length];
+                                if bytes.iter().all(|&b| b.is_ascii() && !b.is_ascii_control()) {
+                                    constants.push(format!("\"{}\"", String::from_utf8_lossy(bytes)));
+                                } else {
+                                    constants.push(format!("0x{}", hex::encode(bytes)));
+                                }
+                                offset += length;
+                            } else {
+                                break;
+                            }
+                        } else {
+                            break;
+                        }
+                    }
+                    
+                    if constants.len() == count {
+                        (format!("bytecblock {}", constants.join(" ")), offset - pc)
+                    } else {
+                        ("bytecblock <invalid>".to_string(), 1)
+                    }
+                } else {
+                    ("bytecblock <invalid>".to_string(), 1)
+                }
+            }
             OP_BYTEC => {
                 if pc + 1 < bytecode.len() {
                     let index = bytecode[pc + 1];

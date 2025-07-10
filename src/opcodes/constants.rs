@@ -2,6 +2,7 @@
 
 use crate::error::{AvmError, AvmResult};
 use crate::types::StackValue;
+use crate::varuint::read_varuint_from_context;
 use crate::vm::EvalContext;
 
 /// Push immediate integer value
@@ -79,16 +80,19 @@ pub fn op_pushbytess(ctx: &mut EvalContext) -> AvmResult<()> {
 pub fn op_intcblock(ctx: &mut EvalContext) -> AvmResult<()> {
     // Advance past the opcode first
     ctx.advance_pc(1)?;
-    // Read count
-    let count = ctx.read_bytes(1)?[0] as usize;
-    ctx.advance_pc(1)?;
-
-    // For now, just skip the constant block
-    // Full implementation would store constants for later use
+    
+    // Read count as varuint
+    let count = read_varuint_from_context(ctx)? as usize;
+    
+    // Read each integer constant as varuint
+    let mut constants = Vec::with_capacity(count);
     for _ in 0..count {
-        ctx.advance_pc(8)?; // Skip 8 bytes per integer
+        let value = read_varuint_from_context(ctx)?;
+        constants.push(value);
     }
-
+    
+    // Store constants in context
+    ctx.set_int_constants(constants);
     Ok(())
 }
 
@@ -96,38 +100,43 @@ pub fn op_intcblock(ctx: &mut EvalContext) -> AvmResult<()> {
 pub fn op_intc(ctx: &mut EvalContext) -> AvmResult<()> {
     // Advance past the opcode first
     ctx.advance_pc(1)?;
-    let index = ctx.read_bytes(1)?[0];
+    let index = ctx.read_bytes(1)?[0] as usize;
     ctx.advance_pc(1)?;
 
-    // Placeholder - would load from constant block
-    ctx.push(StackValue::Uint(index as u64))?;
+    // Load from constant block
+    let value = ctx.get_int_constant(index)?;
+    ctx.push(StackValue::Uint(value))?;
     Ok(())
 }
 
 /// Load integer constant 0
 pub fn op_intc_0(ctx: &mut EvalContext) -> AvmResult<()> {
-    ctx.push(StackValue::Uint(0))?;
+    let value = ctx.get_int_constant(0)?;
+    ctx.push(StackValue::Uint(value))?;
     ctx.advance_pc(1)?;
     Ok(())
 }
 
 /// Load integer constant 1
 pub fn op_intc_1(ctx: &mut EvalContext) -> AvmResult<()> {
-    ctx.push(StackValue::Uint(1))?;
+    let value = ctx.get_int_constant(1)?;
+    ctx.push(StackValue::Uint(value))?;
     ctx.advance_pc(1)?;
     Ok(())
 }
 
 /// Load integer constant 2
 pub fn op_intc_2(ctx: &mut EvalContext) -> AvmResult<()> {
-    ctx.push(StackValue::Uint(2))?;
+    let value = ctx.get_int_constant(2)?;
+    ctx.push(StackValue::Uint(value))?;
     ctx.advance_pc(1)?;
     Ok(())
 }
 
 /// Load integer constant 3
 pub fn op_intc_3(ctx: &mut EvalContext) -> AvmResult<()> {
-    ctx.push(StackValue::Uint(3))?;
+    let value = ctx.get_int_constant(3)?;
+    ctx.push(StackValue::Uint(value))?;
     ctx.advance_pc(1)?;
     Ok(())
 }
@@ -136,17 +145,21 @@ pub fn op_intc_3(ctx: &mut EvalContext) -> AvmResult<()> {
 pub fn op_bytecblock(ctx: &mut EvalContext) -> AvmResult<()> {
     // Advance past the opcode first
     ctx.advance_pc(1)?;
-    // Read count
-    let count = ctx.read_bytes(1)?[0] as usize;
-    ctx.advance_pc(1)?;
-
-    // For now, just skip the constant block
-    // Full implementation would store constants for later use
+    
+    // Read count as varuint
+    let count = read_varuint_from_context(ctx)? as usize;
+    
+    // Read each byte constant (length-prefixed)
+    let mut constants = Vec::with_capacity(count);
     for _ in 0..count {
-        let length = ctx.read_bytes(1)?[0] as usize;
-        ctx.advance_pc(1 + length)?; // Skip length byte + data
+        let length = read_varuint_from_context(ctx)? as usize;
+        let bytes = ctx.read_bytes(length)?.to_vec();
+        ctx.advance_pc(length)?;
+        constants.push(bytes);
     }
-
+    
+    // Store constants in context
+    ctx.set_byte_constants(constants);
     Ok(())
 }
 
@@ -154,38 +167,43 @@ pub fn op_bytecblock(ctx: &mut EvalContext) -> AvmResult<()> {
 pub fn op_bytec(ctx: &mut EvalContext) -> AvmResult<()> {
     // Advance past the opcode first
     ctx.advance_pc(1)?;
-    let index = ctx.read_bytes(1)?[0];
+    let index = ctx.read_bytes(1)?[0] as usize;
     ctx.advance_pc(1)?;
 
-    // Placeholder - would load from constant block
-    ctx.push(StackValue::Bytes(vec![index]))?;
+    // Load from constant block
+    let bytes = ctx.get_byte_constant(index)?;
+    ctx.push(StackValue::Bytes(bytes.to_vec()))?;
     Ok(())
 }
 
 /// Load byte constant 0
 pub fn op_bytec_0(ctx: &mut EvalContext) -> AvmResult<()> {
-    ctx.push(StackValue::Bytes(vec![0]))?;
+    let bytes = ctx.get_byte_constant(0)?;
+    ctx.push(StackValue::Bytes(bytes.to_vec()))?;
     ctx.advance_pc(1)?;
     Ok(())
 }
 
 /// Load byte constant 1
 pub fn op_bytec_1(ctx: &mut EvalContext) -> AvmResult<()> {
-    ctx.push(StackValue::Bytes(vec![1]))?;
+    let bytes = ctx.get_byte_constant(1)?;
+    ctx.push(StackValue::Bytes(bytes.to_vec()))?;
     ctx.advance_pc(1)?;
     Ok(())
 }
 
 /// Load byte constant 2
 pub fn op_bytec_2(ctx: &mut EvalContext) -> AvmResult<()> {
-    ctx.push(StackValue::Bytes(vec![2]))?;
+    let bytes = ctx.get_byte_constant(2)?;
+    ctx.push(StackValue::Bytes(bytes.to_vec()))?;
     ctx.advance_pc(1)?;
     Ok(())
 }
 
 /// Load byte constant 3
 pub fn op_bytec_3(ctx: &mut EvalContext) -> AvmResult<()> {
-    ctx.push(StackValue::Bytes(vec![3]))?;
+    let bytes = ctx.get_byte_constant(3)?;
+    ctx.push(StackValue::Bytes(bytes.to_vec()))?;
     ctx.advance_pc(1)?;
     Ok(())
 }

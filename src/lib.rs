@@ -10,6 +10,7 @@ pub mod error;
 pub mod opcodes;
 pub mod state;
 pub mod types;
+pub mod varuint;
 pub mod vm;
 
 // Re-export main types

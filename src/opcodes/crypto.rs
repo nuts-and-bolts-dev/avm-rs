@@ -226,6 +226,7 @@ pub fn op_vrf_verify(ctx: &mut EvalContext) -> AvmResult<()> {
     // Full VRF verification would be implemented here
     ctx.push(StackValue::Bytes(vec![0u8; 64]))?; // VRF output
     ctx.push(StackValue::Uint(0))?; // Verification result
+    ctx.advance_pc(1)?;
     Ok(())
 }
 

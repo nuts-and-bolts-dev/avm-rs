@@ -134,62 +134,140 @@ fn test_op_pushbytess() {
 
 #[test]
 fn test_op_intc_shortcuts() {
-    // Test intc_0
+    use rust_avm::varuint::encode_varuint;
+
+    // Set up integer constant block first
     let mut bytecode = Vec::new();
+    bytecode.push(OP_INTCBLOCK);
+    bytecode.extend_from_slice(&encode_varuint(4)); // count
+    bytecode.extend_from_slice(&encode_varuint(100)); // constant 0
+    bytecode.extend_from_slice(&encode_varuint(200)); // constant 1
+    bytecode.extend_from_slice(&encode_varuint(300)); // constant 2
+    bytecode.extend_from_slice(&encode_varuint(400)); // constant 3
+
+    // Test intc_0
     bytecode.push(OP_INTC_0);
-    bytecode = with_assert_equals(bytecode, StackValue::Uint(0));
+    bytecode = with_assert_equals(bytecode, StackValue::Uint(100));
 
     execute_and_check(&bytecode, true).unwrap();
 
     // Test intc_1
     let mut bytecode = Vec::new();
+    bytecode.push(OP_INTCBLOCK);
+    bytecode.extend_from_slice(&encode_varuint(4)); // count
+    bytecode.extend_from_slice(&encode_varuint(100)); // constant 0
+    bytecode.extend_from_slice(&encode_varuint(200)); // constant 1
+    bytecode.extend_from_slice(&encode_varuint(300)); // constant 2
+    bytecode.extend_from_slice(&encode_varuint(400)); // constant 3
+
     bytecode.push(OP_INTC_1);
-    bytecode = with_assert_equals(bytecode, StackValue::Uint(1));
+    bytecode = with_assert_equals(bytecode, StackValue::Uint(200));
 
     execute_and_check(&bytecode, true).unwrap();
 
     // Test intc_2
     let mut bytecode = Vec::new();
+    bytecode.push(OP_INTCBLOCK);
+    bytecode.extend_from_slice(&encode_varuint(4)); // count
+    bytecode.extend_from_slice(&encode_varuint(100)); // constant 0
+    bytecode.extend_from_slice(&encode_varuint(200)); // constant 1
+    bytecode.extend_from_slice(&encode_varuint(300)); // constant 2
+    bytecode.extend_from_slice(&encode_varuint(400)); // constant 3
+
     bytecode.push(OP_INTC_2);
-    bytecode = with_assert_equals(bytecode, StackValue::Uint(2));
+    bytecode = with_assert_equals(bytecode, StackValue::Uint(300));
 
     execute_and_check(&bytecode, true).unwrap();
 
     // Test intc_3
     let mut bytecode = Vec::new();
+    bytecode.push(OP_INTCBLOCK);
+    bytecode.extend_from_slice(&encode_varuint(4)); // count
+    bytecode.extend_from_slice(&encode_varuint(100)); // constant 0
+    bytecode.extend_from_slice(&encode_varuint(200)); // constant 1
+    bytecode.extend_from_slice(&encode_varuint(300)); // constant 2
+    bytecode.extend_from_slice(&encode_varuint(400)); // constant 3
+
     bytecode.push(OP_INTC_3);
-    bytecode = with_assert_equals(bytecode, StackValue::Uint(3));
+    bytecode = with_assert_equals(bytecode, StackValue::Uint(400));
 
     execute_and_check(&bytecode, true).unwrap();
 }
 
 #[test]
 fn test_op_bytec_shortcuts() {
-    // Test bytec_0
+    use rust_avm::varuint::encode_varuint;
+
+    // Set up byte constant block first
     let mut bytecode = Vec::new();
+    bytecode.push(OP_BYTECBLOCK);
+    bytecode.extend_from_slice(&encode_varuint(4)); // count
+    bytecode.extend_from_slice(&encode_varuint(3)); // length of "foo"
+    bytecode.extend_from_slice(b"foo");
+    bytecode.extend_from_slice(&encode_varuint(3)); // length of "bar"
+    bytecode.extend_from_slice(b"bar");
+    bytecode.extend_from_slice(&encode_varuint(3)); // length of "baz"
+    bytecode.extend_from_slice(b"baz");
+    bytecode.extend_from_slice(&encode_varuint(3)); // length of "qux"
+    bytecode.extend_from_slice(b"qux");
+
+    // Test bytec_0
     bytecode.push(OP_BYTEC_0);
-    bytecode = with_assert_equals(bytecode, StackValue::Bytes(vec![0]));
+    bytecode = with_assert_equals(bytecode, StackValue::Bytes(b"foo".to_vec()));
 
     execute_and_check(&bytecode, true).unwrap();
 
     // Test bytec_1
     let mut bytecode = Vec::new();
+    bytecode.push(OP_BYTECBLOCK);
+    bytecode.extend_from_slice(&encode_varuint(4)); // count
+    bytecode.extend_from_slice(&encode_varuint(3)); // length of "foo"
+    bytecode.extend_from_slice(b"foo");
+    bytecode.extend_from_slice(&encode_varuint(3)); // length of "bar"
+    bytecode.extend_from_slice(b"bar");
+    bytecode.extend_from_slice(&encode_varuint(3)); // length of "baz"
+    bytecode.extend_from_slice(b"baz");
+    bytecode.extend_from_slice(&encode_varuint(3)); // length of "qux"
+    bytecode.extend_from_slice(b"qux");
+
     bytecode.push(OP_BYTEC_1);
-    bytecode = with_assert_equals(bytecode, StackValue::Bytes(vec![1]));
+    bytecode = with_assert_equals(bytecode, StackValue::Bytes(b"bar".to_vec()));
 
     execute_and_check(&bytecode, true).unwrap();
 
     // Test bytec_2
     let mut bytecode = Vec::new();
+    bytecode.push(OP_BYTECBLOCK);
+    bytecode.extend_from_slice(&encode_varuint(4)); // count
+    bytecode.extend_from_slice(&encode_varuint(3)); // length of "foo"
+    bytecode.extend_from_slice(b"foo");
+    bytecode.extend_from_slice(&encode_varuint(3)); // length of "bar"
+    bytecode.extend_from_slice(b"bar");
+    bytecode.extend_from_slice(&encode_varuint(3)); // length of "baz"
+    bytecode.extend_from_slice(b"baz");
+    bytecode.extend_from_slice(&encode_varuint(3)); // length of "qux"
+    bytecode.extend_from_slice(b"qux");
+
     bytecode.push(OP_BYTEC_2);
-    bytecode = with_assert_equals(bytecode, StackValue::Bytes(vec![2]));
+    bytecode = with_assert_equals(bytecode, StackValue::Bytes(b"baz".to_vec()));
 
     execute_and_check(&bytecode, true).unwrap();
 
     // Test bytec_3
     let mut bytecode = Vec::new();
+    bytecode.push(OP_BYTECBLOCK);
+    bytecode.extend_from_slice(&encode_varuint(4)); // count
+    bytecode.extend_from_slice(&encode_varuint(3)); // length of "foo"
+    bytecode.extend_from_slice(b"foo");
+    bytecode.extend_from_slice(&encode_varuint(3)); // length of "bar"
+    bytecode.extend_from_slice(b"bar");
+    bytecode.extend_from_slice(&encode_varuint(3)); // length of "baz"
+    bytecode.extend_from_slice(b"baz");
+    bytecode.extend_from_slice(&encode_varuint(3)); // length of "qux"
+    bytecode.extend_from_slice(b"qux");
+
     bytecode.push(OP_BYTEC_3);
-    bytecode = with_assert_equals(bytecode, StackValue::Bytes(vec![3]));
+    bytecode = with_assert_equals(bytecode, StackValue::Bytes(b"qux".to_vec()));
 
     execute_and_check(&bytecode, true).unwrap();
 }
@@ -242,42 +320,52 @@ fn test_op_bzero_too_large() {
 
 #[test]
 fn test_constant_blocks() {
-    // Test intcblock (placeholder implementation)
+    use rust_avm::varuint::encode_varuint;
+
+    // Test intcblock with varuint encoding
     let mut bytecode = Vec::new();
     bytecode.push(OP_INTCBLOCK);
-    bytecode.push(3); // count
-    bytecode.extend_from_slice(&100u64.to_be_bytes());
-    bytecode.extend_from_slice(&200u64.to_be_bytes());
-    bytecode.extend_from_slice(&300u64.to_be_bytes());
+    bytecode.extend_from_slice(&encode_varuint(3)); // count
+    bytecode.extend_from_slice(&encode_varuint(100)); // constant 0
+    bytecode.extend_from_slice(&encode_varuint(200)); // constant 1
+    bytecode.extend_from_slice(&encode_varuint(300)); // constant 2
 
-    // For now, intc just returns the index as value
+    // Now intc returns the actual constant value
     bytecode.push(OP_INTC);
     bytecode.push(1); // index
-    bytecode = with_assert_equals(bytecode, StackValue::Uint(1));
+    bytecode = with_assert_equals(bytecode, StackValue::Uint(200));
 
     execute_and_check(&bytecode, true).unwrap();
 
-    // Test bytecblock (placeholder implementation)
+    // Test bytecblock with varuint encoding
     let mut bytecode = Vec::new();
     bytecode.push(OP_BYTECBLOCK);
-    bytecode.push(2); // count
-    bytecode.push(3); // length
+    bytecode.extend_from_slice(&encode_varuint(2)); // count
+    bytecode.extend_from_slice(&encode_varuint(3)); // length of "foo"
     bytecode.extend_from_slice(b"foo");
-    bytecode.push(3); // length
+    bytecode.extend_from_slice(&encode_varuint(3)); // length of "bar"
     bytecode.extend_from_slice(b"bar");
 
-    // For now, bytec returns index as single byte
+    // Now bytec returns the actual constant value
     bytecode.push(OP_BYTEC);
     bytecode.push(0); // index
-    bytecode = with_assert_equals(bytecode, StackValue::Bytes(vec![0]));
+    bytecode = with_assert_equals(bytecode, StackValue::Bytes(b"foo".to_vec()));
 
     execute_and_check(&bytecode, true).unwrap();
 }
 
 #[test]
 fn test_mixed_constants() {
+    use rust_avm::varuint::encode_varuint;
+
     // Test mixing different constant operations
     let mut bytecode = Vec::new();
+
+    // Set up integer constant block
+    bytecode.push(OP_INTCBLOCK);
+    bytecode.extend_from_slice(&encode_varuint(2)); // count
+    bytecode.extend_from_slice(&encode_varuint(0)); // constant 0
+    bytecode.extend_from_slice(&encode_varuint(1)); // constant 1
 
     // Push some values
     bytecode.push(OP_PUSHINT);
@@ -287,7 +375,7 @@ fn test_mixed_constants() {
     bytecode.push(4);
     bytecode.extend_from_slice(b"test");
 
-    bytecode.push(OP_INTC_1);
+    bytecode.push(OP_INTC_1); // This now pushes 1 (the actual constant value)
 
     // Stack: [42, "test", 1]
     // To add 42 + 1, we need to remove "test" from between them

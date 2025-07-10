@@ -5,8 +5,8 @@
 
 #![allow(clippy::vec_init_then_push)]
 
-// Common utilities
 pub mod common;
+pub mod constant_blocks;
 
 // Opcode category tests
 pub mod opcodes {

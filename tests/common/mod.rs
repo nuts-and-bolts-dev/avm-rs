@@ -12,7 +12,7 @@ use rust_avm::{
 
 /// Create a test VM with default settings
 pub fn setup_vm() -> VirtualMachine {
-    VirtualMachine::with_version(TealVersion::V6)
+    VirtualMachine::with_version(TealVersion::V11)
 }
 
 /// Create a VM with specific version
@@ -22,7 +22,7 @@ pub fn setup_vm_with_version(version: TealVersion) -> VirtualMachine {
 
 /// Create default test execution config
 pub fn test_config() -> ExecutionConfig {
-    ExecutionConfig::new(TealVersion::V6).with_cost_budget(10000000) // Unlimited budget for testing
+    ExecutionConfig::new(TealVersion::V11).with_cost_budget(10000000) // Unlimited budget for testing
 }
 
 /// Create test execution config with specific version
@@ -181,7 +181,7 @@ pub fn execute_expect_error(bytecode: &[u8]) -> AvmResult<()> {
     Ok(())
 }
 
-/// Create a simple TEAL program that tests an opcode  
+/// Create a simple TEAL program that tests an opcode
 pub fn create_teal_program(program: &str) -> AvmResult<Vec<u8>> {
     use rust_avm::assembler::Assembler;
     let mut assembler = Assembler::new();
@@ -216,18 +216,8 @@ pub fn build_simple_op_test(values: Vec<StackValue>, opcode: u8) -> Vec<u8> {
     for value in values {
         match value {
             StackValue::Uint(val) => {
-                if val == 0 {
-                    bytecode.push(OP_INTC_0);
-                } else if val == 1 {
-                    bytecode.push(OP_INTC_1);
-                } else if val == 2 {
-                    bytecode.push(OP_INTC_2);
-                } else if val == 3 {
-                    bytecode.push(OP_INTC_3);
-                } else {
-                    bytecode.push(0x81); // pushint
-                    bytecode.extend_from_slice(&val.to_be_bytes());
-                }
+                bytecode.push(0x81); // pushint
+                bytecode.extend_from_slice(&val.to_be_bytes());
             }
             StackValue::Bytes(bytes) => {
                 bytecode.push(0x80); // pushbytes
@@ -247,18 +237,8 @@ pub fn build_simple_op_test(values: Vec<StackValue>, opcode: u8) -> Vec<u8> {
 pub fn with_assert_equals(mut bytecode: Vec<u8>, expected: StackValue) -> Vec<u8> {
     match expected {
         StackValue::Uint(val) => {
-            if val == 0 {
-                bytecode.push(OP_INTC_0);
-            } else if val == 1 {
-                bytecode.push(OP_INTC_1);
-            } else if val == 2 {
-                bytecode.push(OP_INTC_2);
-            } else if val == 3 {
-                bytecode.push(OP_INTC_3);
-            } else {
-                bytecode.push(0x81); // pushint
-                bytecode.extend_from_slice(&val.to_be_bytes());
-            }
+            bytecode.push(0x81); // pushint
+            bytecode.extend_from_slice(&val.to_be_bytes());
         }
         StackValue::Bytes(bytes) => {
             bytecode.push(0x80); // pushbytes
