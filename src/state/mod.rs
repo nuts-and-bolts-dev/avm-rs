@@ -344,14 +344,14 @@ pub trait LedgerAccess: std::fmt::Debug {
     /// Get global field value
     fn get_global_field(&self, field: GlobalField) -> AvmResult<TealValue>;
 
-    /// Get current transaction
-    fn current_transaction(&self) -> AvmResult<&Transaction>;
+    /// Get current transaction (cloned)
+    fn current_transaction(&self) -> AvmResult<Transaction>;
 
-    /// Get transaction group
-    fn transaction_group(&self) -> AvmResult<&[Transaction]>;
+    /// Get transaction group (cloned)
+    fn transaction_group(&self) -> AvmResult<Vec<Transaction>>;
 
-    /// Get program arguments for current transaction
-    fn program_args(&self) -> AvmResult<&[Vec<u8>]>;
+    /// Get program arguments for current transaction (cloned)
+    fn program_args(&self) -> AvmResult<Vec<Vec<u8>>>;
 }
 
 /// Mock ledger implementation for testing
@@ -781,27 +781,21 @@ impl LedgerAccess for MockLedger {
         Ok(value)
     }
 
-    fn current_transaction(&self) -> AvmResult<&Transaction> {
-        // Cannot return a reference to borrowed data from RefCell
-        // This method would need redesign or should return a clone
-        Err(crate::error::AvmError::invalid_program(
-            "current_transaction not available with interior mutability - use get_txn_field instead"
-        ))
+    fn current_transaction(&self) -> AvmResult<Transaction> {
+        let transactions = self.transactions.borrow();
+        transactions
+            .get(self.current_txn_index)
+            .cloned()
+            .ok_or_else(|| crate::error::AvmError::InvalidTransactionField {
+                field: format!("current transaction index {}", self.current_txn_index),
+            })
     }
 
-    fn transaction_group(&self) -> AvmResult<&[Transaction]> {
-        // Cannot return a reference to borrowed data from RefCell
-        // This method would need redesign or should return a clone
-        Err(crate::error::AvmError::invalid_program(
-            "transaction_group not available with interior mutability - use get_txn_field instead"
-        ))
+    fn transaction_group(&self) -> AvmResult<Vec<Transaction>> {
+        Ok(self.transactions.borrow().clone())
     }
 
-    fn program_args(&self) -> AvmResult<&[Vec<u8>]> {
-        // Cannot return a reference to borrowed data from RefCell
-        // This method would need redesign or should return a clone
-        Err(crate::error::AvmError::invalid_program(
-            "program_args not available with interior mutability - redesign needed"
-        ))
+    fn program_args(&self) -> AvmResult<Vec<Vec<u8>>> {
+        Ok(self.program_args.borrow().clone())
     }
 }
