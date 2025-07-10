@@ -663,25 +663,72 @@ pub fn op_json_ref(ctx: &mut EvalContext) -> AvmResult<()> {
     let json_bytes = json_data.as_bytes()?;
     let key_bytes = key.as_bytes()?;
 
-    let _json_str = std::str::from_utf8(json_bytes)
+    let json_str = std::str::from_utf8(json_bytes)
         .map_err(|_| AvmError::invalid_program("Invalid UTF-8 in JSON data"))?;
     let key_str = std::str::from_utf8(key_bytes)
         .map_err(|_| AvmError::invalid_program("Invalid UTF-8 in JSON key"))?;
 
-    // TODO: Implement proper JSON parsing and field extraction using serde_json
+    // Parse JSON and extract the requested field
+    let parsed_json: serde_json::Value = serde_json::from_str(json_str)
+        .map_err(|_| AvmError::invalid_program("Invalid JSON data"))?;
+    
+    // Extract the field value
+    let field_value = parsed_json.get(key_str);
+    
     match return_type {
         0 => {
             // JSONString
-            let result = format!("\"{key_str}\""); // Placeholder
-            ctx.push(StackValue::Bytes(result.into_bytes()))?;
+            match field_value {
+                Some(serde_json::Value::String(s)) => {
+                    ctx.push(StackValue::Bytes(s.as_bytes().to_vec()))?;
+                }
+                Some(value) => {
+                    // Convert other types to string representation
+                    let s = value.to_string();
+                    ctx.push(StackValue::Bytes(s.into_bytes()))?;
+                }
+                None => {
+                    // Field not found - return empty string
+                    ctx.push(StackValue::Bytes(Vec::new()))?;
+                }
+            }
         }
         1 => {
             // JSONUint64
-            ctx.push(StackValue::Uint(0))?; // Placeholder
+            match field_value {
+                Some(serde_json::Value::Number(n)) => {
+                    if let Some(u) = n.as_u64() {
+                        ctx.push(StackValue::Uint(u))?;
+                    } else {
+                        // Not a valid u64
+                        ctx.push(StackValue::Uint(0))?;
+                    }
+                }
+                _ => {
+                    // Field not found or not a number
+                    ctx.push(StackValue::Uint(0))?;
+                }
+            }
         }
         2 => {
             // JSONObject
-            ctx.push(StackValue::Bytes(b"{}".to_vec()))?; // Placeholder
+            match field_value {
+                Some(serde_json::Value::Object(_)) | Some(serde_json::Value::Array(_)) => {
+                    let serialized = serde_json::to_string(field_value.unwrap())
+                        .map_err(|_| AvmError::invalid_program("Failed to serialize JSON object"))?;
+                    ctx.push(StackValue::Bytes(serialized.into_bytes()))?;
+                }
+                Some(value) => {
+                    // Return the value as JSON string
+                    let serialized = serde_json::to_string(value)
+                        .map_err(|_| AvmError::invalid_program("Failed to serialize JSON value"))?;
+                    ctx.push(StackValue::Bytes(serialized.into_bytes()))?;
+                }
+                None => {
+                    // Field not found - return null
+                    ctx.push(StackValue::Bytes(b"null".to_vec()))?;
+                }
+            }
         }
         _ => return Err(AvmError::invalid_program("Invalid JSON return type")),
     }

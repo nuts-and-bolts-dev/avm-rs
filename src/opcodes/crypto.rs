@@ -166,48 +166,104 @@ pub fn op_ed25519verify_bare(ctx: &mut EvalContext) -> AvmResult<()> {
 
 /// ECDSA signature verification (secp256k1)
 pub fn op_ecdsa_verify(ctx: &mut EvalContext) -> AvmResult<()> {
+    use secp256k1::{Secp256k1, Message, PublicKey, ecdsa::Signature};
+    
     let public_key = ctx.pop()?;
     let signature = ctx.pop()?;
     let data = ctx.pop()?;
     let recovery_id = ctx.pop()?;
 
-    let _pub_key_bytes = public_key.as_bytes()?;
-    let _sig_bytes = signature.as_bytes()?;
-    let _data_bytes = data.as_bytes()?;
-    let _recovery_id = recovery_id.as_uint()?;
+    let pub_key_bytes = public_key.as_bytes()?;
+    let sig_bytes = signature.as_bytes()?;
+    let data_bytes = data.as_bytes()?;
+    let _recovery_id = recovery_id.as_uint()?; // Currently unused in verification
 
-    // TODO: Implement ECDSA signature verification using secp256k1 library
-    // For now, return a placeholder implementation
-    ctx.push(StackValue::Uint(0))?;
+    // Verify the signature
+    let verification_result = match (
+        PublicKey::from_slice(pub_key_bytes),
+        Signature::from_compact(sig_bytes),
+        Message::from_digest_slice(data_bytes)
+    ) {
+        (Ok(pubkey), Ok(sig), Ok(msg)) => {
+            let secp = Secp256k1::verification_only();
+            match secp.verify_ecdsa(&msg, &sig, &pubkey) {
+                Ok(()) => 1, // Verification successful
+                Err(_) => 0, // Verification failed
+            }
+        }
+        _ => 0, // Invalid input format
+    };
+
+    ctx.push(StackValue::Uint(verification_result))?;
     ctx.advance_pc(1)?;
     Ok(())
 }
 
 /// ECDSA public key decompression
 pub fn op_ecdsa_pk_decompress(ctx: &mut EvalContext) -> AvmResult<()> {
+    use secp256k1::{Secp256k1, PublicKey};
+    
     let compressed_key = ctx.pop()?;
-    let _key_bytes = compressed_key.as_bytes()?;
+    let key_bytes = compressed_key.as_bytes()?;
 
-    // TODO: Implement ECDSA public key decompression
-    // Placeholder implementation
-    ctx.push(StackValue::Bytes(vec![0u8; 64]))?;
+    // Decompress the public key
+    let result = match PublicKey::from_slice(key_bytes) {
+        Ok(pubkey) => {
+            let _secp = Secp256k1::verification_only();
+            // Convert to uncompressed format (64 bytes without prefix)
+            let serialized = pubkey.serialize_uncompressed();
+            // Remove the 0x04 prefix byte to get just the X,Y coordinates
+            serialized[1..].to_vec()
+        }
+        Err(_) => {
+            // Return empty bytes for invalid key
+            Vec::new()
+        }
+    };
+
+    ctx.push(StackValue::Bytes(result))?;
     ctx.advance_pc(1)?;
     Ok(())
 }
 
 /// ECDSA public key recovery
 pub fn op_ecdsa_pk_recover(ctx: &mut EvalContext) -> AvmResult<()> {
+    use secp256k1::{Secp256k1, Message, ecdsa::{RecoverableSignature, RecoveryId}};
+    
     let recovery_id = ctx.pop()?;
     let signature = ctx.pop()?;
     let data = ctx.pop()?;
 
-    let _recovery_id = recovery_id.as_uint()?;
-    let _sig_bytes = signature.as_bytes()?;
-    let _data_bytes = data.as_bytes()?;
+    let recovery_id_value = recovery_id.as_uint()? as i32;
+    let sig_bytes = signature.as_bytes()?;
+    let data_bytes = data.as_bytes()?;
 
-    // TODO: Implement ECDSA public key recovery from signature
-    // Placeholder implementation
-    ctx.push(StackValue::Bytes(vec![0u8; 64]))?;
+    // Recover the public key
+    let result = match (
+        RecoveryId::from_i32(recovery_id_value),
+        Message::from_digest_slice(data_bytes),
+        sig_bytes.len() == 64  // Signature should be 64 bytes (r + s)
+    ) {
+        (Ok(recovery_id), Ok(msg), true) => {
+            match RecoverableSignature::from_compact(sig_bytes, recovery_id) {
+                Ok(recoverable_sig) => {
+                    let secp = Secp256k1::new();
+                    match secp.recover_ecdsa(&msg, &recoverable_sig) {
+                        Ok(pubkey) => {
+                            // Return uncompressed public key (64 bytes without prefix)
+                            let serialized = pubkey.serialize_uncompressed();
+                            serialized[1..].to_vec()
+                        }
+                        Err(_) => Vec::new(), // Recovery failed
+                    }
+                }
+                Err(_) => Vec::new(), // Invalid signature format
+            }
+        }
+        _ => Vec::new(), // Invalid input parameters
+    };
+
+    ctx.push(StackValue::Bytes(result))?;
     ctx.advance_pc(1)?;
     Ok(())
 }
