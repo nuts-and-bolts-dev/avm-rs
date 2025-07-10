@@ -1,56 +1,42 @@
-.PHONY: all build test check fmt fmt-toml fmt-toml-fix clippy clean doc audit dev-deps ci examples run-examples help
+.PHONY: all build test check fmt clippy clean doc audit dev-deps ci examples run-examples help
 
-# Default target
-all: fmt fmt-toml clippy test examples
+# Run formatting, linting, tests, and build examples
+all: fmt clippy test examples
 
-# Show available targets
-help:
-	@echo "Available targets:"
-	@echo "  all           - Run formatting, linting, tests, and build examples"
-	@echo "  build         - Build the project with all features"
-	@echo "  test          - Run all tests"
-	@echo "  check         - Check code compilation"
-	@echo "  fmt           - Format Rust code"
-	@echo "  fmt-toml      - Format TOML files"
-	@echo "  clippy        - Run clippy linter"
-	@echo "  examples      - Build all examples"
-	@echo "  run-examples  - Run all examples (demonstrative)"
-	@echo "  clean         - Clean build artifacts"
-	@echo "  doc           - Generate and open documentation"
-	@echo "  audit         - Run security audit"
-	@echo "  dev-deps      - Install development dependencies"
-	@echo "  ci            - Run all CI checks locally"
-	@echo "  help          - Show this help message"
-
+# Build the project with all possible features
 build:
 	cargo build --all-features
 	cargo build --no-default-features
 
+# Run all tests
 test:
 	cargo test --all-features
 	cargo test --no-default-features
 
+# Check code compilation
 check:
 	cargo check --all-features
 	cargo check --no-default-features
 
+# Format code
 fmt:
 	cargo fmt --all
-
-# Check TOML formatting
-fmt-toml:
 	taplo format
 
+# Run clippy linter
 clippy:
 	cargo clippy --all-targets --all-features -- -D warnings
 	cargo clippy --all-targets --no-default-features -- -D warnings
 
+# Clean build artifacts
 clean:
 	cargo clean
 
+# Generate and open documentation
 doc:
 	cargo doc --no-deps --all-features --open
 
+# Run security audit
 audit:
 	cargo audit
 
@@ -62,34 +48,36 @@ dev-deps:
 
 # Build all examples
 examples:
-	@echo "Building all examples..."
 	cargo build --examples
 
-# Run all examples
+# Run all examples (demonstrative)
 run-examples:
-	@echo "Running all examples..."
-	@echo "=== Basic Arithmetic ==="
 	cargo run --example basic_arithmetic
-	@echo ""
-	@echo "=== Simple Test ==="
 	cargo run --example simple_test
-	@echo ""
-	@echo "=== Control Flow ==="
 	cargo run --example control_flow
-	@echo ""
-	@echo "=== Crypto Operations ==="
 	cargo run --example crypto_operations
-	@echo ""
-	@echo "=== Smart Contract ==="
 	cargo run --example smart_contract
-	@echo ""
-	@echo "=== TEAL Assembly ==="
 	cargo run --example teal_assembly
-	@echo ""
-	@echo "=== Transaction Fields ==="
 	cargo run --example transaction_fields
-	@echo "All examples completed!"
 
 # Run all CI checks locally
-ci: fmt fmt-toml clippy test build examples
-	@echo "All CI checks passed!"
+ci: fmt clippy test build examples
+
+# Show this help message
+help:
+	@echo ''
+	@echo 'Usage:'
+	@echo '  make [target]'
+	@echo ''
+	@echo 'Targets:'
+	@awk '/^[a-zA-Z\-\_0-9]+:/ { \
+	helpMessage = match(lastLine, /^# (.*)/); \
+		if (helpMessage) { \
+			helpCommand = substr($$1, 0, index($$1, ":")); \
+			helpMessage = substr(lastLine, RSTART + 2, RLENGTH); \
+			printf "\033[36m%-15s\033[0m %s\n", helpCommand, helpMessage; \
+		} \
+	} \
+	{ lastLine = $$0 }' $(MAKEFILE_LIST)
+
+.DEFAULT_GOAL := help
