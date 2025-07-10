@@ -623,10 +623,25 @@ impl Assembler {
 
     /// Try to parse as base32 (Algorand address format)
     fn try_parse_base32(&self, input: &str, line_num: usize) -> AvmResult<Vec<u8>> {
-        // TODO: Implement base32 address parsing with proper base32 decoder library
-        Err(AvmError::assembly_error(format!(
-            "Base32 addresses not yet supported: '{input}' on line {line_num}"
-        )))
+        use base32::{Alphabet, decode};
+        
+        // Algorand uses a specific base32 alphabet (RFC4648 without padding)
+        match decode(Alphabet::Rfc4648 { padding: false }, input) {
+            Some(bytes) => {
+                // Algorand addresses should be 32 bytes after decoding
+                if bytes.len() == 32 {
+                    Ok(bytes)
+                } else {
+                    Err(AvmError::assembly_error(format!(
+                        "Invalid address length: expected 32 bytes, got {} on line {line_num}",
+                        bytes.len()
+                    )))
+                }
+            }
+            None => Err(AvmError::assembly_error(format!(
+                "Invalid base32 encoding in address '{input}' on line {line_num}"
+            )))
+        }
     }
 
     /// Assemble address immediate value
@@ -682,16 +697,47 @@ impl Assembler {
 
     /// Parse Algorand address from base32 format
     fn parse_algorand_address(&self, addr: &str, line_num: usize) -> AvmResult<Vec<u8>> {
-        // TODO: Implement proper base32 address decoding with checksum validation
-        // Real implementation would decode the base32 address and validate the checksum
+        use base32::{Alphabet, decode};
+        use sha2::{Digest, Sha512_256};
+        
+        // Algorand addresses are 58 characters in base32
         if addr.len() != 58 {
             return Err(AvmError::assembly_error(format!(
-                "Invalid Algorand address length on line {line_num}: expected 58 characters"
+                "Invalid Algorand address length on line {line_num}: expected 58 characters, got {}",
+                addr.len()
             )));
         }
 
-        // Placeholder implementation - return 32 zero bytes
-        Ok(vec![0u8; 32])
+        // Decode the base32 address
+        let decoded = decode(Alphabet::Rfc4648 { padding: false }, addr)
+            .ok_or_else(|| AvmError::assembly_error(format!(
+                "Invalid base32 encoding in address on line {line_num}"
+            )))?;
+
+        // Algorand addresses contain 32 bytes + 4 byte checksum = 36 bytes total
+        if decoded.len() != 36 {
+            return Err(AvmError::assembly_error(format!(
+                "Invalid decoded address length on line {line_num}: expected 36 bytes, got {}",
+                decoded.len()
+            )));
+        }
+
+        // Split address and checksum
+        let (address_bytes, checksum) = decoded.split_at(32);
+        
+        // Verify checksum using SHA512-256 (last 4 bytes)
+        let mut hasher = Sha512_256::new();
+        hasher.update(address_bytes);
+        let hash = hasher.finalize();
+        let expected_checksum = &hash[hash.len() - 4..];
+        
+        if checksum != expected_checksum {
+            return Err(AvmError::assembly_error(format!(
+                "Invalid address checksum on line {line_num}"
+            )));
+        }
+
+        Ok(address_bytes.to_vec())
     }
 
     /// Compute ARC-4 method selector from method signature
