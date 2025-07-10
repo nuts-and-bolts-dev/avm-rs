@@ -1,4 +1,4 @@
-.PHONY: all build test check fmt clippy clean doc audit dev-deps ci examples run-examples help
+.PHONY: all build test check fmt clippy clean doc audit dev-deps ci examples help
 
 # Run formatting, linting, tests, and build examples
 all: fmt clippy test examples
@@ -49,16 +49,6 @@ dev-deps:
 # Build all examples
 examples:
 	cargo build --examples
-
-# Run all examples (demonstrative)
-run-examples:
-	cargo run --example basic_arithmetic
-	cargo run --example simple_test
-	cargo run --example control_flow
-	cargo run --example crypto_operations
-	cargo run --example smart_contract
-	cargo run --example teal_assembly
-	cargo run --example transaction_fields
 
 # Run all CI checks locally
 ci: fmt clippy test build examples
