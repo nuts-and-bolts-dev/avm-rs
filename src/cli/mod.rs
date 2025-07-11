@@ -36,7 +36,12 @@ pub struct GlobalOptions {
     pub quiet: bool,
 
     /// Output format (text, json)
-    #[arg(long = "output-style", value_enum, default_value = "text", global = true)]
+    #[arg(
+        long = "output-style",
+        value_enum,
+        default_value = "text",
+        global = true
+    )]
     pub format: OutputFormat,
 
     /// Enable colored output (auto, always, never)
@@ -314,7 +319,7 @@ impl Cli {
 /// Initialize and run the CLI application
 pub fn run() -> anyhow::Result<()> {
     let cli = Cli::parse_args();
-    
+
     // Handle global options
     setup_logging(&cli.global)?;
     setup_colors(&cli.global)?;
