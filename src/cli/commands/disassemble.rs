@@ -1,7 +1,7 @@
 //! Disassemble command implementation
 
-use crate::cli::{DisassembleCommand, GlobalOptions, BytecodeFormat};
-use anyhow::{anyhow, Context, Result};
+use crate::cli::{BytecodeFormat, DisassembleCommand, GlobalOptions};
+use anyhow::{Context, Result, anyhow};
 use base64::{Engine, engine::general_purpose::STANDARD as BASE64_STANDARD};
 use std::fs;
 use std::path::Path;
@@ -23,14 +23,18 @@ pub fn handle(cmd: DisassembleCommand, global: &GlobalOptions) -> Result<()> {
     // Output result
     if let Some(output_path) = &cmd.output {
         fs::write(output_path, &teal_source)
-            .with_context(|| format!("Failed to write output: {:?}", output_path))?;
-        
+            .with_context(|| format!("Failed to write output: {output_path:?}"))?;
+
         if !global.quiet {
-            println!("✅ Disassembled {} bytes to {:?}", bytecode.len(), output_path);
+            println!(
+                "✅ Disassembled {} bytes to {:?}",
+                bytecode.len(),
+                output_path
+            );
         }
     } else {
         // Output to stdout
-        println!("{}", teal_source);
+        println!("{teal_source}");
     }
 
     // Show analysis if requested
@@ -45,8 +49,8 @@ pub fn handle(cmd: DisassembleCommand, global: &GlobalOptions) -> Result<()> {
 fn load_bytecode(input: &str, format: &BytecodeFormat) -> Result<Vec<u8>> {
     // Check if input is a file path
     if Path::new(input).exists() {
-        let content = fs::read_to_string(input)
-            .with_context(|| format!("Failed to read file: {}", input))?;
+        let content =
+            fs::read_to_string(input).with_context(|| format!("Failed to read file: {input}"))?;
         decode_bytecode_content(&content, format)
     } else {
         // Treat as direct bytecode string
@@ -57,7 +61,7 @@ fn load_bytecode(input: &str, format: &BytecodeFormat) -> Result<Vec<u8>> {
 /// Decode bytecode content based on format
 fn decode_bytecode_content(content: &str, format: &BytecodeFormat) -> Result<Vec<u8>> {
     let content = content.trim();
-    
+
     match format {
         BytecodeFormat::Auto => {
             // Try different formats
@@ -70,13 +74,11 @@ fn decode_bytecode_content(content: &str, format: &BytecodeFormat) -> Result<Vec
             }
         }
         BytecodeFormat::Hex => {
-            hex::decode(content.replace(' ', ""))
-                .with_context(|| "Invalid hex bytecode")
+            hex::decode(content.replace(' ', "")).with_context(|| "Invalid hex bytecode")
         }
-        BytecodeFormat::Base64 => {
-            BASE64_STANDARD.decode(content)
-                .with_context(|| "Invalid base64 bytecode")
-        }
+        BytecodeFormat::Base64 => BASE64_STANDARD
+            .decode(content)
+            .with_context(|| "Invalid base64 bytecode"),
         BytecodeFormat::Binary => {
             // For binary input from stdin/file, we expect the raw bytes
             // This is not commonly used in CLI context
@@ -89,56 +91,57 @@ fn decode_bytecode_content(content: &str, format: &BytecodeFormat) -> Result<Vec
 fn disassemble_bytecode(bytecode: &[u8], cmd: &DisassembleCommand) -> Result<String> {
     // TODO: Implement actual disassembler
     // For now, return a placeholder that shows the bytecode structure
-    
+
     let mut output = String::new();
-    
+
     if cmd.comments {
         output.push_str("// Disassembled from bytecode\n");
         output.push_str(&format!("// Bytecode size: {} bytes\n", bytecode.len()));
         output.push_str("// Note: This is a simplified disassembly\n\n");
     }
-    
+
     // Add version pragma (we'll assume latest for now)
     output.push_str("#pragma version 11\n\n");
-    
+
     // Simple bytecode analysis
     let mut pc = 0;
     while pc < bytecode.len() {
         let opcode = bytecode[pc];
-        
+
         if cmd.comments {
-            output.push_str(&format!("// PC: {}, Opcode: 0x{:02x}\n", pc, opcode));
+            output.push_str(&format!("// PC: {pc}, Opcode: 0x{opcode:02x}\n"));
         }
-        
+
         // Basic opcode recognition (simplified)
         let instruction = match opcode {
             0x01 => "int 1",
-            0x02 => "int 2", 
+            0x02 => "int 2",
             0x08 => "+",
             0x09 => "-",
             0x0A => "*",
             0x0B => "/",
             0x43 => "return",
-            _ => &format!("// Unknown opcode: 0x{:02x}", opcode),
+            _ => &format!("// Unknown opcode: 0x{opcode:02x}"),
         };
-        
+
         output.push_str(instruction);
         output.push('\n');
-        
+
         pc += 1;
-        
+
         // Handle multi-byte instructions (simplified)
-        if opcode == 0x20 {  // int opcode with immediate value
+        if opcode == 0x20 {
+            // int opcode with immediate value
             if pc + 8 <= bytecode.len() {
                 pc += 8; // Skip 8-byte immediate
             }
         }
     }
-    
+
     if cmd.comments {
         output.push_str("\n// End of disassembly\n");
     }
-    
+
     Ok(output)
 }
 
@@ -148,33 +151,33 @@ fn show_program_analysis(bytecode: &[u8], global: &GlobalOptions) -> Result<()> 
     let mut instruction_count = 0;
     let mut unknown_opcodes = 0;
     let mut pc = 0;
-    
+
     while pc < bytecode.len() {
         let opcode = bytecode[pc];
         instruction_count += 1;
-        
+
         // Check if it's a known opcode (simplified)
         match opcode {
-            0x01..=0x50 => {}, // Known opcodes range (simplified)
+            0x01..=0x50 => {} // Known opcodes range (simplified)
             _ => unknown_opcodes += 1,
         }
-        
+
         pc += 1;
-        
+
         // Handle multi-byte instructions
         if opcode == 0x20 && pc + 8 <= bytecode.len() {
             pc += 8;
         }
     }
-    
+
     match global.format {
         crate::cli::OutputFormat::Text => {
             println!("\n📊 Program Analysis:");
             println!("  Bytecode size: {} bytes", bytecode.len());
-            println!("  Instructions: {}", instruction_count);
-            println!("  Unknown opcodes: {}", unknown_opcodes);
-            
-            if bytecode.len() > 0 {
+            println!("  Instructions: {instruction_count}");
+            println!("  Unknown opcodes: {unknown_opcodes}");
+
+            if !bytecode.is_empty() {
                 println!("  First opcode: 0x{:02x}", bytecode[0]);
                 println!("  Last opcode: 0x{:02x}", bytecode[bytecode.len() - 1]);
             }
@@ -184,12 +187,12 @@ fn show_program_analysis(bytecode: &[u8], global: &GlobalOptions) -> Result<()> 
                 "bytecode_size": bytecode.len(),
                 "instruction_count": instruction_count,
                 "unknown_opcodes": unknown_opcodes,
-                "first_opcode": if bytecode.len() > 0 { Some(format!("0x{:02x}", bytecode[0])) } else { None },
-                "last_opcode": if bytecode.len() > 0 { Some(format!("0x{:02x}", bytecode[bytecode.len() - 1])) } else { None }
+                "first_opcode": if !bytecode.is_empty() { Some(format!("0x{:02x}", bytecode[0])) } else { None },
+                "last_opcode": if !bytecode.is_empty() { Some(format!("0x{:02x}", bytecode[bytecode.len() - 1])) } else { None }
             });
             println!("{}", serde_json::to_string_pretty(&analysis)?);
         }
     }
-    
+
     Ok(())
 }

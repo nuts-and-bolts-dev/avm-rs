@@ -34,7 +34,7 @@ use crate::common::*;
 /// 2. Subroutine call/return logic (OP_CALLSUB/OP_RETSUB) may have stack management issues
 /// 3. Recursive calls with negative offsets may cause execution path errors
 /// 4. Stack underflow may occur during complex arithmetic operations (5-10=underflow)
-/// This test combines multiple problematic opcodes: branching, subroutines, arithmetic
+///    This test combines multiple problematic opcodes: branching, subroutines, arithmetic
 #[test]
 fn test_factorial_computation() {
     // Compute factorial of 5 using subroutines and loops
@@ -80,12 +80,12 @@ fn test_factorial_computation() {
 /// 2. OP_B negative offset jumps may cause PC underflow or wrong branch targets  
 /// 3. Scratch space operations (OP_LOAD/OP_STORE) may have parameter parsing issues
 /// 4. Complex loop with multiple stack operations may trigger arithmetic underflow
-/// This test combines: branching, scratch space, loops, arithmetic - all problematic areas
+///    This test combines: branching, scratch space, loops, arithmetic - all problematic areas
 #[test]
 fn test_fibonacci_iterative() {
     // Compute 10th Fibonacci number iteratively
     let mut bytecode = Vec::new();
-    
+
     // Set up integer constants block: [0, 1, 2]
     bytecode.push(OP_INTCBLOCK);
     bytecode.push(3); // 3 constants
@@ -157,7 +157,7 @@ fn test_fibonacci_iterative() {
 /// 2. OP_SHA256/OP_KECCAK256 may not be implemented or have incorrect output format
 /// 3. OP_BTOI conversion may fail on hash outputs or have length validation issues
 /// 4. OP_ASSERT may trigger due to incorrect string comparison results
-/// This test combines: string ops, hashing, type conversion - multiple unimplemented areas
+///    This test combines: string ops, hashing, type conversion - multiple unimplemented areas
 #[test]
 fn test_string_manipulation_pipeline() {
     // Complex string manipulation: concatenate, hash, convert to int
@@ -208,7 +208,7 @@ fn test_string_manipulation_pipeline() {
 /// 2. Scratch space operations (OP_LOAD/OP_STORE) may fail with many iterations
 /// 3. Arithmetic operations may cause integer overflow when summing 1..100
 /// 4. VM may have execution limits or cost budget exceeded with 100+ operations
-/// This test stresses: stack size, scratch space, arithmetic, execution limits
+///    This test stresses: stack size, scratch space, arithmetic, execution limits
 #[test]
 fn test_stack_stress_test() {
     // Stress test stack operations with many values
@@ -250,7 +250,7 @@ fn test_stack_stress_test() {
 /// 2. Hash length validation may fail causing OP_ASSERT to trigger
 /// 3. Hash comparison logic (OP_NE) may fail due to incorrect hash outputs
 /// 4. Multiple OP_DUP operations may cause stack management issues
-/// This test requires: working hash functions, length checks, stack management
+///    This test requires: working hash functions, length checks, stack management
 #[test]
 fn test_cryptographic_verification_flow() {
     // Simulate a complex cryptographic verification workflow
@@ -298,10 +298,10 @@ fn test_cryptographic_verification_flow() {
 /// TODO: Test fails due to combination of transaction field access and state operations
 /// Root causes:
 /// 1. OP_APP_GLOBAL_GET returns 2 values (value + exists flag) but test expects 1
-/// 2. Transaction field access (OP_TXN) may have parameter parsing issues 
+/// 2. Transaction field access (OP_TXN) may have parameter parsing issues
 /// 3. Branching logic (OP_BNZ) may calculate wrong offsets causing execution errors
 /// 4. Combination of transaction fields + state operations exposes multiple bugs
-/// This test combines: transaction fields, state access, branching - all problematic
+///    This test combines: transaction fields, state access, branching - all problematic
 #[test]
 fn test_conditional_state_access() {
     // Test conditional state access based on transaction fields
@@ -352,7 +352,7 @@ fn test_conditional_state_access() {
 /// 2. Multiple balance checks may expose ledger state management bugs
 /// 3. Large number arithmetic (1,500,000) may trigger overflow checks
 /// 4. Mock ledger balance setup may not match expected test values
-/// This test requires: working balance operations, proper ledger state, arithmetic
+///    This test requires: working balance operations, proper ledger state, arithmetic
 #[test]
 fn test_multi_asset_balance_check() {
     // Check balances across multiple assets and accounts

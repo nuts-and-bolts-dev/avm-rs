@@ -624,7 +624,7 @@ impl Assembler {
     /// Try to parse as base32 (Algorand address format)
     fn try_parse_base32(&self, input: &str, line_num: usize) -> AvmResult<Vec<u8>> {
         use base32::{Alphabet, decode};
-        
+
         // Algorand uses a specific base32 alphabet (RFC4648 without padding)
         match decode(Alphabet::Rfc4648 { padding: false }, input) {
             Some(bytes) => {
@@ -640,7 +640,7 @@ impl Assembler {
             }
             None => Err(AvmError::assembly_error(format!(
                 "Invalid base32 encoding in address '{input}' on line {line_num}"
-            )))
+            ))),
         }
     }
 
@@ -699,7 +699,7 @@ impl Assembler {
     fn parse_algorand_address(&self, addr: &str, line_num: usize) -> AvmResult<Vec<u8>> {
         use base32::{Alphabet, decode};
         use sha2::{Digest, Sha512_256};
-        
+
         // Algorand addresses are 58 characters in base32
         if addr.len() != 58 {
             return Err(AvmError::assembly_error(format!(
@@ -709,10 +709,11 @@ impl Assembler {
         }
 
         // Decode the base32 address
-        let decoded = decode(Alphabet::Rfc4648 { padding: false }, addr)
-            .ok_or_else(|| AvmError::assembly_error(format!(
+        let decoded = decode(Alphabet::Rfc4648 { padding: false }, addr).ok_or_else(|| {
+            AvmError::assembly_error(format!(
                 "Invalid base32 encoding in address on line {line_num}"
-            )))?;
+            ))
+        })?;
 
         // Algorand addresses contain 32 bytes + 4 byte checksum = 36 bytes total
         if decoded.len() != 36 {
@@ -724,13 +725,13 @@ impl Assembler {
 
         // Split address and checksum
         let (address_bytes, checksum) = decoded.split_at(32);
-        
+
         // Verify checksum using SHA512-256 (last 4 bytes)
         let mut hasher = Sha512_256::new();
         hasher.update(address_bytes);
         let hash = hasher.finalize();
         let expected_checksum = &hash[hash.len() - 4..];
-        
+
         if checksum != expected_checksum {
             return Err(AvmError::assembly_error(format!(
                 "Invalid address checksum on line {line_num}"
@@ -997,7 +998,7 @@ impl Assembler {
         // Write each byte constant
         for arg in args {
             let bytes = self.parse_bytes(&[arg], line_num)?;
-            
+
             // Write length as varuint followed by the bytes
             let length_bytes = encode_varuint(bytes.len() as u64);
             bytecode.extend_from_slice(&length_bytes);
@@ -1117,13 +1118,13 @@ pub fn disassemble(bytecode: &[u8]) -> AvmResult<String> {
             // Constant block opcodes
             OP_INTCBLOCK => {
                 let mut offset = pc + 1;
-                
+
                 // Read count as varuint
                 if let Ok((count, consumed)) = decode_varuint(&bytecode[offset..]) {
                     offset += consumed;
                     let count = count as usize;
                     let mut constants = Vec::new();
-                    
+
                     // Read each integer constant as varuint
                     for _ in 0..count {
                         if let Ok((value, consumed)) = decode_varuint(&bytecode[offset..]) {
@@ -1133,7 +1134,7 @@ pub fn disassemble(bytecode: &[u8]) -> AvmResult<String> {
                             break;
                         }
                     }
-                    
+
                     if constants.len() == count {
                         (format!("intcblock {}", constants.join(" ")), offset - pc)
                     } else {
@@ -1157,23 +1158,24 @@ pub fn disassemble(bytecode: &[u8]) -> AvmResult<String> {
             OP_INTC_3 => ("intc_3".to_string(), 1),
             OP_BYTECBLOCK => {
                 let mut offset = pc + 1;
-                
+
                 // Read count as varuint
                 if let Ok((count, consumed)) = decode_varuint(&bytecode[offset..]) {
                     offset += consumed;
                     let count = count as usize;
                     let mut constants = Vec::new();
-                    
+
                     // Read each byte constant (length-prefixed)
                     for _ in 0..count {
                         if let Ok((length, consumed)) = decode_varuint(&bytecode[offset..]) {
                             offset += consumed;
                             let length = length as usize;
-                            
+
                             if offset + length <= bytecode.len() {
                                 let bytes = &bytecode[offset..offset + length];
                                 if bytes.iter().all(|&b| b.is_ascii() && !b.is_ascii_control()) {
-                                    constants.push(format!("\"{}\"", String::from_utf8_lossy(bytes)));
+                                    constants
+                                        .push(format!("\"{}\"", String::from_utf8_lossy(bytes)));
                                 } else {
                                     constants.push(format!("0x{}", hex::encode(bytes)));
                                 }
@@ -1185,7 +1187,7 @@ pub fn disassemble(bytecode: &[u8]) -> AvmResult<String> {
                             break;
                         }
                     }
-                    
+
                     if constants.len() == count {
                         (format!("bytecblock {}", constants.join(" ")), offset - pc)
                     } else {

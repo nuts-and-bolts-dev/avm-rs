@@ -23,14 +23,16 @@ fn test_op_app_global_get() {
 
     // app_global_get returns two values: [value, exists_flag] with exists_flag on top
     // We want to test exists_flag, so swap to move value to top and pop it
-    bytecode.push(OP_SWAP);  // [exists_flag, value]  
-    bytecode.push(OP_POP);   // [exists_flag]
+    bytecode.push(OP_SWAP); // [exists_flag, value]  
+    bytecode.push(OP_POP); // [exists_flag]
     // Check exists flag is 1
     bytecode = with_assert_equals(bytecode, StackValue::Uint(1));
 
     let vm = setup_vm();
     let mut ledger = setup_mock_ledger();
-    let result = vm.execute(&bytecode, app_mode_config(), &mut ledger).unwrap();
+    let result = vm
+        .execute(&bytecode, app_mode_config(), &mut ledger)
+        .unwrap();
     assert!(result);
 
     // Test getting the actual value
@@ -43,7 +45,9 @@ fn test_op_app_global_get() {
     // Value should be 42 (from mock ledger)
     bytecode = with_assert_equals(bytecode, StackValue::Uint(42));
 
-    let result = vm.execute(&bytecode, app_mode_config(), &mut ledger).unwrap();
+    let result = vm
+        .execute(&bytecode, app_mode_config(), &mut ledger)
+        .unwrap();
     assert!(result);
 }
 
@@ -62,7 +66,9 @@ fn test_op_app_global_get_nonexistent() {
 
     let vm = setup_vm();
     let mut ledger = setup_mock_ledger();
-    let result = vm.execute(&bytecode, app_mode_config(), &mut ledger).unwrap();
+    let result = vm
+        .execute(&bytecode, app_mode_config(), &mut ledger)
+        .unwrap();
     assert!(result);
 }
 
@@ -79,14 +85,16 @@ fn test_op_app_global_get_ex() {
 
     // app_global_get_ex returns two values: [value, exists_flag] with exists_flag on top
     // We want to test exists_flag, so swap to move value to top and pop it
-    bytecode.push(OP_SWAP);  // [exists_flag, value]  
-    bytecode.push(OP_POP);   // [exists_flag]
+    bytecode.push(OP_SWAP); // [exists_flag, value]  
+    bytecode.push(OP_POP); // [exists_flag]
     // Check exists flag
     bytecode = with_assert_equals(bytecode, StackValue::Uint(1));
 
     let vm = setup_vm();
     let mut ledger = setup_mock_ledger();
-    let result = vm.execute(&bytecode, app_mode_config(), &mut ledger).unwrap();
+    let result = vm
+        .execute(&bytecode, app_mode_config(), &mut ledger)
+        .unwrap();
     assert!(result);
 }
 
@@ -140,14 +148,16 @@ fn test_op_app_local_get() {
 
     // app_local_get returns two values: [value, exists_flag] with exists_flag on top
     // We want to test exists_flag, so swap to move value to top and pop it
-    bytecode.push(OP_SWAP);  // [exists_flag, value]  
-    bytecode.push(OP_POP);   // [exists_flag]
+    bytecode.push(OP_SWAP); // [exists_flag, value]  
+    bytecode.push(OP_POP); // [exists_flag]
     // Check exists flag
     bytecode = with_assert_equals(bytecode, StackValue::Uint(1));
 
     let vm = setup_vm();
     let mut ledger = setup_mock_ledger();
-    let result = vm.execute(&bytecode, app_mode_config(), &mut ledger).unwrap();
+    let result = vm
+        .execute(&bytecode, app_mode_config(), &mut ledger)
+        .unwrap();
     assert!(result);
 }
 
@@ -171,7 +181,9 @@ fn test_op_app_local_get_ex() {
 
     let vm = setup_vm();
     let mut ledger = setup_mock_ledger();
-    let result = vm.execute(&bytecode, app_mode_config(), &mut ledger).unwrap();
+    let result = vm
+        .execute(&bytecode, app_mode_config(), &mut ledger)
+        .unwrap();
     assert!(result);
 }
 
@@ -190,7 +202,9 @@ fn test_op_app_opted_in() {
 
     let vm = setup_vm();
     let mut ledger = setup_mock_ledger();
-    let result = vm.execute(&bytecode, app_mode_config(), &mut ledger).unwrap();
+    let result = vm
+        .execute(&bytecode, app_mode_config(), &mut ledger)
+        .unwrap();
     assert!(result);
 
     // Test account not opted in
@@ -204,7 +218,9 @@ fn test_op_app_opted_in() {
 
     bytecode = with_assert_equals(bytecode, StackValue::Uint(0)); // Not opted in
 
-    let result = vm.execute(&bytecode, app_mode_config(), &mut ledger).unwrap();
+    let result = vm
+        .execute(&bytecode, app_mode_config(), &mut ledger)
+        .unwrap();
     assert!(result);
 }
 
@@ -221,7 +237,9 @@ fn test_op_balance() {
 
     let vm = setup_vm();
     let mut ledger = setup_mock_ledger();
-    let result = vm.execute(&bytecode, app_mode_config(), &mut ledger).unwrap();
+    let result = vm
+        .execute(&bytecode, app_mode_config(), &mut ledger)
+        .unwrap();
     assert!(result);
 }
 
@@ -238,7 +256,9 @@ fn test_op_min_balance() {
 
     let vm = setup_vm();
     let mut ledger = setup_mock_ledger();
-    let result = vm.execute(&bytecode, app_mode_config(), &mut ledger).unwrap();
+    let result = vm
+        .execute(&bytecode, app_mode_config(), &mut ledger)
+        .unwrap();
     assert!(result);
 }
 
@@ -256,14 +276,16 @@ fn test_op_asset_holding_get() {
 
     // asset_holding_get returns two values: [value, exists_flag] with exists_flag on top
     // We want to test exists_flag, so swap to move value to top and pop it
-    bytecode.push(OP_SWAP);  // [exists_flag, value]  
-    bytecode.push(OP_POP);   // [exists_flag]
+    bytecode.push(OP_SWAP); // [exists_flag, value]  
+    bytecode.push(OP_POP); // [exists_flag]
     // Check exists flag
     bytecode = with_assert_equals(bytecode, StackValue::Uint(1));
 
     let vm = setup_vm();
     let mut ledger = setup_mock_ledger();
-    let result = vm.execute(&bytecode, app_mode_config(), &mut ledger).unwrap();
+    let result = vm
+        .execute(&bytecode, app_mode_config(), &mut ledger)
+        .unwrap();
     assert!(result);
 
     // Test frozen field
@@ -279,7 +301,9 @@ fn test_op_asset_holding_get() {
     bytecode.push(OP_POP); // Pop exists flag
     bytecode = with_assert_equals(bytecode, StackValue::Uint(0)); // Not frozen
 
-    let result = vm.execute(&bytecode, app_mode_config(), &mut ledger).unwrap();
+    let result = vm
+        .execute(&bytecode, app_mode_config(), &mut ledger)
+        .unwrap();
     assert!(result);
 }
 
@@ -297,7 +321,9 @@ fn test_op_asset_params_get() {
 
     let vm = setup_vm();
     let mut ledger = setup_mock_ledger();
-    let result = vm.execute(&bytecode, app_mode_config(), &mut ledger).unwrap();
+    let result = vm
+        .execute(&bytecode, app_mode_config(), &mut ledger)
+        .unwrap();
     assert!(result);
 
     // Test decimals field
@@ -310,7 +336,9 @@ fn test_op_asset_params_get() {
     bytecode.push(OP_POP); // Pop exists flag
     bytecode = with_assert_equals(bytecode, StackValue::Uint(6)); // 6 decimals
 
-    let result = vm.execute(&bytecode, app_mode_config(), &mut ledger).unwrap();
+    let result = vm
+        .execute(&bytecode, app_mode_config(), &mut ledger)
+        .unwrap();
     assert!(result);
 }
 
@@ -328,7 +356,9 @@ fn test_op_app_params_get() {
 
     let vm = setup_vm();
     let mut ledger = setup_mock_ledger();
-    let result = vm.execute(&bytecode, app_mode_config(), &mut ledger).unwrap();
+    let result = vm
+        .execute(&bytecode, app_mode_config(), &mut ledger)
+        .unwrap();
     assert!(result);
 }
 
@@ -347,7 +377,9 @@ fn test_op_acct_params_get() {
 
     let vm = setup_vm();
     let mut ledger = setup_mock_ledger();
-    let result = vm.execute(&bytecode, app_mode_config(), &mut ledger).unwrap();
+    let result = vm
+        .execute(&bytecode, app_mode_config(), &mut ledger)
+        .unwrap();
     assert!(result);
 }
 

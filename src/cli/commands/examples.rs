@@ -1,7 +1,7 @@
 //! Examples command implementation
 
 use crate::cli::{ExamplesCommand, GlobalOptions};
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use std::collections::HashMap;
 
 /// Handle the examples command
@@ -18,11 +18,11 @@ pub fn handle(cmd: ExamplesCommand, global: &GlobalOptions) -> Result<()> {
             if cmd.show {
                 show_example(example_name, example, global)?;
             }
-            
+
             if cmd.run {
                 run_example(example_name, example, global)?;
             }
-            
+
             if !cmd.show && !cmd.run {
                 // Default behavior: show and run
                 show_example(example_name, example, global)?;
@@ -30,7 +30,10 @@ pub fn handle(cmd: ExamplesCommand, global: &GlobalOptions) -> Result<()> {
                 run_example(example_name, example, global)?;
             }
         } else {
-            return Err(anyhow!("Example '{}' not found. Use --list to see available examples.", example_name));
+            return Err(anyhow!(
+                "Example '{}' not found. Use --list to see available examples.",
+                example_name
+            ));
         }
     } else {
         // No specific example requested, show list
@@ -61,9 +64,11 @@ return"#.to_string(),
         explanation: "This is the simplest TEAL program. It pushes 1 onto the stack and returns, indicating success.".to_string(),
     });
 
-    examples.insert("arithmetic".to_string(), Example {
-        description: "Basic arithmetic operations".to_string(),
-        teal_code: r#"#pragma version 11
+    examples.insert(
+        "arithmetic".to_string(),
+        Example {
+            description: "Basic arithmetic operations".to_string(),
+            teal_code: r#"#pragma version 11
 // Calculate: (10 + 20) * 3 / 2
 int 10
 int 20
@@ -74,13 +79,18 @@ int 2
 /           // Stack: [45]
 int 45
 ==          // Verify result
-return"#.to_string(),
-        explanation: "Demonstrates basic arithmetic operations and stack manipulation.".to_string(),
-    });
+return"#
+                .to_string(),
+            explanation: "Demonstrates basic arithmetic operations and stack manipulation."
+                .to_string(),
+        },
+    );
 
-    examples.insert("conditional".to_string(), Example {
-        description: "Conditional logic with branching".to_string(),
-        teal_code: r#"#pragma version 11
+    examples.insert(
+        "conditional".to_string(),
+        Example {
+            description: "Conditional logic with branching".to_string(),
+            teal_code: r#"#pragma version 11
 // Check if a number is greater than 5
 int 7
 int 5
@@ -93,13 +103,18 @@ return
 
 success:
 int 1
-return"#.to_string(),
-        explanation: "Shows how to use conditional branching with bnz (branch if not zero).".to_string(),
-    });
+return"#
+                .to_string(),
+            explanation: "Shows how to use conditional branching with bnz (branch if not zero)."
+                .to_string(),
+        },
+    );
 
-    examples.insert("subroutine".to_string(), Example {
-        description: "Subroutine usage example".to_string(),
-        teal_code: r#"#pragma version 11
+    examples.insert(
+        "subroutine".to_string(),
+        Example {
+            description: "Subroutine usage example".to_string(),
+            teal_code: r#"#pragma version 11
 // Main program
 int 5
 int 3
@@ -111,25 +126,35 @@ return
 // Subroutine to add two numbers
 add_numbers:
 +
-retsub"#.to_string(),
-        explanation: "Demonstrates how to define and call subroutines in TEAL.".to_string(),
-    });
+retsub"#
+                .to_string(),
+            explanation: "Demonstrates how to define and call subroutines in TEAL.".to_string(),
+        },
+    );
 
-    examples.insert("crypto".to_string(), Example {
-        description: "Cryptographic hash example".to_string(),
-        teal_code: r#"#pragma version 11
+    examples.insert(
+        "crypto".to_string(),
+        Example {
+            description: "Cryptographic hash example".to_string(),
+            teal_code: r#"#pragma version 11
 // Hash the string "hello" and verify
 byte "hello"
 sha256
 byte base64 LPJNul+wow4m6DsqxbninhsWHlwfp0JecwQzYpOLmCQ=
 ==
-return"#.to_string(),
-        explanation: "Shows how to use the SHA256 hash function and compare against expected values.".to_string(),
-    });
+return"#
+                .to_string(),
+            explanation:
+                "Shows how to use the SHA256 hash function and compare against expected values."
+                    .to_string(),
+        },
+    );
 
-    examples.insert("minimum".to_string(), Example {
-        description: "Find minimum of two numbers".to_string(),
-        teal_code: r#"#pragma version 11
+    examples.insert(
+        "minimum".to_string(),
+        Example {
+            description: "Find minimum of two numbers".to_string(),
+            teal_code: r#"#pragma version 11
 // Find min(42, 17)
 int 42
 int 17
@@ -148,9 +173,12 @@ pop         // Remove the larger number
 done:
 int 17      // Expected result
 ==
-return"#.to_string(),
-        explanation: "Implements a min(a,b) function using stack operations and branching.".to_string(),
-    });
+return"#
+                .to_string(),
+            explanation: "Implements a min(a,b) function using stack operations and branching."
+                .to_string(),
+        },
+    );
 
     examples
 }
@@ -161,27 +189,30 @@ fn list_examples(examples: &HashMap<String, Example>, global: &GlobalOptions) ->
         match global.format {
             crate::cli::OutputFormat::Text => {
                 println!("📚 Available Examples:\n");
-                
+
                 let mut sorted_examples: Vec<_> = examples.iter().collect();
                 sorted_examples.sort_by_key(|(name, _)| *name);
-                
+
                 for (name, example) in sorted_examples {
                     println!("  {} - {}", name, example.description);
                 }
-                
+
                 println!("\nUsage:");
                 println!("  rust-avm examples <name>          # Show and run example");
                 println!("  rust-avm examples <name> --show   # Show source only");
                 println!("  rust-avm examples <name> --run    # Run example only");
             }
             crate::cli::OutputFormat::Json => {
-                let example_list: Vec<_> = examples.iter()
-                    .map(|(name, example)| serde_json::json!({
-                        "name": name,
-                        "description": example.description
-                    }))
+                let example_list: Vec<_> = examples
+                    .iter()
+                    .map(|(name, example)| {
+                        serde_json::json!({
+                            "name": name,
+                            "description": example.description
+                        })
+                    })
                     .collect();
-                
+
                 let output = serde_json::json!({
                     "examples": example_list
                 });
@@ -189,7 +220,7 @@ fn list_examples(examples: &HashMap<String, Example>, global: &GlobalOptions) ->
             }
         }
     }
-    
+
     Ok(())
 }
 
@@ -198,7 +229,7 @@ fn show_example(name: &str, example: &Example, global: &GlobalOptions) -> Result
     if !global.quiet {
         match global.format {
             crate::cli::OutputFormat::Text => {
-                println!("📖 Example: {}", name);
+                println!("📖 Example: {name}");
                 println!("Description: {}\n", example.description);
                 println!("TEAL Source:");
                 println!("{}", "─".repeat(40));
@@ -218,7 +249,7 @@ fn show_example(name: &str, example: &Example, global: &GlobalOptions) -> Result
             }
         }
     }
-    
+
     Ok(())
 }
 
@@ -227,7 +258,7 @@ fn run_example(name: &str, example: &Example, global: &GlobalOptions) -> Result<
     if !global.quiet {
         match global.format {
             crate::cli::OutputFormat::Text => {
-                println!("🚀 Running example: {}", name);
+                println!("🚀 Running example: {name}");
             }
             crate::cli::OutputFormat::Json => {
                 // JSON output will be handled by the execute command

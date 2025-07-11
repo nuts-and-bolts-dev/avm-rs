@@ -80,17 +80,17 @@ pub fn op_pushbytess(ctx: &mut EvalContext) -> AvmResult<()> {
 pub fn op_intcblock(ctx: &mut EvalContext) -> AvmResult<()> {
     // Advance past the opcode first
     ctx.advance_pc(1)?;
-    
+
     // Read count as varuint
     let count = read_varuint_from_context(ctx)? as usize;
-    
+
     // Read each integer constant as varuint
     let mut constants = Vec::with_capacity(count);
     for _ in 0..count {
         let value = read_varuint_from_context(ctx)?;
         constants.push(value);
     }
-    
+
     // Store constants in context
     ctx.set_int_constants(constants);
     Ok(())
@@ -145,10 +145,10 @@ pub fn op_intc_3(ctx: &mut EvalContext) -> AvmResult<()> {
 pub fn op_bytecblock(ctx: &mut EvalContext) -> AvmResult<()> {
     // Advance past the opcode first
     ctx.advance_pc(1)?;
-    
+
     // Read count as varuint
     let count = read_varuint_from_context(ctx)? as usize;
-    
+
     // Read each byte constant (length-prefixed)
     let mut constants = Vec::with_capacity(count);
     for _ in 0..count {
@@ -157,7 +157,7 @@ pub fn op_bytecblock(ctx: &mut EvalContext) -> AvmResult<()> {
         ctx.advance_pc(length)?;
         constants.push(bytes);
     }
-    
+
     // Store constants in context
     ctx.set_byte_constants(constants);
     Ok(())

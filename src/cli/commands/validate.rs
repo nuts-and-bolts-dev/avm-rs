@@ -1,7 +1,7 @@
 //! Validate command implementation
 
 use crate::assembler::Assembler;
-use crate::cli::{ValidateCommand, GlobalOptions, ExecutionMode};
+use crate::cli::{ExecutionMode, GlobalOptions, ValidateCommand};
 use anyhow::{Context, Result};
 use std::fs;
 use std::path::Path;
@@ -20,28 +20,31 @@ pub fn handle(cmd: ValidateCommand, global: &GlobalOptions) -> Result<()> {
 
     for file_path in &cmd.files {
         total_files += 1;
-        
+
         if !global.quiet && global.verbose {
-            println!("\nValidating: {:?}", file_path);
+            println!("\nValidating: {file_path:?}");
         }
 
         match validate_file(file_path, &cmd, global) {
             Ok(file_result) => {
                 valid_files += 1;
                 warnings += file_result.warnings;
-                
+
                 if !global.quiet {
                     if file_result.warnings > 0 {
-                        println!("⚠️  {:?}: Valid with {} warnings", file_path, file_result.warnings);
+                        println!(
+                            "⚠️  {:?}: Valid with {} warnings",
+                            file_path, file_result.warnings
+                        );
                     } else {
-                        println!("✅ {:?}: Valid", file_path);
+                        println!("✅ {file_path:?}: Valid");
                     }
                 }
             }
             Err(e) => {
                 errors += 1;
                 if !global.quiet {
-                    println!("❌ {:?}: {}", file_path, e);
+                    println!("❌ {file_path:?}: {e}");
                 }
             }
         }
@@ -52,15 +55,15 @@ pub fn handle(cmd: ValidateCommand, global: &GlobalOptions) -> Result<()> {
         match global.format {
             crate::cli::OutputFormat::Text => {
                 println!("\n📊 Validation Summary:");
-                println!("  Total files: {}", total_files);
-                println!("  Valid files: {}", valid_files);
-                println!("  Failed files: {}", errors);
-                println!("  Total warnings: {}", warnings);
-                
+                println!("  Total files: {total_files}");
+                println!("  Valid files: {valid_files}");
+                println!("  Failed files: {errors}");
+                println!("  Total warnings: {warnings}");
+
                 if errors > 0 {
-                    println!("❌ Validation failed for {} files", errors);
+                    println!("❌ Validation failed for {errors} files");
                 } else if warnings > 0 && cmd.strict {
-                    println!("⚠️  Validation passed but {} warnings in strict mode", warnings);
+                    println!("⚠️  Validation passed but {warnings} warnings in strict mode");
                 } else {
                     println!("✅ All files validated successfully");
                 }
@@ -92,14 +95,19 @@ struct FileValidationResult {
 }
 
 /// Validate a single TEAL file
-fn validate_file(file_path: &Path, cmd: &ValidateCommand, global: &GlobalOptions) -> Result<FileValidationResult> {
+fn validate_file(
+    file_path: &Path,
+    cmd: &ValidateCommand,
+    global: &GlobalOptions,
+) -> Result<FileValidationResult> {
     // Read the file
     let source = fs::read_to_string(file_path)
-        .with_context(|| format!("Failed to read file: {:?}", file_path))?;
+        .with_context(|| format!("Failed to read file: {file_path:?}"))?;
 
     // Parse and validate syntax
     let mut assembler = Assembler::new();
-    let _bytecode = assembler.assemble(&source)
+    let _bytecode = assembler
+        .assemble(&source)
         .map_err(|e| anyhow::anyhow!("Assembly failed: {}", e))?;
 
     // Additional validation checks
@@ -126,27 +134,27 @@ fn validate_file(file_path: &Path, cmd: &ValidateCommand, global: &GlobalOptions
 /// Check version compatibility
 fn check_version_compatibility(source: &str, target_version: u8) -> Result<usize> {
     let mut warnings = 0;
-    
+
     // Extract pragma version from source
     let declared_version = extract_pragma_version(source)?;
-    
+
     if let Some(declared) = declared_version {
         if declared > target_version {
             warnings += 1;
-            eprintln!("Warning: File declares version {} but target is {}", declared, target_version);
+            eprintln!("Warning: File declares version {declared} but target is {target_version}");
         }
     } else {
         warnings += 1;
         eprintln!("Warning: No version pragma found, assuming latest version");
     }
-    
+
     Ok(warnings)
 }
 
 /// Check execution mode compatibility
 fn check_mode_compatibility(source: &str, target_mode: &ExecutionMode) -> Result<usize> {
     let mut warnings = 0;
-    
+
     // Check for mode-specific opcodes
     match target_mode {
         ExecutionMode::Signature => {
@@ -159,35 +167,36 @@ fn check_mode_compatibility(source: &str, target_mode: &ExecutionMode) -> Result
             // Application mode is more permissive
         }
     }
-    
+
     Ok(warnings)
 }
 
 /// Perform detailed analysis
 fn perform_detailed_analysis(source: &str, global: &GlobalOptions) -> Result<usize> {
     let mut warnings = 0;
-    
+
     // Check for common issues
     let lines: Vec<&str> = source.lines().collect();
-    
+
     for (line_num, line) in lines.iter().enumerate() {
         let line = line.trim();
-        
+
         // Check for potential issues
         if line.contains("int 0") && line.contains("==") {
             warnings += 1;
             if !global.quiet {
-                eprintln!("Warning: Line {}: Consider using '!' instead of '== 0'", line_num + 1);
+                eprintln!(
+                    "Warning: Line {}: Consider using '!' instead of '== 0'",
+                    line_num + 1
+                );
             }
         }
-        
-        if line.contains("b ") && !line.contains("bnz") && !line.contains("bz") {
-            if !global.quiet {
-                eprintln!("Info: Line {}: Unconditional branch found", line_num + 1);
-            }
+
+        if line.contains("b ") && !line.contains("bnz") && !line.contains("bz") && !global.quiet {
+            eprintln!("Info: Line {}: Unconditional branch found", line_num + 1);
         }
     }
-    
+
     // Check program structure
     if !source.contains("return") {
         warnings += 1;
@@ -195,7 +204,7 @@ fn perform_detailed_analysis(source: &str, global: &GlobalOptions) -> Result<usi
             eprintln!("Warning: No 'return' statement found");
         }
     }
-    
+
     Ok(warnings)
 }
 

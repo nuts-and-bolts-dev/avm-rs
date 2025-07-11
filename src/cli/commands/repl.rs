@@ -1,6 +1,6 @@
 //! REPL command implementation
 
-use crate::cli::{ReplCommand, GlobalOptions};
+use crate::cli::{GlobalOptions, ReplCommand};
 use anyhow::Result;
 
 /// Handle the REPL command
@@ -15,7 +15,7 @@ pub fn handle(cmd: ReplCommand, global: &GlobalOptions) -> Result<()> {
     // Load initial script if provided
     if let Some(load_path) = &cmd.load {
         if !global.quiet {
-            println!("📂 Loading initial script: {:?}", load_path);
+            println!("📂 Loading initial script: {load_path:?}");
         }
         // TODO: Load and execute initial script
     }
@@ -26,7 +26,7 @@ pub fn handle(cmd: ReplCommand, global: &GlobalOptions) -> Result<()> {
     // 2. Parsing TEAL commands/expressions
     // 3. Maintaining execution state between commands
     // 4. Providing interactive help and debugging features
-    
+
     println!("🚧 Interactive REPL is not yet implemented.");
     println!("This feature will provide:");
     println!("  • Line-by-line TEAL execution");

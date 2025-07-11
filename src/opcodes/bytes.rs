@@ -671,10 +671,10 @@ pub fn op_json_ref(ctx: &mut EvalContext) -> AvmResult<()> {
     // Parse JSON and extract the requested field
     let parsed_json: serde_json::Value = serde_json::from_str(json_str)
         .map_err(|_| AvmError::invalid_program("Invalid JSON data"))?;
-    
+
     // Extract the field value
     let field_value = parsed_json.get(key_str);
-    
+
     match return_type {
         0 => {
             // JSONString
@@ -714,8 +714,9 @@ pub fn op_json_ref(ctx: &mut EvalContext) -> AvmResult<()> {
             // JSONObject
             match field_value {
                 Some(serde_json::Value::Object(_)) | Some(serde_json::Value::Array(_)) => {
-                    let serialized = serde_json::to_string(field_value.unwrap())
-                        .map_err(|_| AvmError::invalid_program("Failed to serialize JSON object"))?;
+                    let serialized = serde_json::to_string(field_value.unwrap()).map_err(|_| {
+                        AvmError::invalid_program("Failed to serialize JSON object")
+                    })?;
                     ctx.push(StackValue::Bytes(serialized.into_bytes()))?;
                 }
                 Some(value) => {

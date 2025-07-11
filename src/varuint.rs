@@ -5,13 +5,13 @@ use crate::error::{AvmError, AvmResult};
 /// Encode a u64 as varuint bytes
 pub fn encode_varuint(mut value: u64) -> Vec<u8> {
     let mut bytes = Vec::new();
-    
+
     while value >= 0x80 {
         bytes.push((value & 0x7F) as u8 | 0x80);
         value >>= 7;
     }
     bytes.push(value as u8);
-    
+
     bytes
 }
 
@@ -20,27 +20,27 @@ pub fn decode_varuint(bytes: &[u8]) -> AvmResult<(u64, usize)> {
     let mut value = 0u64;
     let mut shift = 0;
     let mut index = 0;
-    
+
     for &byte in bytes {
         if index >= 10 {
             // Prevent overflow - varuint should not exceed 10 bytes for u64
             return Err(AvmError::InvalidProgram("Varuint too long".to_string()));
         }
-        
+
         value |= ((byte & 0x7F) as u64) << shift;
         index += 1;
-        
+
         if (byte & 0x80) == 0 {
             // MSB is 0, this is the last byte
             return Ok((value, index));
         }
-        
+
         shift += 7;
         if shift >= 64 {
             return Err(AvmError::InvalidProgram("Varuint overflow".to_string()));
         }
     }
-    
+
     Err(AvmError::InvalidProgram("Incomplete varuint".to_string()))
 }
 
@@ -48,13 +48,15 @@ pub fn decode_varuint(bytes: &[u8]) -> AvmResult<(u64, usize)> {
 pub fn read_varuint_from_context(ctx: &mut crate::vm::EvalContext) -> AvmResult<u64> {
     let remaining_bytes = ctx.program_len() - ctx.pc();
     if remaining_bytes == 0 {
-        return Err(AvmError::InvalidProgram("Unexpected end of program reading varuint".to_string()));
+        return Err(AvmError::InvalidProgram(
+            "Unexpected end of program reading varuint".to_string(),
+        ));
     }
-    
+
     let bytes = &ctx.get_program()[ctx.pc()..];
     let (value, consumed) = decode_varuint(bytes)?;
     ctx.advance_pc(consumed)?;
-    
+
     Ok(value)
 }
 
@@ -79,8 +81,20 @@ mod tests {
 
     #[test]
     fn test_varuint_round_trip() {
-        let test_values = vec![0, 1, 127, 128, 255, 256, 16383, 16384, 2097151, 2097152, u64::MAX];
-        
+        let test_values = vec![
+            0,
+            1,
+            127,
+            128,
+            255,
+            256,
+            16383,
+            16384,
+            2097151,
+            2097152,
+            u64::MAX,
+        ];
+
         for value in test_values {
             let encoded = encode_varuint(value);
             let (decoded, consumed) = decode_varuint(&encoded).unwrap();
@@ -93,10 +107,10 @@ mod tests {
     fn test_varuint_decoding_errors() {
         // Empty bytes
         assert!(decode_varuint(&[]).is_err());
-        
+
         // Incomplete varuint (all bytes have continuation bit set)
         assert!(decode_varuint(&[0x80, 0x80, 0x80]).is_err());
-        
+
         // Too long varuint (would overflow u64)
         let too_long = vec![0xFF; 11];
         assert!(decode_varuint(&too_long).is_err());

@@ -10,6 +10,7 @@ pub mod crypto;
 pub mod error;
 pub mod opcodes;
 pub mod state;
+pub mod teal_macro;
 pub mod types;
 pub mod varuint;
 pub mod vm;
@@ -18,6 +19,9 @@ pub mod vm;
 pub use error::{AvmError, AvmResult};
 pub use types::{StackValue, TealValue, TealVersion};
 pub use vm::{EvalContext, ExecutionConfig, VirtualMachine, VirtualMachineBuilder};
+
+// Re-export macro utilities
+pub use teal_macro::{TealBuilder, TealInterpolator, TealTemplate, templates};
 
 #[cfg(test)]
 mod tests {

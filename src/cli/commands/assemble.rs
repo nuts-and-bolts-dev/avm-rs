@@ -1,7 +1,7 @@
 //! Assemble command implementation
 
 use crate::assembler::Assembler;
-use crate::cli::{AssembleCommand, GlobalOptions, BytecodeFormat};
+use crate::cli::{AssembleCommand, BytecodeFormat, GlobalOptions};
 use anyhow::{Context, Result};
 use base64::{Engine, engine::general_purpose::STANDARD as BASE64_STANDARD};
 use std::fs;
@@ -20,7 +20,8 @@ pub fn handle(cmd: AssembleCommand, global: &GlobalOptions) -> Result<()> {
 
     // Assemble to bytecode
     let mut assembler = Assembler::new();
-    let bytecode = assembler.assemble(&source)
+    let bytecode = assembler
+        .assemble(&source)
         .map_err(|e| anyhow::anyhow!("Assembly failed: {}", e))?;
 
     // Format bytecode
@@ -29,14 +30,14 @@ pub fn handle(cmd: AssembleCommand, global: &GlobalOptions) -> Result<()> {
     // Output result
     if let Some(output_path) = &cmd.output {
         fs::write(output_path, &formatted)
-            .with_context(|| format!("Failed to write output: {:?}", output_path))?;
-        
+            .with_context(|| format!("Failed to write output: {output_path:?}"))?;
+
         if !global.quiet {
             println!("✅ Assembled {} bytes to {:?}", bytecode.len(), output_path);
         }
     } else {
         // Output to stdout
-        println!("{}", formatted);
+        println!("{formatted}");
     }
 
     // Show statistics if requested
@@ -63,21 +64,30 @@ fn format_bytecode(bytecode: &[u8], format: &BytecodeFormat) -> Result<String> {
 
 /// Show assembly statistics
 fn show_assembly_stats(bytecode: &[u8], source: &str, global: &GlobalOptions) -> Result<()> {
-    let source_lines = source.lines().filter(|line| {
-        let line = line.trim();
-        !line.is_empty() && !line.starts_with("//") && !line.starts_with(";") && !line.starts_with("#pragma")
-    }).count();
+    let source_lines = source
+        .lines()
+        .filter(|line| {
+            let line = line.trim();
+            !line.is_empty()
+                && !line.starts_with("//")
+                && !line.starts_with(";")
+                && !line.starts_with("#pragma")
+        })
+        .count();
 
     match global.format {
         crate::cli::OutputFormat::Text => {
             println!("\n📊 Assembly Statistics:");
-            println!("  Source lines: {}", source_lines);
+            println!("  Source lines: {source_lines}");
             println!("  Bytecode size: {} bytes", bytecode.len());
-            println!("  Compression ratio: {:.2}x", source.len() as f64 / bytecode.len() as f64);
-            
+            println!(
+                "  Compression ratio: {:.2}x",
+                source.len() as f64 / bytecode.len() as f64
+            );
+
             // Estimate cost (rough approximation)
             let estimated_cost = estimate_execution_cost(bytecode);
-            println!("  Estimated cost: ~{} units", estimated_cost);
+            println!("  Estimated cost: ~{estimated_cost} units");
         }
         crate::cli::OutputFormat::Json => {
             let stats = serde_json::json!({

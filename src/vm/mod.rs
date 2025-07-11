@@ -465,10 +465,9 @@ impl<'a> EvalContext<'a> {
 
     /// Get integer constant by index
     pub fn get_int_constant(&self, index: usize) -> AvmResult<u64> {
-        self.int_constants
-            .get(index)
-            .copied()
-            .ok_or_else(|| AvmError::InvalidProgram(format!("Integer constant index {} out of bounds", index)))
+        self.int_constants.get(index).copied().ok_or_else(|| {
+            AvmError::InvalidProgram(format!("Integer constant index {index} out of bounds"))
+        })
     }
 
     /// Get byte constant by index
@@ -476,7 +475,9 @@ impl<'a> EvalContext<'a> {
         self.byte_constants
             .get(index)
             .map(|v| v.as_slice())
-            .ok_or_else(|| AvmError::InvalidProgram(format!("Byte constant index {} out of bounds", index)))
+            .ok_or_else(|| {
+                AvmError::InvalidProgram(format!("Byte constant index {index} out of bounds"))
+            })
     }
 
     /// Get program reference for reading bytes
@@ -675,8 +676,9 @@ impl VirtualMachine {
             // Check if opcode is allowed in this mode
             if !spec.modes.contains(&config.run_mode) {
                 return Err(AvmError::invalid_program(format!(
-                    "Opcode {} not allowed in {:?} mode",
-                    spec.name, config.run_mode
+                    "Opcode {} not allowed in {run_mode:?} mode",
+                    spec.name,
+                    run_mode = config.run_mode
                 )));
             }
 
@@ -684,12 +686,8 @@ impl VirtualMachine {
             ctx.add_cost(spec.cost)?;
 
             // Add trace entry
-            ctx.add_trace(format!(
-                "PC:{:04} {} (cost: {})",
-                ctx.pc(),
-                spec.name,
-                spec.cost
-            ));
+            let pc = ctx.pc();
+            ctx.add_trace(format!("PC:{pc:04} {} (cost: {})", spec.name, spec.cost));
 
             // Execute the opcode
             (spec.execute)(&mut ctx)?;

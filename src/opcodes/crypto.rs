@@ -166,8 +166,8 @@ pub fn op_ed25519verify_bare(ctx: &mut EvalContext) -> AvmResult<()> {
 
 /// ECDSA signature verification (secp256k1)
 pub fn op_ecdsa_verify(ctx: &mut EvalContext) -> AvmResult<()> {
-    use secp256k1::{Secp256k1, Message, PublicKey, ecdsa::Signature};
-    
+    use secp256k1::{Message, PublicKey, Secp256k1, ecdsa::Signature};
+
     let public_key = ctx.pop()?;
     let signature = ctx.pop()?;
     let data = ctx.pop()?;
@@ -182,7 +182,7 @@ pub fn op_ecdsa_verify(ctx: &mut EvalContext) -> AvmResult<()> {
     let verification_result = match (
         PublicKey::from_slice(pub_key_bytes),
         Signature::from_compact(sig_bytes),
-        Message::from_digest_slice(data_bytes)
+        Message::from_digest_slice(data_bytes),
     ) {
         (Ok(pubkey), Ok(sig), Ok(msg)) => {
             let secp = Secp256k1::verification_only();
@@ -201,8 +201,8 @@ pub fn op_ecdsa_verify(ctx: &mut EvalContext) -> AvmResult<()> {
 
 /// ECDSA public key decompression
 pub fn op_ecdsa_pk_decompress(ctx: &mut EvalContext) -> AvmResult<()> {
-    use secp256k1::{Secp256k1, PublicKey};
-    
+    use secp256k1::{PublicKey, Secp256k1};
+
     let compressed_key = ctx.pop()?;
     let key_bytes = compressed_key.as_bytes()?;
 
@@ -228,8 +228,11 @@ pub fn op_ecdsa_pk_decompress(ctx: &mut EvalContext) -> AvmResult<()> {
 
 /// ECDSA public key recovery
 pub fn op_ecdsa_pk_recover(ctx: &mut EvalContext) -> AvmResult<()> {
-    use secp256k1::{Secp256k1, Message, ecdsa::{RecoverableSignature, RecoveryId}};
-    
+    use secp256k1::{
+        Message, Secp256k1,
+        ecdsa::{RecoverableSignature, RecoveryId},
+    };
+
     let recovery_id = ctx.pop()?;
     let signature = ctx.pop()?;
     let data = ctx.pop()?;
@@ -242,7 +245,7 @@ pub fn op_ecdsa_pk_recover(ctx: &mut EvalContext) -> AvmResult<()> {
     let result = match (
         RecoveryId::from_i32(recovery_id_value),
         Message::from_digest_slice(data_bytes),
-        sig_bytes.len() == 64  // Signature should be 64 bytes (r + s)
+        sig_bytes.len() == 64, // Signature should be 64 bytes (r + s)
     ) {
         (Ok(recovery_id), Ok(msg), true) => {
             match RecoverableSignature::from_compact(sig_bytes, recovery_id) {

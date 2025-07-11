@@ -27,13 +27,13 @@ pub fn op_dup2(ctx: &mut EvalContext) -> AvmResult<()> {
 
     // Duplicate the top two values according to TEAL spec: [A, B] -> [A, B, A, B]
     // This matches go-algorand implementation: cx.Stack = append(cx.Stack, cx.Stack[prev:]...)
-    let b = ctx.pop()?;  // Pop top value
-    let a = ctx.pop()?;  // Pop second value
-    
+    let b = ctx.pop()?; // Pop top value
+    let a = ctx.pop()?; // Pop second value
+
     // Push back original values
     ctx.push(a.clone())?;
     ctx.push(b.clone())?;
-    
+
     // Push duplicates
     ctx.push(a)?;
     ctx.push(b)?;
