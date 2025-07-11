@@ -294,7 +294,7 @@ fn test_transaction_field_combinations() {
     // Compare them (should be different)
     bytecode.push(OP_EQ);
     bytecode.push(OP_NOT); // They should NOT be equal
-    bytecode.push(0x43); // return
+    bytecode.push(OP_RETURN); // return
 
     execute_and_check(&bytecode, true).unwrap();
 }

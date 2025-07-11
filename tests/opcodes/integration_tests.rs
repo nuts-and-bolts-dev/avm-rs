@@ -179,7 +179,7 @@ fn test_string_manipulation_pipeline() {
     bytecode.push(3); // length
 
     // Should be "llo"
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(3);
     bytecode.extend_from_slice(b"llo");
     bytecode.push(OP_EQ);
@@ -197,7 +197,7 @@ fn test_string_manipulation_pipeline() {
     // Result should be non-zero
     bytecode.push(OP_INTC_0);
     bytecode.push(OP_GT);
-    bytecode.push(0x43); // return
+    bytecode.push(OP_RETURN); // return
 
     execute_and_check(&bytecode, true).unwrap();
 }
@@ -290,7 +290,7 @@ fn test_cryptographic_verification_flow() {
     bytecode.push(OP_SWAP);
     bytecode.push(OP_KECCAK256);
     bytecode.push(OP_NE); // Should be different
-    bytecode.push(0x43); // return
+    bytecode.push(OP_RETURN); // return
 
     execute_and_check(&bytecode, true).unwrap();
 }
@@ -327,7 +327,7 @@ fn test_conditional_state_access() {
 
     // Amount <= 25000: return false
     bytecode.push(OP_INTC_0);
-    bytecode.push(0x43); // return
+    bytecode.push(OP_RETURN); // return
 
     // Amount > 25000: check if counter > 40
     bytecode.push(OP_PUSHBYTES);
@@ -338,7 +338,7 @@ fn test_conditional_state_access() {
     bytecode.push(OP_PUSHINT); // pushint 40
     bytecode.extend_from_slice(&40u64.to_be_bytes());
     bytecode.push(OP_GT); // counter > 40
-    bytecode.push(0x43); // return
+    bytecode.push(OP_RETURN); // return
 
     let vm = setup_vm();
     let config = test_config().with_run_mode(RunMode::Application);

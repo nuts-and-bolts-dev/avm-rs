@@ -15,7 +15,7 @@ fn test_op_bnz_branch_taken() {
     bytecode.push(OP_ERR); // This should be skipped
     bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&1u64.to_be_bytes());
-    bytecode.push(0x43); // return
+    bytecode.push(OP_RETURN); // return
 
     execute_and_check(&bytecode, true).unwrap();
 }
@@ -30,7 +30,7 @@ fn test_op_bnz_branch_not_taken() {
     bytecode.extend_from_slice(&0x0001u16.to_be_bytes()); // offset (not taken)
     bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&1u64.to_be_bytes());
-    bytecode.push(0x43); // return
+    bytecode.push(OP_RETURN); // return
     bytecode.push(OP_ERR); // This would cause error if reached
 
     execute_and_check(&bytecode, true).unwrap();
@@ -47,7 +47,7 @@ fn test_op_bz_branch_taken() {
     bytecode.push(OP_ERR); // This should be skipped
     bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&1u64.to_be_bytes());
-    bytecode.push(0x43); // return
+    bytecode.push(OP_RETURN); // return
 
     execute_and_check(&bytecode, true).unwrap();
 }
@@ -62,7 +62,7 @@ fn test_op_bz_branch_not_taken() {
     bytecode.extend_from_slice(&0x0001u16.to_be_bytes()); // offset (not taken)
     bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&1u64.to_be_bytes());
-    bytecode.push(0x43); // return
+    bytecode.push(OP_RETURN); // return
     bytecode.push(OP_ERR); // This would cause error if reached
 
     execute_and_check(&bytecode, true).unwrap();
@@ -77,7 +77,7 @@ fn test_op_b_unconditional() {
     bytecode.push(OP_ERR); // This should be skipped
     bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&1u64.to_be_bytes());
-    bytecode.push(0x43); // return
+    bytecode.push(OP_RETURN); // return
 
     execute_and_check(&bytecode, true).unwrap();
 }
@@ -153,7 +153,7 @@ fn test_op_assert_success() {
     bytecode.push(OP_ASSERT); // assert succeeds
     bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&1u64.to_be_bytes());
-    bytecode.push(0x43); // return
+    bytecode.push(OP_RETURN); // return
 
     execute_and_check(&bytecode, true).unwrap();
 }
@@ -167,7 +167,7 @@ fn test_op_assert_failure() {
     bytecode.push(OP_ASSERT); // assert fails
     bytecode.push(OP_PUSHINT); // This should not execute
     bytecode.extend_from_slice(&1u64.to_be_bytes());
-    bytecode.push(0x43); // return
+    bytecode.push(OP_RETURN); // return
 
     execute_expect_error(&bytecode).unwrap();
 }

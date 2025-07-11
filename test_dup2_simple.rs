@@ -16,7 +16,7 @@ mod tests {
         bytecode.push(OP_PUSHINT); // pushint 20
         bytecode.extend_from_slice(&20u64.to_be_bytes());
         bytecode.push(OP_EQ); // compare top two (20 == 20) -> [10, 20, 10, 1]
-        bytecode.push(0x43); // return
+        bytecode.push(OP_RETURN); // return
 
         println!("Bytecode: {:?}", bytecode);
 

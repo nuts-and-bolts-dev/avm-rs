@@ -12,7 +12,7 @@ use crate::common::*;
 fn test_op_sha256() {
     // Test SHA256 hash of "hello"
     let mut bytecode = Vec::new();
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(5); // length
     bytecode.extend_from_slice(b"hello");
     bytecode.push(OP_SHA256);
@@ -39,7 +39,7 @@ fn test_op_sha256() {
 fn test_op_keccak256() {
     // Test Keccak256 hash of "hello"
     let mut bytecode = Vec::new();
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(5); // length
     bytecode.extend_from_slice(b"hello");
     bytecode.push(OP_KECCAK256);
@@ -56,7 +56,7 @@ fn test_op_keccak256() {
 fn test_op_sha512_256() {
     // Test SHA512/256 hash of "hello"
     let mut bytecode = Vec::new();
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(5); // length
     bytecode.extend_from_slice(b"hello");
     bytecode.push(OP_SHA512_256);
@@ -72,7 +72,7 @@ fn test_op_sha512_256() {
 fn test_op_sha3_256() {
     // Test SHA3-256 hash
     let mut bytecode = Vec::new();
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(5); // length
     bytecode.extend_from_slice(b"hello");
     bytecode.push(OP_SHA3_256);
@@ -91,17 +91,17 @@ fn test_op_ed25519verify_valid() {
     let mut bytecode = Vec::new();
 
     // Data to verify (message)
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(11); // length
     bytecode.extend_from_slice(b"hello world");
 
     // Signature (64 bytes) - using a non-zero dummy signature for testing
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(64); // length
     bytecode.extend_from_slice(&[1u8; 64]); // Non-zero dummy signature
 
     // Public key (32 bytes) - using a non-zero dummy key for testing
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(32); // length
     bytecode.extend_from_slice(&[1u8; 32]); // Non-zero dummy public key
 
@@ -119,17 +119,17 @@ fn test_op_ed25519verify_invalid_key_length() {
     let mut bytecode = Vec::new();
 
     // Data
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(5); // length
     bytecode.extend_from_slice(b"hello");
 
     // Signature (64 bytes)
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(64); // length
     bytecode.extend_from_slice(&[0u8; 64]);
 
     // Invalid public key (wrong length)
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(16); // wrong length (should be 32)
     bytecode.extend_from_slice(&[0u8; 16]);
 
@@ -144,17 +144,17 @@ fn test_op_ed25519verify_invalid_sig_length() {
     let mut bytecode = Vec::new();
 
     // Data
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(5); // length
     bytecode.extend_from_slice(b"hello");
 
     // Invalid signature (wrong length)
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(32); // wrong length (should be 64)
     bytecode.extend_from_slice(&[0u8; 32]);
 
     // Public key (32 bytes)
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(32); // length
     bytecode.extend_from_slice(&[0u8; 32]);
 
@@ -169,17 +169,17 @@ fn test_op_ed25519verify_bare() {
     let mut bytecode = Vec::new();
 
     // Data to verify
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(11); // length
     bytecode.extend_from_slice(b"hello world");
 
     // Signature (64 bytes)
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(64); // length
     bytecode.extend_from_slice(&[1u8; 64]);
 
     // Public key (32 bytes)
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(32); // length
     bytecode.extend_from_slice(&[1u8; 32]);
 
@@ -201,17 +201,17 @@ fn test_op_ecdsa_verify_placeholder() {
     bytecode.extend_from_slice(&0u64.to_be_bytes());
 
     // Data
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(5); // length
     bytecode.extend_from_slice(b"hello");
 
     // Signature
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(64); // length
     bytecode.extend_from_slice(&[0u8; 64]);
 
     // Public key
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(33); // length (compressed)
     bytecode.extend_from_slice(&[0u8; 33]);
 
@@ -229,7 +229,7 @@ fn test_op_ecdsa_pk_decompress_placeholder() {
     let mut bytecode = Vec::new();
 
     // Compressed public key
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(33); // length
     bytecode.extend_from_slice(&[0u8; 33]);
 
@@ -248,12 +248,12 @@ fn test_op_ecdsa_pk_recover_placeholder() {
     let mut bytecode = Vec::new();
 
     // Data
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(5); // length
     bytecode.extend_from_slice(b"hello");
 
     // Signature
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(64); // length
     bytecode.extend_from_slice(&[0u8; 64]);
 
@@ -276,17 +276,17 @@ fn test_op_vrf_verify_placeholder() {
     let mut bytecode = Vec::new();
 
     // Data
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(5); // length
     bytecode.extend_from_slice(b"hello");
 
     // Proof
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(80); // length
     bytecode.extend_from_slice(&[0u8; 80]);
 
     // Public key
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(32); // length
     bytecode.extend_from_slice(&[0u8; 32]);
 
@@ -316,13 +316,13 @@ fn test_hash_algorithms_different_outputs() {
     let test_data = b"test data";
 
     // SHA256
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(test_data.len() as u8);
     bytecode.extend_from_slice(test_data);
     bytecode.push(OP_SHA256);
 
     // Keccak256
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(test_data.len() as u8);
     bytecode.extend_from_slice(test_data);
     bytecode.push(OP_KECCAK256);
@@ -330,7 +330,7 @@ fn test_hash_algorithms_different_outputs() {
     // Compare - should be different
     bytecode.push(OP_EQ);
     bytecode.push(OP_NOT); // NOT equal
-    bytecode.push(0x43); // return
+    bytecode.push(OP_RETURN); // return
 
     execute_and_check(&bytecode, true).unwrap();
 }

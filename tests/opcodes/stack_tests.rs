@@ -37,7 +37,7 @@ fn test_op_dup() {
     bytecode.extend_from_slice(&42u64.to_be_bytes());
     bytecode.push(OP_DUP); // duplicate 42
     bytecode.push(OP_EQ); // they should be equal
-    bytecode.push(0x43); // return
+    bytecode.push(OP_RETURN); // return
 
     execute_and_check(&bytecode, true).unwrap();
 }
@@ -157,11 +157,11 @@ fn test_op_itob() {
     bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&0u64.to_be_bytes());
     bytecode.push(OP_ITOB); // convert to bytes
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(8); // length
     bytecode.extend_from_slice(&[0, 0, 0, 0, 0, 0, 0, 0]);
     bytecode.push(OP_EQ); // should be equal
-    bytecode.push(0x43); // return
+    bytecode.push(OP_RETURN); // return
 
     execute_and_check(&bytecode, true).unwrap();
 }
@@ -170,7 +170,7 @@ fn test_op_itob() {
 fn test_op_btoi() {
     // Test bytes to integer conversion
     let mut bytecode = Vec::new();
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(8); // length
     bytecode.extend_from_slice(&0x0123456789ABCDEFu64.to_be_bytes());
     bytecode.push(OP_BTOI); // convert to int
@@ -187,7 +187,7 @@ fn test_op_btoi() {
 
     // Test partial bytes (less than 8)
     let mut bytecode = Vec::new();
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(4); // length
     bytecode.extend_from_slice(&[0x12, 0x34, 0x56, 0x78]);
     bytecode.push(OP_BTOI); // convert to int
@@ -246,7 +246,7 @@ fn test_op_concat() {
 fn test_op_substring() {
     // Test basic substring extraction
     let mut bytecode = Vec::new();
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(6); // length
     bytecode.extend_from_slice(b"abcdef");
     bytecode.push(OP_SUBSTRING);
@@ -258,7 +258,7 @@ fn test_op_substring() {
 
     // Test full string extraction
     let mut bytecode = Vec::new();
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(4); // length
     bytecode.extend_from_slice(b"test");
     bytecode.push(OP_SUBSTRING);
@@ -273,7 +273,7 @@ fn test_op_substring() {
 fn test_op_substring_out_of_bounds() {
     // Test substring with out of bounds indices
     let mut bytecode = Vec::new();
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(4); // length
     bytecode.extend_from_slice(b"test");
     bytecode.push(OP_SUBSTRING);
@@ -287,7 +287,7 @@ fn test_op_substring_out_of_bounds() {
 fn test_op_substring3() {
     // Test substring3 with stack arguments
     let mut bytecode = Vec::new();
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(6); // length
     bytecode.extend_from_slice(b"abcdef");
     bytecode.push(OP_PUSHINT); // pushint (start)
@@ -301,7 +301,7 @@ fn test_op_substring3() {
 
     // Test empty substring
     let mut bytecode = Vec::new();
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(4); // length
     bytecode.extend_from_slice(b"test");
     bytecode.push(OP_PUSHINT); // pushint (start)

@@ -16,7 +16,7 @@ fn app_mode_config() -> ExecutionConfig {
 fn test_op_app_global_get() {
     // Test getting existing global state
     let mut bytecode = Vec::new();
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(7); // length
     bytecode.extend_from_slice(b"counter");
     bytecode.push(OP_APP_GLOBAL_GET);
@@ -37,7 +37,7 @@ fn test_op_app_global_get() {
 
     // Test getting the actual value
     let mut bytecode = Vec::new();
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(7); // length
     bytecode.extend_from_slice(b"counter");
     bytecode.push(OP_APP_GLOBAL_GET);
@@ -55,7 +55,7 @@ fn test_op_app_global_get() {
 fn test_op_app_global_get_nonexistent() {
     // Test getting non-existent global state
     let mut bytecode = Vec::new();
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(7); // length
     bytecode.extend_from_slice(b"missing");
     bytecode.push(OP_APP_GLOBAL_GET);
@@ -78,7 +78,7 @@ fn test_op_app_global_get_ex() {
     let mut bytecode = Vec::new();
     bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&123u64.to_be_bytes()); // App ID
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(7); // length
     bytecode.extend_from_slice(b"message");
     bytecode.push(OP_APP_GLOBAL_GET_EX);
@@ -102,7 +102,7 @@ fn test_op_app_global_get_ex() {
 fn test_op_app_global_put() {
     // Test putting global state (currently returns error in implementation)
     let mut bytecode = Vec::new();
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(3); // length
     bytecode.extend_from_slice(b"key");
     bytecode.push(OP_PUSHINT); // pushint
@@ -121,7 +121,7 @@ fn test_op_app_global_put() {
 fn test_op_app_global_del() {
     // Test deleting global state (currently returns error in implementation)
     let mut bytecode = Vec::new();
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(3); // length
     bytecode.extend_from_slice(b"key");
     bytecode.push(OP_APP_GLOBAL_DEL);
@@ -138,10 +138,10 @@ fn test_op_app_global_del() {
 fn test_op_app_local_get() {
     // Test getting local state
     let mut bytecode = Vec::new();
-    bytecode.push(0x80); // pushbytes (account)
+    bytecode.push(OP_PUSHBYTES); // pushbytes (account)
     bytecode.push(32); // length
     bytecode.extend_from_slice(&[2u8; 32]); // Account 2
-    bytecode.push(0x80); // pushbytes (key)
+    bytecode.push(OP_PUSHBYTES); // pushbytes (key)
     bytecode.push(10); // length
     bytecode.extend_from_slice(b"user_count");
     bytecode.push(OP_APP_LOCAL_GET);
@@ -165,12 +165,12 @@ fn test_op_app_local_get() {
 fn test_op_app_local_get_ex() {
     // Test getting local state from specific app
     let mut bytecode = Vec::new();
-    bytecode.push(0x80); // pushbytes (account)
+    bytecode.push(OP_PUSHBYTES); // pushbytes (account)
     bytecode.push(32); // length
     bytecode.extend_from_slice(&[2u8; 32]); // Account 2
     bytecode.push(OP_PUSHINT); // pushint (app ID)
     bytecode.extend_from_slice(&123u64.to_be_bytes());
-    bytecode.push(0x80); // pushbytes (key)
+    bytecode.push(OP_PUSHBYTES); // pushbytes (key)
     bytecode.push(10); // length
     bytecode.extend_from_slice(b"user_count");
     bytecode.push(OP_APP_LOCAL_GET_EX);
@@ -191,7 +191,7 @@ fn test_op_app_local_get_ex() {
 fn test_op_app_opted_in() {
     // Test checking if account opted into app
     let mut bytecode = Vec::new();
-    bytecode.push(0x80); // pushbytes (account)
+    bytecode.push(OP_PUSHBYTES); // pushbytes (account)
     bytecode.push(32); // length
     bytecode.extend_from_slice(&[2u8; 32]); // Account 2 (opted in)
     bytecode.push(OP_PUSHINT); // pushint (app ID)
@@ -209,7 +209,7 @@ fn test_op_app_opted_in() {
 
     // Test account not opted in
     let mut bytecode = Vec::new();
-    bytecode.push(0x80); // pushbytes (account)
+    bytecode.push(OP_PUSHBYTES); // pushbytes (account)
     bytecode.push(32); // length
     bytecode.extend_from_slice(&[3u8; 32]); // Account 3 (not opted in)
     bytecode.push(OP_PUSHINT); // pushint (app ID)
@@ -228,7 +228,7 @@ fn test_op_app_opted_in() {
 fn test_op_balance() {
     // Test getting account balance
     let mut bytecode = Vec::new();
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(32); // length
     bytecode.extend_from_slice(&[1u8; 32]); // Account 1
     bytecode.push(OP_BALANCE);
@@ -247,7 +247,7 @@ fn test_op_balance() {
 fn test_op_min_balance() {
     // Test getting minimum balance
     let mut bytecode = Vec::new();
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(32); // length
     bytecode.extend_from_slice(&[1u8; 32]);
     bytecode.push(OP_MIN_BALANCE);
@@ -266,7 +266,7 @@ fn test_op_min_balance() {
 fn test_op_asset_holding_get() {
     // Test getting asset holding - balance field
     let mut bytecode = Vec::new();
-    bytecode.push(0x80); // pushbytes (account)
+    bytecode.push(OP_PUSHBYTES); // pushbytes (account)
     bytecode.push(32); // length
     bytecode.extend_from_slice(&[1u8; 32]);
     bytecode.push(OP_PUSHINT); // pushint (asset ID)
@@ -290,7 +290,7 @@ fn test_op_asset_holding_get() {
 
     // Test frozen field
     let mut bytecode = Vec::new();
-    bytecode.push(0x80); // pushbytes (account)
+    bytecode.push(OP_PUSHBYTES); // pushbytes (account)
     bytecode.push(32); // length
     bytecode.extend_from_slice(&[1u8; 32]);
     bytecode.push(OP_PUSHINT); // pushint (asset ID)
@@ -366,7 +366,7 @@ fn test_op_app_params_get() {
 fn test_op_acct_params_get() {
     // Test getting account parameters
     let mut bytecode = Vec::new();
-    bytecode.push(0x80); // pushbytes (account)
+    bytecode.push(OP_PUSHBYTES); // pushbytes (account)
     bytecode.push(32); // length
     bytecode.extend_from_slice(&[1u8; 32]);
     bytecode.push(OP_ACCT_PARAMS_GET);
@@ -387,7 +387,7 @@ fn test_op_acct_params_get() {
 fn test_state_opcodes_require_app_mode() {
     // Test that state opcodes fail in signature mode
     let mut bytecode = Vec::new();
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(7); // length
     bytecode.extend_from_slice(b"counter");
     bytecode.push(OP_APP_GLOBAL_GET);

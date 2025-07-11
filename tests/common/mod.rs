@@ -223,7 +223,7 @@ pub fn build_simple_op_test(values: Vec<StackValue>, opcode: u8) -> Vec<u8> {
                 bytecode.extend_from_slice(&val.to_be_bytes());
             }
             StackValue::Bytes(bytes) => {
-                bytecode.push(0x80); // pushbytes
+                bytecode.push(OP_PUSHBYTES); // pushbytes
                 bytecode.push(bytes.len() as u8);
                 bytecode.extend_from_slice(&bytes);
             }
@@ -244,7 +244,7 @@ pub fn with_assert_equals(mut bytecode: Vec<u8>, expected: StackValue) -> Vec<u8
             bytecode.extend_from_slice(&val.to_be_bytes());
         }
         StackValue::Bytes(bytes) => {
-            bytecode.push(0x80); // pushbytes
+            bytecode.push(OP_PUSHBYTES); // pushbytes
             bytecode.push(bytes.len() as u8);
             bytecode.extend_from_slice(&bytes);
         }
@@ -252,7 +252,7 @@ pub fn with_assert_equals(mut bytecode: Vec<u8>, expected: StackValue) -> Vec<u8
 
     // Add equality check and return
     bytecode.push(OP_EQ);
-    bytecode.push(0x43); // return
+    bytecode.push(OP_RETURN); // return
 
     bytecode
 }

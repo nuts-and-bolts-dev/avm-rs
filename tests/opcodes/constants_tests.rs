@@ -289,11 +289,11 @@ fn test_op_bzero() {
     bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&5u64.to_be_bytes());
     bytecode.push(OP_BZERO);
-    bytecode.push(0x80); // pushbytes
+    bytecode.push(OP_PUSHBYTES); // pushbytes
     bytecode.push(5);
     bytecode.extend_from_slice(&[0, 0, 0, 0, 0]);
     bytecode.push(OP_EQ);
-    bytecode.push(0x43); // return
+    bytecode.push(OP_RETURN); // return
 
     execute_and_check(&bytecode, true).unwrap();
 
