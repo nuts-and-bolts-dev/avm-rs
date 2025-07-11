@@ -5,6 +5,7 @@
 [![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](https://github.com/nuts-and-bolts-dev/avm-rs#license)
 
 A complete implementation of the Algorand Virtual Machine (AVM) written in Rust, designed to execute TEAL (Transaction Execution Approval Language) bytecode for smart contract logic and transaction validation.
+
 ## Quick Start
 
 ### Prerequisites
@@ -12,10 +13,10 @@ A complete implementation of the Algorand Virtual Machine (AVM) written in Rust,
 - Rust 1.88+ (2024 edition)
 - Cargo
 
-### Installation
+### Usage
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/nuts-and-bolts-dev/avm-rs.git
 cd avm-rs
 cargo build --release
 ```
@@ -77,6 +78,77 @@ let source = r#"
 
 let mut assembler = Assembler::new();
 let bytecode = assembler.assemble(source)?;
+```
+
+## CLI Usage
+
+AVM-RS provides a comprehensive command-line interface for working with TEAL programs:
+
+```bash
+cargo install avm-rs
+```
+
+### Available Commands
+
+```bash
+avm-rs <COMMAND> [OPTIONS]
+```
+
+#### Commands Overview
+
+- **`execute`** - Execute TEAL programs with debugging support
+- **`assemble`** - Compile TEAL source code to bytecode  
+- **`disassemble`** - Decompile bytecode back to TEAL source
+- **`validate`** - Validate TEAL programs for correctness
+- **`examples`** - Run built-in example programs
+- **`info`** - Display AVM information and statistics
+- **`repl`** - Interactive REPL mode for testing
+
+### Execute TEAL Programs
+
+Execute TEAL programs from various input sources:
+
+```bash
+# Execute from file
+avm-rs execute program.teal
+
+# Execute inline TEAL
+avm-rs execute -t inline "int 1; int 2; +; return"
+
+# Execute bytecode directly  
+avm-rs execute -t bytecode "81010181020D43"
+
+# Application mode with budget
+avm-rs execute -m application -b 5000 contract.teal
+
+# Debug mode with stack visualization
+avm-rs execute --step --show-stack program.teal
+```
+
+### Assembly
+
+Convert between TEAL source and bytecode:
+
+```bash
+# Assemble TEAL to bytecode
+avm-rs assemble program.teal -o program.bytecode
+
+# Different output formats
+avm-rs assemble program.teal -f hex       # Hexadecimal
+avm-rs assemble program.teal -f base64    # Base64 encoded
+avm-rs assemble program.teal -f binary    # Raw binary
+```
+
+### Validation and Analysis
+
+Validate TEAL programs for syntax and semantic correctness:
+
+```bash
+# Validate a TEAL program
+avm-rs validate program.teal
+
+# Validate with specific version
+avm-rs validate -V 8 program.teal
 ```
 
 ## Examples
