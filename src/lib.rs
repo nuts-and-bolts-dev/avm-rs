@@ -10,7 +10,6 @@ pub mod crypto;
 pub mod error;
 pub mod opcodes;
 pub mod state;
-pub mod teal_macro;
 pub mod types;
 pub mod varuint;
 pub mod vm;
@@ -19,9 +18,6 @@ pub mod vm;
 pub use error::{AvmError, AvmResult};
 pub use types::{StackValue, TealValue, TealVersion};
 pub use vm::{EvalContext, ExecutionConfig, VirtualMachine, VirtualMachineBuilder};
-
-// Re-export macro utilities
-pub use teal_macro::{TealBuilder, TealInterpolator, TealTemplate, templates};
 
 #[cfg(test)]
 mod tests {
@@ -69,7 +65,7 @@ return      ; Return the result (true/false)
 int 42          // Decimal
 int 0x2A        // Hexadecimal
 ==              // Should be equal
-int 0o52        // Octal  
+int 0o52        // Octal
 int 0b101010    // Binary
 ==              // Should be equal
 &&              // Both should be true
@@ -94,7 +90,7 @@ return
 #pragma version 6
 byte "hello"     // String literal
 byte "hello"     // String literal
-==               // Check equality  
+==               // Check equality
 return
 "#;
 
