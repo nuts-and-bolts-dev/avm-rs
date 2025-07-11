@@ -98,11 +98,9 @@ avm-rs <COMMAND> [OPTIONS]
 
 - **`execute`** - Execute TEAL programs with debugging support
 - **`assemble`** - Compile TEAL source code to bytecode  
-- **`disassemble`** - Decompile bytecode back to TEAL source
 - **`validate`** - Validate TEAL programs for correctness
 - **`examples`** - Run built-in example programs
 - **`info`** - Display AVM information and statistics
-- **`repl`** - Interactive REPL mode for testing
 
 ### Execute TEAL Programs
 
