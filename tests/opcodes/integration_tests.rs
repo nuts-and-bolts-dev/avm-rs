@@ -41,7 +41,7 @@ fn test_factorial_computation() {
     let mut bytecode = Vec::new();
 
     // Main program: compute 5!
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&5u64.to_be_bytes());
     bytecode.push(OP_CALLSUB);
     bytecode.extend_from_slice(&0x0006u16.to_be_bytes()); // call factorial
@@ -108,7 +108,7 @@ fn test_fibonacci_iterative() {
     // Loop start
     bytecode.push(OP_LOAD); // i
     bytecode.push(2);
-    bytecode.push(0x81); // pushint 10
+    bytecode.push(OP_PUSHINT); // pushint 10
     bytecode.extend_from_slice(&10u64.to_be_bytes());
     bytecode.push(OP_LT); // i < 10
     bytecode.push(OP_BZ); // exit if i >= 10
@@ -216,7 +216,7 @@ fn test_stack_stress_test() {
 
     // Push 100 consecutive integers
     for i in 1..=100 {
-        bytecode.push(0x81); // pushint
+        bytecode.push(OP_PUSHINT); // pushint
         bytecode.extend_from_slice(&(i as u64).to_be_bytes());
     }
 
@@ -268,7 +268,7 @@ fn test_cryptographic_verification_flow() {
     // SHA256 hash
     bytecode.push(OP_SHA256);
     bytecode.push(OP_LEN);
-    bytecode.push(0x81); // pushint 32
+    bytecode.push(OP_PUSHINT); // pushint 32
     bytecode.extend_from_slice(&32u64.to_be_bytes());
     bytecode.push(OP_EQ);
     bytecode.push(OP_ASSERT); // Assert SHA256 produces 32 bytes
@@ -276,7 +276,7 @@ fn test_cryptographic_verification_flow() {
     // Keccak256 hash
     bytecode.push(OP_KECCAK256);
     bytecode.push(OP_LEN);
-    bytecode.push(0x81); // pushint 32
+    bytecode.push(OP_PUSHINT); // pushint 32
     bytecode.extend_from_slice(&32u64.to_be_bytes());
     bytecode.push(OP_EQ);
     bytecode.push(OP_ASSERT); // Assert Keccak256 produces 32 bytes
@@ -319,7 +319,7 @@ fn test_conditional_state_access() {
     bytecode.push(8); // Amount field
 
     // If amount > 25000, check global state
-    bytecode.push(0x81); // pushint 25000
+    bytecode.push(OP_PUSHINT); // pushint 25000
     bytecode.extend_from_slice(&25000u64.to_be_bytes());
     bytecode.push(OP_GT);
     bytecode.push(OP_BNZ);
@@ -335,7 +335,7 @@ fn test_conditional_state_access() {
     bytecode.extend_from_slice(b"counter");
     bytecode.push(OP_APP_GLOBAL_GET);
     bytecode.push(OP_POP); // Remove exists flag
-    bytecode.push(0x81); // pushint 40
+    bytecode.push(OP_PUSHINT); // pushint 40
     bytecode.extend_from_slice(&40u64.to_be_bytes());
     bytecode.push(OP_GT); // counter > 40
     bytecode.push(0x43); // return

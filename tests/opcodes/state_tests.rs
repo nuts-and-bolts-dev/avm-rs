@@ -76,7 +76,7 @@ fn test_op_app_global_get_nonexistent() {
 fn test_op_app_global_get_ex() {
     // Test getting global state from specific app
     let mut bytecode = Vec::new();
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&123u64.to_be_bytes()); // App ID
     bytecode.push(0x80); // pushbytes
     bytecode.push(7); // length
@@ -105,7 +105,7 @@ fn test_op_app_global_put() {
     bytecode.push(0x80); // pushbytes
     bytecode.push(3); // length
     bytecode.extend_from_slice(b"key");
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&100u64.to_be_bytes());
     bytecode.push(OP_APP_GLOBAL_PUT);
 
@@ -168,7 +168,7 @@ fn test_op_app_local_get_ex() {
     bytecode.push(0x80); // pushbytes (account)
     bytecode.push(32); // length
     bytecode.extend_from_slice(&[2u8; 32]); // Account 2
-    bytecode.push(0x81); // pushint (app ID)
+    bytecode.push(OP_PUSHINT); // pushint (app ID)
     bytecode.extend_from_slice(&123u64.to_be_bytes());
     bytecode.push(0x80); // pushbytes (key)
     bytecode.push(10); // length
@@ -194,7 +194,7 @@ fn test_op_app_opted_in() {
     bytecode.push(0x80); // pushbytes (account)
     bytecode.push(32); // length
     bytecode.extend_from_slice(&[2u8; 32]); // Account 2 (opted in)
-    bytecode.push(0x81); // pushint (app ID)
+    bytecode.push(OP_PUSHINT); // pushint (app ID)
     bytecode.extend_from_slice(&123u64.to_be_bytes());
     bytecode.push(OP_APP_OPTED_IN);
 
@@ -212,7 +212,7 @@ fn test_op_app_opted_in() {
     bytecode.push(0x80); // pushbytes (account)
     bytecode.push(32); // length
     bytecode.extend_from_slice(&[3u8; 32]); // Account 3 (not opted in)
-    bytecode.push(0x81); // pushint (app ID)
+    bytecode.push(OP_PUSHINT); // pushint (app ID)
     bytecode.extend_from_slice(&123u64.to_be_bytes());
     bytecode.push(OP_APP_OPTED_IN);
 
@@ -269,7 +269,7 @@ fn test_op_asset_holding_get() {
     bytecode.push(0x80); // pushbytes (account)
     bytecode.push(32); // length
     bytecode.extend_from_slice(&[1u8; 32]);
-    bytecode.push(0x81); // pushint (asset ID)
+    bytecode.push(OP_PUSHINT); // pushint (asset ID)
     bytecode.extend_from_slice(&456u64.to_be_bytes());
     bytecode.push(OP_ASSET_HOLDING_GET);
     bytecode.push(0); // AssetBalance field
@@ -293,7 +293,7 @@ fn test_op_asset_holding_get() {
     bytecode.push(0x80); // pushbytes (account)
     bytecode.push(32); // length
     bytecode.extend_from_slice(&[1u8; 32]);
-    bytecode.push(0x81); // pushint (asset ID)
+    bytecode.push(OP_PUSHINT); // pushint (asset ID)
     bytecode.extend_from_slice(&456u64.to_be_bytes());
     bytecode.push(OP_ASSET_HOLDING_GET);
     bytecode.push(1); // AssetFrozen field
@@ -311,7 +311,7 @@ fn test_op_asset_holding_get() {
 fn test_op_asset_params_get() {
     // Test getting asset parameters
     let mut bytecode = Vec::new();
-    bytecode.push(0x81); // pushint (asset ID)
+    bytecode.push(OP_PUSHINT); // pushint (asset ID)
     bytecode.extend_from_slice(&456u64.to_be_bytes());
     bytecode.push(OP_ASSET_PARAMS_GET);
     bytecode.push(0); // AssetTotal field
@@ -328,7 +328,7 @@ fn test_op_asset_params_get() {
 
     // Test decimals field
     let mut bytecode = Vec::new();
-    bytecode.push(0x81); // pushint (asset ID)
+    bytecode.push(OP_PUSHINT); // pushint (asset ID)
     bytecode.extend_from_slice(&456u64.to_be_bytes());
     bytecode.push(OP_ASSET_PARAMS_GET);
     bytecode.push(1); // AssetDecimals field
@@ -346,7 +346,7 @@ fn test_op_asset_params_get() {
 fn test_op_app_params_get() {
     // Test getting app parameters
     let mut bytecode = Vec::new();
-    bytecode.push(0x81); // pushint (app ID)
+    bytecode.push(OP_PUSHINT); // pushint (app ID)
     bytecode.extend_from_slice(&123u64.to_be_bytes());
     bytecode.push(OP_APP_PARAMS_GET);
     bytecode.push(2); // AppGlobalNumUint field

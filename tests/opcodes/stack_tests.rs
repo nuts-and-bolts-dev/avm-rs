@@ -8,9 +8,9 @@ use crate::common::*;
 fn test_op_pop() {
     // Test basic pop operation
     let mut bytecode = Vec::new();
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&42u64.to_be_bytes());
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&100u64.to_be_bytes());
     bytecode.push(OP_POP); // pop the 100
     // Now only 42 should be on stack
@@ -33,7 +33,7 @@ fn test_op_pop_empty_stack() {
 fn test_op_dup() {
     // Test basic dup operation
     let mut bytecode = Vec::new();
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&42u64.to_be_bytes());
     bytecode.push(OP_DUP); // duplicate 42
     bytecode.push(OP_EQ); // they should be equal
@@ -46,15 +46,15 @@ fn test_op_dup() {
 fn test_op_dup2() {
     // Test dup2 operation according to TEAL spec: [A, B] -> [A, B, A, B]
     let mut bytecode = Vec::new();
-    bytecode.push(0x81); // pushint 10
+    bytecode.push(OP_PUSHINT); // pushint 10
     bytecode.extend_from_slice(&10u64.to_be_bytes());
-    bytecode.push(0x81); // pushint 20
+    bytecode.push(OP_PUSHINT); // pushint 20
     bytecode.extend_from_slice(&20u64.to_be_bytes());
     bytecode.push(OP_DUP2); // duplicate top two: stack is now [10, 20, 10, 20]
 
     // Simple verification: check that the top value is 20 and pop the rest
     // Stack: [10, 20, 10, 20] - verify top is 20, then pop 3 values to leave bottom 10
-    bytecode.push(0x81); // pushint 20
+    bytecode.push(OP_PUSHINT); // pushint 20
     bytecode.extend_from_slice(&20u64.to_be_bytes()); // [10, 20, 10, 20, 20]
     bytecode.push(OP_EQ); // [10, 20, 10, 1] - top values match
 
@@ -73,9 +73,9 @@ fn test_op_dup2() {
 fn test_op_swap() {
     // Test swap operation
     let mut bytecode = Vec::new();
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&10u64.to_be_bytes());
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&20u64.to_be_bytes());
     bytecode.push(OP_SWAP); // swap them
     // Stack is now [20, 10], need to pop the bottom value
@@ -91,11 +91,11 @@ fn test_op_swap() {
 fn test_op_select() {
     // Test select with true condition (selects first value)
     let mut bytecode = Vec::new();
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&100u64.to_be_bytes()); // A
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&200u64.to_be_bytes()); // B
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&1u64.to_be_bytes()); // true
     bytecode.push(OP_SELECT); // select A (100)
     bytecode = with_assert_equals(bytecode, StackValue::Uint(100));
@@ -104,11 +104,11 @@ fn test_op_select() {
 
     // Test select with false condition (selects second value)
     let mut bytecode = Vec::new();
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&100u64.to_be_bytes()); // A
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&200u64.to_be_bytes()); // B
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&0u64.to_be_bytes()); // false
     bytecode.push(OP_SELECT); // select B (200)
     bytecode = with_assert_equals(bytecode, StackValue::Uint(200));
@@ -144,7 +144,7 @@ fn test_op_len() {
 fn test_op_itob() {
     // Test integer to bytes conversion
     let mut bytecode = Vec::new();
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&0x0123456789ABCDEFu64.to_be_bytes());
     bytecode.push(OP_ITOB); // convert to bytes
     bytecode.push(OP_LEN); // check length
@@ -154,7 +154,7 @@ fn test_op_itob() {
 
     // Test zero conversion
     let mut bytecode = Vec::new();
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&0u64.to_be_bytes());
     bytecode.push(OP_ITOB); // convert to bytes
     bytecode.push(0x80); // pushbytes
@@ -290,9 +290,9 @@ fn test_op_substring3() {
     bytecode.push(0x80); // pushbytes
     bytecode.push(6); // length
     bytecode.extend_from_slice(b"abcdef");
-    bytecode.push(0x81); // pushint (start)
+    bytecode.push(OP_PUSHINT); // pushint (start)
     bytecode.extend_from_slice(&1u64.to_be_bytes());
-    bytecode.push(0x81); // pushint (end)
+    bytecode.push(OP_PUSHINT); // pushint (end)
     bytecode.extend_from_slice(&4u64.to_be_bytes());
     bytecode.push(OP_SUBSTRING3);
     bytecode = with_assert_equals(bytecode, StackValue::Bytes(b"bcd".to_vec()));
@@ -304,9 +304,9 @@ fn test_op_substring3() {
     bytecode.push(0x80); // pushbytes
     bytecode.push(4); // length
     bytecode.extend_from_slice(b"test");
-    bytecode.push(0x81); // pushint (start)
+    bytecode.push(OP_PUSHINT); // pushint (start)
     bytecode.extend_from_slice(&2u64.to_be_bytes());
-    bytecode.push(0x81); // pushint (end)
+    bytecode.push(OP_PUSHINT); // pushint (end)
     bytecode.extend_from_slice(&2u64.to_be_bytes());
     bytecode.push(OP_SUBSTRING3);
     bytecode = with_assert_equals(bytecode, StackValue::Bytes(vec![]));
@@ -320,13 +320,13 @@ fn test_op_load_store() {
     let mut bytecode = Vec::new();
 
     // Store value at index 0
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&42u64.to_be_bytes());
     bytecode.push(OP_STORE);
     bytecode.push(0); // scratch index
 
     // Store value at index 1
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&100u64.to_be_bytes());
     bytecode.push(OP_STORE);
     bytecode.push(1); // scratch index
@@ -345,7 +345,7 @@ fn test_op_load_store() {
 
     // Store values
     for i in 0..5 {
-        bytecode.push(0x81); // pushint
+        bytecode.push(OP_PUSHINT); // pushint
         bytecode.extend_from_slice(&(i as u64 * 10).to_be_bytes());
         bytecode.push(OP_STORE);
         bytecode.push(i); // scratch index
@@ -366,7 +366,7 @@ fn test_op_dupn() {
 
     // Push 3 values
     for i in 1..=3 {
-        bytecode.push(0x81); // pushint
+        bytecode.push(OP_PUSHINT); // pushint
         bytecode.extend_from_slice(&(i as u64).to_be_bytes());
     }
 
@@ -385,7 +385,7 @@ fn test_op_dupn() {
 
     // Test duplicating 0 values (no-op)
     let mut bytecode = Vec::new();
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&42u64.to_be_bytes());
     bytecode.push(OP_DUPN);
     bytecode.push(0); // duplicate 0 values
@@ -401,7 +401,7 @@ fn test_op_popn() {
 
     // Push 5 values
     for i in 1..=5 {
-        bytecode.push(0x81); // pushint
+        bytecode.push(OP_PUSHINT); // pushint
         bytecode.extend_from_slice(&(i as u64).to_be_bytes());
     }
 
@@ -420,7 +420,7 @@ fn test_op_popn() {
 
     // Test popping 0 values (no-op)
     let mut bytecode = Vec::new();
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&42u64.to_be_bytes());
     bytecode.push(OP_POPN);
     bytecode.push(0); // pop 0 values
@@ -435,9 +435,9 @@ fn test_op_popn_underflow() {
     let mut bytecode = Vec::new();
 
     // Push 2 values
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&1u64.to_be_bytes());
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&2u64.to_be_bytes());
 
     // Try to pop 3 values

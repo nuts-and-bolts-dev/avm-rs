@@ -197,7 +197,7 @@ fn test_op_ecdsa_verify_placeholder() {
     let mut bytecode = Vec::new();
 
     // Recovery ID
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&0u64.to_be_bytes());
 
     // Data
@@ -258,7 +258,7 @@ fn test_op_ecdsa_pk_recover_placeholder() {
     bytecode.extend_from_slice(&[0u8; 64]);
 
     // Recovery ID
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&0u64.to_be_bytes());
 
     bytecode.push(OP_ECDSA_PK_RECOVER);

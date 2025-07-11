@@ -219,7 +219,7 @@ pub fn build_simple_op_test(values: Vec<StackValue>, opcode: u8) -> Vec<u8> {
     for value in values {
         match value {
             StackValue::Uint(val) => {
-                bytecode.push(0x81); // pushint
+                bytecode.push(OP_PUSHINT); // pushint
                 bytecode.extend_from_slice(&val.to_be_bytes());
             }
             StackValue::Bytes(bytes) => {
@@ -240,7 +240,7 @@ pub fn build_simple_op_test(values: Vec<StackValue>, opcode: u8) -> Vec<u8> {
 pub fn with_assert_equals(mut bytecode: Vec<u8>, expected: StackValue) -> Vec<u8> {
     match expected {
         StackValue::Uint(val) => {
-            bytecode.push(0x81); // pushint
+            bytecode.push(OP_PUSHINT); // pushint
             bytecode.extend_from_slice(&val.to_be_bytes());
         }
         StackValue::Bytes(bytes) => {

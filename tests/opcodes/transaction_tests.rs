@@ -105,7 +105,7 @@ fn test_op_txnas_with_stack_index() {
     ledger.set_current_transaction_index(0);
 
     let mut bytecode = Vec::new();
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&1u64.to_be_bytes()); // Index 1
     bytecode.push(OP_TXNAS);
     bytecode.push(26); // ApplicationArgs field ID
@@ -172,7 +172,7 @@ fn test_op_gtxna_group_array() {
 fn test_op_gtxns_with_stack_index() {
     // Test accessing group transaction with stack index
     let mut bytecode = Vec::new();
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&1u64.to_be_bytes()); // Group index 1
     bytecode.push(OP_GTXNS);
     bytecode.push(7); // Receiver field
@@ -198,9 +198,9 @@ fn test_op_gtxnsa_with_stack_indices() {
     ledger.add_transaction(tx2);
 
     let mut bytecode = Vec::new();
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&1u64.to_be_bytes()); // Group index
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&2u64.to_be_bytes()); // Array index
     bytecode.push(OP_GTXNSA);
     bytecode.push(26); // ApplicationArgs field

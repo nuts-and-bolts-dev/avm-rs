@@ -8,12 +8,12 @@ use crate::common::*;
 fn test_op_bnz_branch_taken() {
     // Test branch if not zero - branch taken
     let mut bytecode = Vec::new();
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&1u64.to_be_bytes()); // non-zero value
     bytecode.push(OP_BNZ);
     bytecode.extend_from_slice(&0x0001u16.to_be_bytes()); // offset to skip err
     bytecode.push(OP_ERR); // This should be skipped
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&1u64.to_be_bytes());
     bytecode.push(0x43); // return
 
@@ -24,11 +24,11 @@ fn test_op_bnz_branch_taken() {
 fn test_op_bnz_branch_not_taken() {
     // Test branch if not zero - branch not taken
     let mut bytecode = Vec::new();
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&0u64.to_be_bytes()); // zero value
     bytecode.push(OP_BNZ);
     bytecode.extend_from_slice(&0x0001u16.to_be_bytes()); // offset (not taken)
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&1u64.to_be_bytes());
     bytecode.push(0x43); // return
     bytecode.push(OP_ERR); // This would cause error if reached
@@ -40,12 +40,12 @@ fn test_op_bnz_branch_not_taken() {
 fn test_op_bz_branch_taken() {
     // Test branch if zero - branch taken
     let mut bytecode = Vec::new();
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&0u64.to_be_bytes()); // zero value
     bytecode.push(OP_BZ);
     bytecode.extend_from_slice(&0x0001u16.to_be_bytes()); // offset to skip err
     bytecode.push(OP_ERR); // This should be skipped
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&1u64.to_be_bytes());
     bytecode.push(0x43); // return
 
@@ -56,11 +56,11 @@ fn test_op_bz_branch_taken() {
 fn test_op_bz_branch_not_taken() {
     // Test branch if zero - branch not taken
     let mut bytecode = Vec::new();
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&42u64.to_be_bytes()); // non-zero value
     bytecode.push(OP_BZ);
     bytecode.extend_from_slice(&0x0001u16.to_be_bytes()); // offset (not taken)
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&1u64.to_be_bytes());
     bytecode.push(0x43); // return
     bytecode.push(OP_ERR); // This would cause error if reached
@@ -75,7 +75,7 @@ fn test_op_b_unconditional() {
     bytecode.push(OP_B);
     bytecode.extend_from_slice(&0x0001u16.to_be_bytes()); // offset to skip err
     bytecode.push(OP_ERR); // This should be skipped
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&1u64.to_be_bytes());
     bytecode.push(0x43); // return
 
@@ -88,7 +88,7 @@ fn test_op_b_backward_jump() {
     let mut bytecode = Vec::new();
 
     // Initialize counter to 0
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&0u64.to_be_bytes());
     bytecode.push(OP_STORE); // store at scratch[0]
     bytecode.push(0);
@@ -96,7 +96,7 @@ fn test_op_b_backward_jump() {
     // Loop start (PC = 13)
     bytecode.push(OP_LOAD); // load counter
     bytecode.push(0);
-    bytecode.push(0x81); // pushint 1
+    bytecode.push(OP_PUSHINT); // pushint 1
     bytecode.extend_from_slice(&1u64.to_be_bytes());
     bytecode.push(OP_PLUS); // increment
     bytecode.push(OP_DUP); // duplicate for comparison
@@ -104,7 +104,7 @@ fn test_op_b_backward_jump() {
     bytecode.push(0);
 
     // Check if counter < 3
-    bytecode.push(0x81); // pushint 3
+    bytecode.push(OP_PUSHINT); // pushint 3
     bytecode.extend_from_slice(&3u64.to_be_bytes());
     bytecode.push(OP_LT); // counter < 3?
 
@@ -128,7 +128,7 @@ fn test_op_b_backward_jump() {
 fn test_op_return() {
     // Test return opcode
     let mut bytecode = Vec::new();
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&1u64.to_be_bytes());
     bytecode.push(OP_RETURN); // return with 1 on stack
     bytecode.push(OP_ERR); // This should never execute
@@ -137,7 +137,7 @@ fn test_op_return() {
 
     // Test return with 0
     let mut bytecode = Vec::new();
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&0u64.to_be_bytes());
     bytecode.push(OP_RETURN); // return with 0 on stack
 
@@ -148,10 +148,10 @@ fn test_op_return() {
 fn test_op_assert_success() {
     // Test assert with true condition
     let mut bytecode = Vec::new();
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&1u64.to_be_bytes()); // true
     bytecode.push(OP_ASSERT); // assert succeeds
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&1u64.to_be_bytes());
     bytecode.push(0x43); // return
 
@@ -162,10 +162,10 @@ fn test_op_assert_success() {
 fn test_op_assert_failure() {
     // Test assert with false condition
     let mut bytecode = Vec::new();
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&0u64.to_be_bytes()); // false
     bytecode.push(OP_ASSERT); // assert fails
-    bytecode.push(0x81); // This should not execute
+    bytecode.push(OP_PUSHINT); // This should not execute
     bytecode.extend_from_slice(&1u64.to_be_bytes());
     bytecode.push(0x43); // return
 
@@ -178,7 +178,7 @@ fn test_op_callsub_retsub() {
     let mut bytecode = Vec::new();
 
     // Main program
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&10u64.to_be_bytes());
     bytecode.push(OP_CALLSUB);
     bytecode.extend_from_slice(&0x000Eu16.to_be_bytes()); // offset to subroutine
@@ -202,7 +202,7 @@ fn test_nested_subroutines() {
     let mut bytecode = Vec::new();
 
     // Main program
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&5u64.to_be_bytes());
     bytecode.push(OP_CALLSUB);
     bytecode.extend_from_slice(&0x000Eu16.to_be_bytes()); // call sub1
@@ -215,7 +215,7 @@ fn test_nested_subroutines() {
     // Subroutine 1: doubles then adds 1
     bytecode.push(OP_CALLSUB);
     bytecode.extend_from_slice(&0x000Bu16.to_be_bytes()); // call sub2
-    bytecode.push(0x81); // pushint 1
+    bytecode.push(OP_PUSHINT); // pushint 1
     bytecode.extend_from_slice(&1u64.to_be_bytes());
     bytecode.push(OP_PLUS);
     bytecode.push(OP_RETSUB);
@@ -234,9 +234,9 @@ fn test_conditional_logic_complex() {
     let mut bytecode = Vec::new();
 
     // Test case 1: a=10, b=5
-    bytecode.push(0x81); // pushint a
+    bytecode.push(OP_PUSHINT); // pushint a
     bytecode.extend_from_slice(&10u64.to_be_bytes());
-    bytecode.push(0x81); // pushint b
+    bytecode.push(OP_PUSHINT); // pushint b
     bytecode.extend_from_slice(&5u64.to_be_bytes());
 
     // Duplicate top two values for comparison: [10, 5] -> [10, 5, 10, 5]

@@ -84,7 +84,7 @@ fn test_op_pushints() {
 
     // Test pushing zero integers (no-op)
     let mut bytecode = Vec::new();
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&42u64.to_be_bytes());
     bytecode.push(OP_PUSHINTS);
     bytecode.push(0); // count = 0
@@ -276,7 +276,7 @@ fn test_op_bytec_shortcuts() {
 fn test_op_bzero() {
     // Test creating zero-filled byte arrays
     let mut bytecode = Vec::new();
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&10u64.to_be_bytes());
     bytecode.push(OP_BZERO);
     bytecode.push(OP_LEN);
@@ -286,7 +286,7 @@ fn test_op_bzero() {
 
     // Test all bytes are zero
     let mut bytecode = Vec::new();
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&5u64.to_be_bytes());
     bytecode.push(OP_BZERO);
     bytecode.push(0x80); // pushbytes
@@ -299,7 +299,7 @@ fn test_op_bzero() {
 
     // Test empty array
     let mut bytecode = Vec::new();
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&0u64.to_be_bytes());
     bytecode.push(OP_BZERO);
     bytecode = with_assert_equals(bytecode, StackValue::Bytes(vec![]));
@@ -311,7 +311,7 @@ fn test_op_bzero() {
 fn test_op_bzero_too_large() {
     // Test bzero with size > 4096
     let mut bytecode = Vec::new();
-    bytecode.push(0x81); // pushint
+    bytecode.push(OP_PUSHINT); // pushint
     bytecode.extend_from_slice(&4097u64.to_be_bytes());
     bytecode.push(OP_BZERO);
 

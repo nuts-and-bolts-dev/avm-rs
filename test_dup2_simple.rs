@@ -6,14 +6,14 @@ mod tests {
     fn test_dup2_simple() {
         // Simple test - just check that dup2 creates the right stack
         let mut bytecode = Vec::new();
-        bytecode.push(0x81); // pushint 10
+        bytecode.push(OP_PUSHINT); // pushint 10
         bytecode.extend_from_slice(&10u64.to_be_bytes());
-        bytecode.push(0x81); // pushint 20
+        bytecode.push(OP_PUSHINT); // pushint 20
         bytecode.extend_from_slice(&20u64.to_be_bytes());
         bytecode.push(OP_DUP2); // duplicate top two: stack is now [10, 20, 10, 20]
 
         // Check that top is 20
-        bytecode.push(0x81); // pushint 20
+        bytecode.push(OP_PUSHINT); // pushint 20
         bytecode.extend_from_slice(&20u64.to_be_bytes());
         bytecode.push(OP_EQ); // compare top two (20 == 20) -> [10, 20, 10, 1]
         bytecode.push(0x43); // return
