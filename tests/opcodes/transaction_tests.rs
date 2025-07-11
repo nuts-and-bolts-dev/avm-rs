@@ -1,6 +1,6 @@
 //! Tests for transaction field access opcodes
 
-use rust_avm::{opcodes::*, types::StackValue};
+use avm_rs::{opcodes::*, types::StackValue};
 
 use crate::common::*;
 

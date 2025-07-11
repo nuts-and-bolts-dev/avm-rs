@@ -155,7 +155,7 @@ fn show_system_info(global: &GlobalOptions) -> Result<()> {
         }
         crate::cli::OutputFormat::Json => {
             let output = serde_json::json!({
-                "rust_avm_version": env!("CARGO_PKG_VERSION"),
+                "avm_rs_version": env!("CARGO_PKG_VERSION"),
                 "build_target": std::env::consts::ARCH,
                 "operating_system": std::env::consts::OS,
                 "latest_teal_version": TealVersion::latest().as_u8(),
@@ -194,10 +194,10 @@ fn show_general_info(global: &GlobalOptions) -> Result<()> {
             println!("  🚧 Step-by-step debugging (coming soon)");
 
             println!("\nQuick Start:");
-            println!("  rust-avm examples hello           # Run a simple example");
-            println!("  rust-avm execute 'int 1; return' # Execute inline TEAL");
-            println!("  rust-avm assemble program.teal   # Assemble TEAL to bytecode");
-            println!("  rust-avm info --opcodes          # Show available opcodes");
+            println!("  avm-rs examples hello           # Run a simple example");
+            println!("  avm-rs execute 'int 1; return' # Execute inline TEAL");
+            println!("  avm-rs assemble program.teal   # Assemble TEAL to bytecode");
+            println!("  avm-rs info --opcodes          # Show available opcodes");
         }
         crate::cli::OutputFormat::Json => {
             let output = serde_json::json!({

@@ -9,7 +9,7 @@ pub use commands::*;
 /// Rust AVM - Algorand Virtual Machine implementation in Rust
 #[derive(Parser)]
 #[command(
-    name = "rust-avm",
+    name = "avm-rs",
     version = env!("CARGO_PKG_VERSION"),
     about = "Algorand Virtual Machine (AVM) implementation in Rust",
     long_about = "A complete implementation of the Algorand Virtual Machine (AVM) that can execute TEAL smart contracts. Supports assembly, disassembly, execution, validation, and debugging of TEAL programs."

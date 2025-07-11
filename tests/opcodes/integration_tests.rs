@@ -21,7 +21,7 @@
 //! 3. String manipulation with hash operations
 //! 4. Large stack stress test scenarios
 
-use rust_avm::{
+use avm_rs::{
     opcodes::*,
     types::{RunMode, StackValue},
 };

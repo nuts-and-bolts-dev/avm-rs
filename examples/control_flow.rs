@@ -4,9 +4,9 @@
 //! from Algorand's official documentation. It shows branching, loops,
 //! subroutines, and complex control structures.
 
-use rust_avm::assembler::Assembler;
-use rust_avm::state::MockLedger;
-use rust_avm::{ExecutionConfig, TealVersion, VirtualMachine};
+use avm_rs::assembler::Assembler;
+use avm_rs::state::MockLedger;
+use avm_rs::{ExecutionConfig, TealVersion, VirtualMachine};
 
 /// Helper function to execute TEAL source code
 fn execute_teal_signature(teal_code: &str) -> Result<bool, String> {

@@ -1,5 +1,5 @@
-use rust_avm::assembler::Assembler;
-use rust_avm::varuint::encode_varuint;
+use avm_rs::assembler::Assembler;
+use avm_rs::varuint::encode_varuint;
 
 #[test]
 fn test_intcblock_single_constant_varuint() {
@@ -112,7 +112,7 @@ intcblock 127 128 16383 16384
 
 #[test]
 fn test_disassemble_intcblock_varuint() {
-    use rust_avm::assembler::disassemble;
+    use avm_rs::assembler::disassemble;
 
     let mut bytecode = vec![0x20]; // OP_INTCBLOCK
     bytecode.extend_from_slice(&encode_varuint(2)); // count = 2
@@ -125,7 +125,7 @@ fn test_disassemble_intcblock_varuint() {
 
 #[test]
 fn test_disassemble_bytecblock_varuint() {
-    use rust_avm::assembler::disassemble;
+    use avm_rs::assembler::disassemble;
 
     let mut bytecode = vec![0x26]; // OP_BYTECBLOCK
     bytecode.extend_from_slice(&encode_varuint(2)); // count = 2
@@ -144,10 +144,10 @@ fn test_disassemble_bytecblock_varuint() {
 
 #[test]
 fn test_constants_used_in_program() {
-    use rust_avm::assembler::Assembler;
-    use rust_avm::state::MockLedger;
-    use rust_avm::types::TealVersion;
-    use rust_avm::vm::VirtualMachine;
+    use avm_rs::assembler::Assembler;
+    use avm_rs::state::MockLedger;
+    use avm_rs::types::TealVersion;
+    use avm_rs::vm::VirtualMachine;
 
     let mut assembler = Assembler::new();
     let teal_program = r#"
@@ -175,7 +175,7 @@ return
     // Create VM and execute
     let vm = VirtualMachine::with_version(TealVersion::V6);
     let mut ledger = MockLedger::new();
-    let config = rust_avm::vm::ExecutionConfig::new(TealVersion::V6).with_cost_budget(1000);
+    let config = avm_rs::vm::ExecutionConfig::new(TealVersion::V6).with_cost_budget(1000);
 
     let result = vm
         .execute(&bytecode, config, &mut ledger)

@@ -1,10 +1,10 @@
 //! Tests for cryptographic opcodes
 
-use hex;
-use rust_avm::{
+use avm_rs::{
     opcodes::*,
     types::{StackValue, TealVersion},
 };
+use hex;
 
 use crate::common::*;
 
@@ -303,7 +303,7 @@ fn test_op_vrf_verify_placeholder() {
     let vm = setup_vm_with_version(TealVersion::V7);
     let mut ledger = setup_mock_ledger();
     let config = test_config_with_version(TealVersion::V7)
-        .with_run_mode(rust_avm::types::RunMode::Application);
+        .with_run_mode(avm_rs::types::RunMode::Application);
     let result = vm.execute(&bytecode, config, &mut ledger).unwrap();
     assert!(result, "Expected program to return true");
 }

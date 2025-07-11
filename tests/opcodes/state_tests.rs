@@ -1,6 +1,6 @@
 //! Tests for state access opcodes (application mode only)
 
-use rust_avm::{
+use avm_rs::{
     opcodes::*,
     types::{RunMode, StackValue},
     vm::ExecutionConfig,

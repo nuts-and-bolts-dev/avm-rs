@@ -1,6 +1,6 @@
 //! Common test utilities for opcode testing
 
-use rust_avm::{
+use avm_rs::{
     error::AvmResult,
     opcodes::*,
     state::{
@@ -186,7 +186,7 @@ pub fn execute_expect_error(bytecode: &[u8]) -> AvmResult<()> {
 
 /// Create a simple TEAL program that tests an opcode
 pub fn create_teal_program(program: &str) -> AvmResult<Vec<u8>> {
-    use rust_avm::assembler::Assembler;
+    use avm_rs::assembler::Assembler;
     let mut assembler = Assembler::new();
     let full_program = format!("#pragma version 6\n{program}");
     assembler.assemble(&full_program)

@@ -198,9 +198,9 @@ fn list_examples(examples: &HashMap<String, Example>, global: &GlobalOptions) ->
                 }
 
                 println!("\nUsage:");
-                println!("  rust-avm examples <name>          # Show and run example");
-                println!("  rust-avm examples <name> --show   # Show source only");
-                println!("  rust-avm examples <name> --run    # Run example only");
+                println!("  avm-rs examples <name>          # Show and run example");
+                println!("  avm-rs examples <name> --show   # Show source only");
+                println!("  avm-rs examples <name> --run    # Run example only");
             }
             crate::cli::OutputFormat::Json => {
                 let example_list: Vec<_> = examples

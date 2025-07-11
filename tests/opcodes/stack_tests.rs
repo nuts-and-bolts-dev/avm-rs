@@ -1,6 +1,6 @@
 //! Tests for stack manipulation opcodes
 
-use rust_avm::{opcodes::*, types::StackValue};
+use avm_rs::{opcodes::*, types::StackValue};
 
 use crate::common::*;
 

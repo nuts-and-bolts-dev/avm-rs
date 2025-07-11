@@ -1,4 +1,4 @@
-use rust_avm::cli;
+use avm_rs::cli;
 
 fn main() -> anyhow::Result<()> {
     cli::run()

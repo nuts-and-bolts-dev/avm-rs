@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use rust_avm::{opcodes::*, types::StackValue};
+    use avm_rs::{opcodes::*, types::StackValue};
 
     #[test]
     fn test_dup2_simple() {
@@ -21,10 +21,10 @@ mod tests {
         println!("Bytecode: {:?}", bytecode);
 
         // Execute
-        let vm = rust_avm::vm::VirtualMachine::with_version(rust_avm::types::TealVersion::V6);
-        let config = rust_avm::vm::ExecutionConfig::new(rust_avm::types::TealVersion::V6)
+        let vm = avm_rs::vm::VirtualMachine::with_version(avm_rs::types::TealVersion::V6);
+        let config = avm_rs::vm::ExecutionConfig::new(avm_rs::types::TealVersion::V6)
             .with_cost_budget(10000000);
-        let ledger = rust_avm::state::MockLedger::new();
+        let ledger = avm_rs::state::MockLedger::new();
 
         let result = vm.execute(&bytecode, config, &ledger);
         match result {

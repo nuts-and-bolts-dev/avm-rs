@@ -1,6 +1,6 @@
 //! Tests for constant loading opcodes
 
-use rust_avm::{opcodes::*, types::StackValue};
+use avm_rs::{opcodes::*, types::StackValue};
 
 use crate::common::*;
 
@@ -134,7 +134,7 @@ fn test_op_pushbytess() {
 
 #[test]
 fn test_op_intc_shortcuts() {
-    use rust_avm::varuint::encode_varuint;
+    use avm_rs::varuint::encode_varuint;
 
     // Set up integer constant block first
     let mut bytecode = Vec::new();
@@ -196,7 +196,7 @@ fn test_op_intc_shortcuts() {
 
 #[test]
 fn test_op_bytec_shortcuts() {
-    use rust_avm::varuint::encode_varuint;
+    use avm_rs::varuint::encode_varuint;
 
     // Set up byte constant block first
     let mut bytecode = Vec::new();
@@ -320,7 +320,7 @@ fn test_op_bzero_too_large() {
 
 #[test]
 fn test_constant_blocks() {
-    use rust_avm::varuint::encode_varuint;
+    use avm_rs::varuint::encode_varuint;
 
     // Test intcblock with varuint encoding
     let mut bytecode = Vec::new();
@@ -356,7 +356,7 @@ fn test_constant_blocks() {
 
 #[test]
 fn test_mixed_constants() {
-    use rust_avm::varuint::encode_varuint;
+    use avm_rs::varuint::encode_varuint;
 
     // Test mixing different constant operations
     let mut bytecode = Vec::new();

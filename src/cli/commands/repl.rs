@@ -35,7 +35,7 @@ pub fn handle(cmd: ReplCommand, global: &GlobalOptions) -> Result<()> {
     println!("  • Step-by-step debugging");
     println!("  • History and completion");
     println!("\nFor now, use the execute command with inline TEAL:");
-    println!("  rust-avm execute 'int 1; int 2; +; return'");
+    println!("  avm-rs execute 'int 1; int 2; +; return'");
 
     Ok(())
 }

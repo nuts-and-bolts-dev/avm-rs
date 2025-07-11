@@ -5,9 +5,9 @@
 //! manage global and local state, handle application calls, and implement
 //! common smart contract patterns.
 
-use rust_avm::assembler::Assembler;
-use rust_avm::state::MockLedger;
-use rust_avm::{ExecutionConfig, TealVersion, VirtualMachine};
+use avm_rs::assembler::Assembler;
+use avm_rs::state::MockLedger;
+use avm_rs::{ExecutionConfig, TealVersion, VirtualMachine};
 
 /// Helper function to execute TEAL source code in application mode
 fn execute_teal_application(teal_code: &str) -> Result<bool, String> {

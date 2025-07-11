@@ -1,10 +1,10 @@
 //! Simple Test Example
 //!
-//! This is a basic test to verify the rust-avm examples are working correctly.
+//! This is a basic test to verify the avm-rs examples are working correctly.
 
-use rust_avm::assembler::Assembler;
-use rust_avm::state::MockLedger;
-use rust_avm::{TealVersion, VirtualMachine};
+use avm_rs::assembler::Assembler;
+use avm_rs::state::MockLedger;
+use avm_rs::{TealVersion, VirtualMachine};
 
 fn main() {
     println!("=== Simple AVM Test ===\n");
