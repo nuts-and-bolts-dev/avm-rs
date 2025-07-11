@@ -6,7 +6,7 @@ keywords = ["algorand", "blockchain", "smart-contracts", "teal", "avm"]
 license = "MIT OR Apache-2.0"
 name = "avm-rs"
 readme = "README.md"
-repository = "https://github.com/manuelmauro/avm-rs"
+repository = "https://github.com/nuts-and-bolts-dev/avm-rs"
 version = "0.1.0"
 
 [dependencies]

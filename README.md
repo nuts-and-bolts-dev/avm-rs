@@ -1,5 +1,9 @@
 # AVM-RS - Algorand Virtual Machine Implementation
 
+[![Crates.io](https://img.shields.io/crates/v/avm-rs.svg)](https://crates.io/crates/avm-rs)
+[![Documentation](https://docs.rs/avm-rs/badge.svg)](https://docs.rs/avm-rs)
+[![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](https://github.com/nuts-and-bolts-dev/avm-rs#license)
+
 A complete implementation of the Algorand Virtual Machine (AVM) written in Rust, designed to execute TEAL (Transaction Execution Approval Language) bytecode for smart contract logic and transaction validation.
 ## Quick Start
 
