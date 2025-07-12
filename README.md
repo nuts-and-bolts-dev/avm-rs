@@ -1,4 +1,4 @@
-# AVM-RS - Algorand Virtual Machine Implementation
+# `avm-rs` - A Rust Implementation of the Algorand Virtual Machine
 
 [![Crates.io](https://img.shields.io/crates/v/avm-rs.svg)](https://crates.io/crates/avm-rs)
 [![Documentation](https://docs.rs/avm-rs/badge.svg)](https://docs.rs/avm-rs)
@@ -7,19 +7,6 @@
 A complete implementation of the Algorand Virtual Machine (AVM) written in Rust, designed to execute TEAL (Transaction Execution Approval Language) bytecode for smart contract logic and transaction validation.
 
 ## Quick Start
-
-### Prerequisites
-
-- Rust 1.88+ (2024 edition)
-- Cargo
-
-### Usage
-
-```bash
-git clone https://github.com/nuts-and-bolts-dev/avm-rs.git
-cd avm-rs
-cargo build --release
-```
 
 ### Basic Usage
 
@@ -97,7 +84,7 @@ avm-rs <COMMAND> [OPTIONS]
 #### Commands Overview
 
 - **`execute`** - Execute TEAL programs with debugging support
-- **`assemble`** - Compile TEAL source code to bytecode  
+- **`assemble`** - Compile TEAL source code to bytecode
 - **`validate`** - Validate TEAL programs for correctness
 - **`examples`** - Run built-in example programs
 - **`info`** - Display AVM information and statistics
@@ -113,7 +100,7 @@ avm-rs execute program.teal
 # Execute inline TEAL
 avm-rs execute -t inline "int 1; int 2; +; return"
 
-# Execute bytecode directly  
+# Execute bytecode directly
 avm-rs execute -t bytecode "81010181020D43"
 
 # Application mode with budget

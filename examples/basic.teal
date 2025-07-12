@@ -1,0 +1,9 @@
+#pragma version 8
+pushint 10
+pushint 20
++
+pushint 3
+*
+pushint 90
+==
+return

@@ -221,16 +221,144 @@ fn execute_with_stepping(
     ledger: &mut MockLedger,
     global: &GlobalOptions,
 ) -> Result<()> {
+    use std::io::{self, Write};
+
     if !global.quiet {
         println!("🔍 Step-by-step execution mode");
-        println!("Press Enter to step, 'c' to continue, 'q' to quit");
+        println!("Commands: [Enter] step, 'c' continue, 'q' quit, 'h' help");
+        println!("{}", "─".repeat(60));
     }
 
-    // TODO: Implement step-by-step execution
-    // This would require modifications to the VM to support stepping
-    // For now, fall back to normal execution
-    println!("⚠️  Step-by-step execution not yet implemented, running normally...");
-    execute_normal(vm, bytecode, config.clone(), ledger, global)
+    let start = std::time::Instant::now();
+
+    // Create evaluation context for stepping
+    let mut eval_ctx = vm
+        .create_eval_context(bytecode, config.clone(), ledger)
+        .map_err(|e| anyhow::anyhow!("Failed to create evaluation context: {}", e))?;
+
+    let mut step_count = 0;
+    let mut continue_mode = false;
+
+    while !eval_ctx.is_finished() {
+        if !continue_mode && !global.quiet {
+            // Display current state
+            let opcode_info = eval_ctx
+                .current_opcode_spec(vm)
+                .map(|spec| format!("{} (cost: {})", spec.name, spec.cost))
+                .unwrap_or_else(|_| "Invalid opcode".to_string());
+
+            println!(
+                "Step {}: PC={:04} | {}",
+                step_count,
+                eval_ctx.pc(),
+                opcode_info
+            );
+
+            // Display stack
+            let stack = eval_ctx.stack();
+            if stack.is_empty() {
+                println!("Stack: (empty)");
+            } else {
+                println!(
+                    "Stack: [{}]",
+                    stack
+                        .iter()
+                        .enumerate()
+                        .map(|(i, val)| format!("{i}: {val:?}"))
+                        .collect::<Vec<_>>()
+                        .join(", ")
+                );
+            }
+
+            print!("vm> ");
+            io::stdout().flush().unwrap();
+
+            // Read user input
+            let mut input = String::new();
+            io::stdin().read_line(&mut input).unwrap();
+            let input = input.trim();
+
+            match input {
+                "q" | "quit" => {
+                    println!("Execution interrupted by user");
+                    return Ok(());
+                }
+                "c" | "continue" => {
+                    continue_mode = true;
+                    println!("Continuing execution...");
+                }
+                "h" | "help" => {
+                    println!("Commands:");
+                    println!("  [Enter] - Execute next instruction");
+                    println!("  c       - Continue execution without stepping");
+                    println!("  q       - Quit execution");
+                    println!("  h       - Show this help");
+                    continue;
+                }
+                "" => {
+                    // Step (default action)
+                }
+                _ => {
+                    println!("Unknown command '{input}'. Type 'h' for help.");
+                    continue;
+                }
+            }
+        }
+
+        // Execute one step
+        eval_ctx
+            .step(vm, &config)
+            .map_err(|e| anyhow::anyhow!("Execution failed at step {}: {}", step_count, e))?;
+
+        step_count += 1;
+    }
+
+    // Extract final result
+    let result = if eval_ctx.is_finished() {
+        // Check final result
+        let stack = eval_ctx.stack();
+        if stack.is_empty() {
+            return Err(anyhow::anyhow!(
+                "Program ended with 0 values on stack, expected 1"
+            ));
+        }
+        if stack.len() > 1 {
+            return Err(anyhow::anyhow!(
+                "Program ended with {} values on stack, expected 1",
+                stack.len()
+            ));
+        }
+        stack[0]
+            .as_bool()
+            .map_err(|e| anyhow::anyhow!("Invalid final result: {}", e))?
+    } else {
+        return Err(anyhow::anyhow!("Program execution incomplete"));
+    };
+
+    let duration = start.elapsed();
+
+    if !global.quiet {
+        println!("{}", "─".repeat(60));
+        match global.format {
+            crate::cli::OutputFormat::Text => {
+                println!("✅ Execution completed successfully");
+                println!("Result: {result}");
+                println!("Steps: {step_count}");
+                println!("Duration: {duration:?}");
+            }
+            crate::cli::OutputFormat::Json => {
+                let output = serde_json::json!({
+                    "success": true,
+                    "result": result,
+                    "steps": step_count,
+                    "duration_ms": duration.as_millis()
+                });
+                println!("{}", serde_json::to_string_pretty(&output)?);
+            }
+        }
+    }
+
+    Ok(())
 }
 
 /// Build tracing configuration from CLI options

@@ -560,6 +560,94 @@ impl<'a> EvalContext<'a> {
 
         self.set_pc(new_pc)
     }
+
+    /// Get current opcode specification (for debugging)
+    pub fn current_opcode_spec<'b>(&self, vm: &'b VirtualMachine) -> AvmResult<&'b OpSpec> {
+        let opcode = self.current_byte()?;
+        vm.opcodes.get(&opcode).ok_or(AvmError::InvalidOpcode {
+            opcode,
+            pc: self.pc(),
+        })
+    }
+
+    /// Execute a single step with the given VM and config
+    pub fn step(&mut self, vm: &VirtualMachine, config: &ExecutionConfig) -> AvmResult<()> {
+        if self.is_finished() {
+            return Err(AvmError::invalid_program("Program execution completed"));
+        }
+
+        let opcode = self.current_byte()?;
+        let spec = vm.opcodes.get(&opcode).ok_or(AvmError::InvalidOpcode {
+            opcode,
+            pc: self.pc(),
+        })?;
+
+        // Check version and mode compatibility
+        if spec.min_version > config.version.as_u8() {
+            return Err(AvmError::OpcodeNotAvailable {
+                version: config.version.as_u8(),
+                opcode: spec.name.clone(),
+            });
+        }
+
+        if !spec.modes.contains(&config.run_mode) {
+            return Err(AvmError::invalid_program(format!(
+                "Opcode {} not allowed in {:?} mode",
+                spec.name, config.run_mode
+            )));
+        }
+
+        // Log opcode execution (before)
+        #[cfg(feature = "tracing")]
+        if self.tracing_config().enabled {
+            if self.tracing_config().trace_opcodes {
+                tracing::debug!(
+                    opcode = &spec.name,
+                    pc = self.pc(),
+                    cost = spec.cost,
+                    "Executing opcode"
+                );
+            }
+
+            if self.tracing_config().trace_stack {
+                let stack_trace = crate::tracing::stack_to_trace_string(
+                    self.stack(),
+                    self.tracing_config().max_stack_trace_depth,
+                );
+                tracing::debug!(
+                    stack = %stack_trace,
+                    "Stack before {}",
+                    &spec.name
+                );
+            }
+        }
+
+        // Add execution cost
+        self.add_cost(spec.cost)?;
+
+        // Add trace entry (legacy tracing)
+        let pc = self.pc();
+        self.add_trace(format!("PC:{pc:04} {} (cost: {})", spec.name, spec.cost));
+
+        // Execute the opcode
+        (spec.execute)(self)?;
+
+        // Log stack state after execution
+        #[cfg(feature = "tracing")]
+        if self.tracing_config().enabled && self.tracing_config().trace_stack {
+            let stack_trace = crate::tracing::stack_to_trace_string(
+                self.stack(),
+                self.tracing_config().max_stack_trace_depth,
+            );
+            tracing::debug!(
+                stack = %stack_trace,
+                "Stack after {}",
+                &spec.name
+            );
+        }
+
+        Ok(())
+    }
 }
 
 /// Virtual Machine for executing TEAL programs
@@ -696,6 +784,30 @@ impl VirtualMachine {
         self.execute(program, config, ledger)
     }
 
+    /// Create an evaluation context for step-by-step execution
+    pub fn create_eval_context<'a>(
+        &'a self,
+        program: &'a [u8],
+        config: ExecutionConfig,
+        ledger: &'a mut dyn LedgerAccess,
+    ) -> AvmResult<EvalContext<'a>> {
+        if program.is_empty() {
+            return Err(AvmError::invalid_program("Empty program"));
+        }
+
+        Ok(EvalContext::new(
+            program,
+            config.run_mode,
+            config.cost_budget,
+            config.version,
+            config.group_index,
+            config.group_size,
+            ledger,
+            #[cfg(feature = "tracing")]
+            config.tracing.clone(),
+        ))
+    }
+
     /// Execute a TEAL program
     pub fn execute(
         &self,
@@ -741,83 +853,9 @@ impl VirtualMachine {
             );
         }
 
-        // Main execution loop
+        // Main execution loop - simply reuse step method
         while !ctx.is_finished() {
-            let opcode = ctx.current_byte()?;
-
-            // Look up opcode specification
-            let spec = self.opcodes.get(&opcode).ok_or(AvmError::InvalidOpcode {
-                opcode,
-                pc: ctx.pc(),
-            })?;
-
-            // Check if opcode is available in this version
-            if spec.min_version > config.version.as_u8() {
-                return Err(AvmError::OpcodeNotAvailable {
-                    version: config.version.as_u8(),
-                    opcode: spec.name.clone(),
-                });
-            }
-
-            // Check if opcode is allowed in this mode
-            if !spec.modes.contains(&config.run_mode) {
-                return Err(AvmError::invalid_program(format!(
-                    "Opcode {} not allowed in {run_mode:?} mode",
-                    spec.name,
-                    run_mode = config.run_mode
-                )));
-            }
-
-            // Log opcode execution and stack state
-            #[cfg(feature = "tracing")]
-            if ctx.tracing_config().enabled {
-                if ctx.tracing_config().trace_opcodes {
-                    tracing::debug!(
-                        opcode = &spec.name,
-                        pc = ctx.pc(),
-                        cost = spec.cost,
-                        "Executing opcode"
-                    );
-                }
-
-                if ctx.tracing_config().trace_stack {
-                    let stack_trace = crate::tracing::stack_to_trace_string(
-                        ctx.stack(),
-                        ctx.tracing_config().max_stack_trace_depth,
-                    );
-                    tracing::debug!(
-                        stack = %stack_trace,
-                        "Stack before {}",
-                        &spec.name
-                    );
-                }
-            }
-
-            // Add execution cost
-            ctx.add_cost(spec.cost)?;
-
-            // Add trace entry (legacy tracing)
-            let pc = ctx.pc();
-            ctx.add_trace(format!("PC:{pc:04} {} (cost: {})", spec.name, spec.cost));
-
-            // Execute the opcode
-            (spec.execute)(&mut ctx)?;
-
-            // Log stack state after execution if enabled
-            #[cfg(feature = "tracing")]
-            if ctx.tracing_config().enabled && ctx.tracing_config().trace_stack {
-                let stack_trace = crate::tracing::stack_to_trace_string(
-                    ctx.stack(),
-                    ctx.tracing_config().max_stack_trace_depth,
-                );
-                tracing::debug!(
-                    stack = %stack_trace,
-                    "Stack after {}",
-                    &spec.name
-                );
-            }
-
-            // Advance PC by 1 (opcode size) - opcodes handle their own PC advancement
+            ctx.step(self, &config)?;
         }
 
         // Check final result
