@@ -184,6 +184,18 @@ pub fn execute_expect_error(bytecode: &[u8]) -> AvmResult<()> {
     Ok(())
 }
 
+/// Execute bytecode in Application mode and check if it returns the expected result
+pub fn execute_and_check_app_mode(bytecode: &[u8], expected: bool) -> AvmResult<()> {
+    use avm_rs::types::RunMode;
+    let vm = setup_vm();
+    let mut ledger = setup_mock_ledger();
+
+    let config = test_config().with_run_mode(RunMode::Application);
+    let result = vm.execute(bytecode, config, &mut ledger)?;
+    assert_eq!(result, expected, "Expected program to return {expected}");
+    Ok(())
+}
+
 /// Create a simple TEAL program that tests an opcode
 pub fn create_teal_program(program: &str) -> AvmResult<Vec<u8>> {
     use avm_rs::assembler::Assembler;

@@ -195,7 +195,8 @@ fn test_string_manipulation_pipeline() {
     bytecode.push(OP_BTOI);
 
     // Result should be non-zero
-    bytecode.push(OP_INTC_0);
+    bytecode.push(OP_PUSHINT);
+    bytecode.extend_from_slice(&0u64.to_be_bytes());
     bytecode.push(OP_GT);
     bytecode.push(OP_RETURN); // return
 
@@ -221,7 +222,8 @@ fn test_stack_stress_test() {
     }
 
     // Sum all values using a loop
-    bytecode.push(OP_INTC_0); // sum = 0
+    bytecode.push(OP_PUSHINT); // sum = 0
+    bytecode.extend_from_slice(&0u64.to_be_bytes());
     bytecode.push(OP_STORE);
     bytecode.push(0);
 
@@ -292,7 +294,7 @@ fn test_cryptographic_verification_flow() {
     bytecode.push(OP_NE); // Should be different
     bytecode.push(OP_RETURN); // return
 
-    execute_and_check(&bytecode, true).unwrap();
+    execute_and_check_app_mode(&bytecode, true).unwrap();
 }
 
 /// TODO: Test fails due to combination of transaction field access and state operations
