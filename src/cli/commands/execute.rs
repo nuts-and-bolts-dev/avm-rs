@@ -22,9 +22,13 @@ pub fn handle(cmd: ExecuteCommand, global: &GlobalOptions) -> Result<()> {
         println!("Mode: {:?}", cmd.mode);
 
         #[cfg(feature = "tracing")]
-        if cmd.trace {
+        if cmd.trace_level.is_some() || cmd.trace_opcodes || cmd.trace_stack {
             println!("Tracing: enabled");
-            println!("Trace level: {:?}", cmd.trace_level);
+            if let Some(trace_level) = &cmd.trace_level {
+                println!("Trace level: {:?}", trace_level);
+            } else if cmd.trace_opcodes || cmd.trace_stack {
+                println!("Trace level: Debug (auto-enabled by trace flags)");
+            }
             println!("Trace opcodes: {}", cmd.trace_opcodes);
             println!("Trace stack: {}", cmd.trace_stack);
         }
@@ -50,7 +54,7 @@ pub fn handle(cmd: ExecuteCommand, global: &GlobalOptions) -> Result<()> {
     };
 
     #[cfg(feature = "tracing")]
-    let config = if cmd.trace {
+    let config = if cmd.trace_level.is_some() || cmd.trace_opcodes || cmd.trace_stack {
         let tracing_config = build_tracing_config(&cmd)?;
         ExecutionConfig::new(version)
             .with_cost_budget(cmd.budget)
@@ -232,7 +236,14 @@ fn execute_with_stepping(
 /// Build tracing configuration from CLI options
 #[cfg(feature = "tracing")]
 fn build_tracing_config(cmd: &ExecuteCommand) -> Result<TracingConfig> {
-    let level = match cmd.trace_level {
+    // If trace-opcodes or trace-stack are specified but no explicit level, default to debug
+    let default_level = if (cmd.trace_opcodes || cmd.trace_stack) && cmd.trace_level.is_none() {
+        TracingLevel::Debug
+    } else {
+        TracingLevel::Info
+    };
+    
+    let level = match cmd.trace_level.as_ref().unwrap_or(&default_level) {
         TracingLevel::Trace => TraceLevel::Trace,
         TracingLevel::Debug => TraceLevel::Debug,
         TracingLevel::Info => TraceLevel::Info,

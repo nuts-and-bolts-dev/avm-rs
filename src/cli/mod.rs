@@ -128,10 +128,6 @@ pub struct ExecuteCommand {
     #[arg(short = 's', long = "step")]
     pub step: bool,
 
-    /// Show stack after each operation
-    #[arg(long = "show-stack")]
-    pub show_stack: bool,
-
     /// Mock ledger data from JSON file
     #[arg(short = 'l', long = "ledger")]
     pub ledger: Option<PathBuf>,
@@ -144,24 +140,19 @@ pub struct ExecuteCommand {
     #[arg(short = 'a', long = "arg")]
     pub args: Vec<String>,
 
-    /// Enable tracing
+    /// Tracing level (trace, debug, info, warn, error) - enables tracing when specified
     #[cfg(feature = "tracing")]
-    #[arg(long = "trace")]
-    pub trace: bool,
-
-    /// Tracing level (trace, debug, info, warn, error)
-    #[cfg(feature = "tracing")]
-    #[arg(long = "trace-level", value_enum, default_value = "info")]
-    pub trace_level: TracingLevel,
+    #[arg(long = "trace-level", value_enum)]
+    pub trace_level: Option<TracingLevel>,
 
     /// Enable opcode-level tracing
     #[cfg(feature = "tracing")]
-    #[arg(long = "trace-opcodes", default_value = "true")]
+    #[arg(long = "trace-opcodes")]
     pub trace_opcodes: bool,
 
     /// Enable stack state tracing
     #[cfg(feature = "tracing")]
-    #[arg(long = "trace-stack", default_value = "true")]
+    #[arg(long = "trace-stack")]
     pub trace_stack: bool,
 }
 
