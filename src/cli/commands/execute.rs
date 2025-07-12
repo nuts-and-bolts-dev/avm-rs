@@ -25,7 +25,7 @@ pub fn handle(cmd: ExecuteCommand, global: &GlobalOptions) -> Result<()> {
         if cmd.trace_level.is_some() || cmd.trace_opcodes || cmd.trace_stack {
             println!("Tracing: enabled");
             if let Some(trace_level) = &cmd.trace_level {
-                println!("Trace level: {:?}", trace_level);
+                println!("Trace level: {trace_level:?}");
             } else if cmd.trace_opcodes || cmd.trace_stack {
                 println!("Trace level: Debug (auto-enabled by trace flags)");
             }
@@ -242,7 +242,7 @@ fn build_tracing_config(cmd: &ExecuteCommand) -> Result<TracingConfig> {
     } else {
         TracingLevel::Info
     };
-    
+
     let level = match cmd.trace_level.as_ref().unwrap_or(&default_level) {
         TracingLevel::Trace => TraceLevel::Trace,
         TracingLevel::Debug => TraceLevel::Debug,
