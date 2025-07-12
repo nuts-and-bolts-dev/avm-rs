@@ -10,6 +10,8 @@ pub mod crypto;
 pub mod error;
 pub mod opcodes;
 pub mod state;
+#[cfg(feature = "tracing")]
+pub mod tracing;
 pub mod types;
 pub mod varuint;
 pub mod vm;

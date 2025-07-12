@@ -64,6 +64,17 @@ pub enum ColorChoice {
     Never,
 }
 
+/// Tracing level options
+#[cfg(feature = "tracing")]
+#[derive(clap::ValueEnum, Clone, Debug)]
+pub enum TracingLevel {
+    Trace,
+    Debug,
+    Info,
+    Warn,
+    Error,
+}
+
 /// Available CLI commands
 #[derive(Subcommand)]
 pub enum Commands {
@@ -82,9 +93,6 @@ pub enum Commands {
     /// Validate TEAL programs
     #[command(alias = "check")]
     Validate(ValidateCommand),
-
-    /// Run example programs
-    Examples(ExamplesCommand),
 
     /// Show AVM information
     Info(InfoCommand),
@@ -135,6 +143,26 @@ pub struct ExecuteCommand {
     /// Arguments to pass to the program
     #[arg(short = 'a', long = "arg")]
     pub args: Vec<String>,
+
+    /// Enable tracing
+    #[cfg(feature = "tracing")]
+    #[arg(long = "trace")]
+    pub trace: bool,
+
+    /// Tracing level (trace, debug, info, warn, error)
+    #[cfg(feature = "tracing")]
+    #[arg(long = "trace-level", value_enum, default_value = "info")]
+    pub trace_level: TracingLevel,
+
+    /// Enable opcode-level tracing
+    #[cfg(feature = "tracing")]
+    #[arg(long = "trace-opcodes", default_value = "true")]
+    pub trace_opcodes: bool,
+
+    /// Enable stack state tracing
+    #[cfg(feature = "tracing")]
+    #[arg(long = "trace-stack", default_value = "true")]
+    pub trace_stack: bool,
 }
 
 /// Assemble command for converting TEAL to bytecode
@@ -330,7 +358,6 @@ pub fn run() -> anyhow::Result<()> {
         Commands::Assemble(cmd) => commands::assemble::handle(cmd, &cli.global),
         Commands::Disassemble(cmd) => commands::disassemble::handle(cmd, &cli.global),
         Commands::Validate(cmd) => commands::validate::handle(cmd, &cli.global),
-        Commands::Examples(cmd) => commands::examples::handle(cmd, &cli.global),
         Commands::Info(cmd) => commands::info::handle(cmd, &cli.global),
         Commands::Repl(cmd) => commands::repl::handle(cmd, &cli.global),
     }

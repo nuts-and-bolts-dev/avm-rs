@@ -3,6 +3,8 @@
 use crate::error::{AvmError, AvmResult};
 use crate::opcodes::{OpSpec, get_standard_opcodes};
 use crate::state::LedgerAccess;
+#[cfg(feature = "tracing")]
+use crate::tracing::TracingConfig;
 use crate::types::{RunMode, StackValue, TealValue, TealVersion};
 use std::collections::HashMap;
 
@@ -23,6 +25,8 @@ pub struct ExecutionConfig {
     pub version: TealVersion,
     pub group_index: usize,
     pub group_size: usize,
+    #[cfg(feature = "tracing")]
+    pub tracing: TracingConfig,
 }
 
 impl ExecutionConfig {
@@ -34,6 +38,8 @@ impl ExecutionConfig {
             version,
             group_index: 0,
             group_size: 1,
+            #[cfg(feature = "tracing")]
+            tracing: TracingConfig::default(),
         }
     }
 
@@ -45,6 +51,8 @@ impl ExecutionConfig {
             version,
             group_index: 0,
             group_size: 1,
+            #[cfg(feature = "tracing")]
+            tracing: TracingConfig::default(),
         }
     }
 
@@ -64,6 +72,20 @@ impl ExecutionConfig {
     /// Set the run mode
     pub fn with_run_mode(mut self, run_mode: RunMode) -> Self {
         self.run_mode = run_mode;
+        self
+    }
+
+    /// Set tracing configuration
+    #[cfg(feature = "tracing")]
+    pub fn with_tracing(mut self, tracing: TracingConfig) -> Self {
+        self.tracing = tracing;
+        self
+    }
+
+    /// Enable basic tracing
+    #[cfg(feature = "tracing")]
+    pub fn with_tracing_enabled(mut self, enabled: bool) -> Self {
+        self.tracing.enabled = enabled;
         self
     }
 }
@@ -121,6 +143,14 @@ pub struct EvalContext<'a> {
     /// Enable tracing
     trace_enabled: bool,
 
+    /// Tracing configuration
+    #[cfg(feature = "tracing")]
+    tracing_config: TracingConfig,
+
+    /// Current execution span
+    #[cfg(feature = "tracing")]
+    current_span: Option<tracing::Span>,
+
     /// Function frame stack
     frame_stack: Vec<Vec<StackValue>>,
 
@@ -136,6 +166,7 @@ pub struct EvalContext<'a> {
 
 impl<'a> EvalContext<'a> {
     /// Create a new evaluation context
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         program: &'a [u8],
         run_mode: RunMode,
@@ -144,6 +175,7 @@ impl<'a> EvalContext<'a> {
         group_index: usize,
         group_size: usize,
         ledger: &'a mut dyn LedgerAccess,
+        #[cfg(feature = "tracing")] tracing_config: TracingConfig,
     ) -> Self {
         Self {
             stack: Vec::new(),
@@ -162,6 +194,10 @@ impl<'a> EvalContext<'a> {
             local_state_cache: HashMap::new(),
             trace: Vec::new(),
             trace_enabled: false,
+            #[cfg(feature = "tracing")]
+            tracing_config,
+            #[cfg(feature = "tracing")]
+            current_span: None,
             frame_stack: Vec::new(),
             function_prototype: None,
             int_constants: Vec::new(),
@@ -186,6 +222,29 @@ impl<'a> EvalContext<'a> {
         }
     }
 
+    /// Get tracing configuration
+    #[cfg(feature = "tracing")]
+    pub fn tracing_config(&self) -> &TracingConfig {
+        &self.tracing_config
+    }
+
+    /// Set current execution span
+    #[cfg(feature = "tracing")]
+    pub fn set_current_span(&mut self, span: tracing::Span) {
+        self.current_span = Some(span);
+    }
+
+    /// Get current execution span
+    #[cfg(feature = "tracing")]
+    pub fn current_span(&self) -> Option<&tracing::Span> {
+        self.current_span.as_ref()
+    }
+
+    /// Get a read-only reference to the stack
+    pub fn stack(&self) -> &[StackValue] {
+        &self.stack
+    }
+
     /// Push a value onto the stack
     pub fn push(&mut self, value: StackValue) -> AvmResult<()> {
         if self.stack.len() >= MAX_STACK_SIZE {
@@ -193,7 +252,9 @@ impl<'a> EvalContext<'a> {
                 limit: MAX_STACK_SIZE,
             });
         }
+
         self.stack.push(value);
+
         Ok(())
     }
 
@@ -298,6 +359,7 @@ impl<'a> EvalContext<'a> {
     /// Add to the execution cost
     pub fn add_cost(&mut self, cost: u64) -> AvmResult<()> {
         self.cost += cost;
+
         if self.cost > self.cost_budget {
             return Err(AvmError::CostBudgetExceeded {
                 actual: self.cost,
@@ -645,6 +707,16 @@ impl VirtualMachine {
             return Err(AvmError::invalid_program("Empty program"));
         }
 
+        // Initialize tracing if enabled
+        #[cfg(feature = "tracing")]
+        let _tracing_guard = if config.tracing.enabled {
+            Some(crate::tracing::init_tracing(&config.tracing).map_err(|e| {
+                AvmError::invalid_program(format!("Failed to initialize tracing: {e}"))
+            })?)
+        } else {
+            None
+        };
+
         let mut ctx = EvalContext::new(
             program,
             config.run_mode,
@@ -653,7 +725,21 @@ impl VirtualMachine {
             config.group_index,
             config.group_size,
             ledger,
+            #[cfg(feature = "tracing")]
+            config.tracing.clone(),
         );
+
+        // Log execution start
+        #[cfg(feature = "tracing")]
+        if ctx.tracing_config().enabled {
+            tracing::info!(
+                program_length = program.len(),
+                version = config.version.as_u8(),
+                run_mode = ?config.run_mode,
+                cost_budget = config.cost_budget,
+                "Starting AVM execution"
+            );
+        }
 
         // Main execution loop
         while !ctx.is_finished() {
@@ -682,15 +768,54 @@ impl VirtualMachine {
                 )));
             }
 
+            // Log opcode execution and stack state
+            #[cfg(feature = "tracing")]
+            if ctx.tracing_config().enabled {
+                if ctx.tracing_config().trace_opcodes {
+                    tracing::debug!(
+                        opcode = &spec.name,
+                        pc = ctx.pc(),
+                        cost = spec.cost,
+                        "Executing opcode"
+                    );
+                }
+
+                if ctx.tracing_config().trace_stack {
+                    let stack_trace = crate::tracing::stack_to_trace_string(
+                        ctx.stack(),
+                        ctx.tracing_config().max_stack_trace_depth,
+                    );
+                    tracing::debug!(
+                        stack = %stack_trace,
+                        "Stack before {}",
+                        &spec.name
+                    );
+                }
+            }
+
             // Add execution cost
             ctx.add_cost(spec.cost)?;
 
-            // Add trace entry
+            // Add trace entry (legacy tracing)
             let pc = ctx.pc();
             ctx.add_trace(format!("PC:{pc:04} {} (cost: {})", spec.name, spec.cost));
 
             // Execute the opcode
             (spec.execute)(&mut ctx)?;
+
+            // Log stack state after execution if enabled
+            #[cfg(feature = "tracing")]
+            if ctx.tracing_config().enabled && ctx.tracing_config().trace_stack {
+                let stack_trace = crate::tracing::stack_to_trace_string(
+                    ctx.stack(),
+                    ctx.tracing_config().max_stack_trace_depth,
+                );
+                tracing::debug!(
+                    stack = %stack_trace,
+                    "Stack after {}",
+                    &spec.name
+                );
+            }
 
             // Advance PC by 1 (opcode size) - opcodes handle their own PC advancement
         }
@@ -698,12 +823,34 @@ impl VirtualMachine {
         // Check final result
         if ctx.stack_size() != 1 {
             let stack_size = ctx.stack_size();
+
+            #[cfg(feature = "tracing")]
+            if ctx.tracing_config().enabled {
+                tracing::error!(
+                    stack_size = stack_size,
+                    expected = 1,
+                    "Program ended with incorrect stack size"
+                );
+            }
+
             return Err(AvmError::invalid_program(format!(
                 "Program ended with {stack_size} values on stack, expected 1"
             )));
         }
 
         let result = ctx.pop()?;
-        result.as_bool()
+        let final_result = result.as_bool()?;
+
+        #[cfg(feature = "tracing")]
+        if ctx.tracing_config().enabled {
+            tracing::info!(
+                result = final_result,
+                total_cost = ctx.cost(),
+                instructions_executed = "completed",
+                "AVM execution completed"
+            );
+        }
+
+        Ok(final_result)
     }
 }

@@ -1,8 +1,12 @@
 //! Execute command implementation
 
 use crate::assembler::Assembler;
+#[cfg(feature = "tracing")]
+use crate::cli::TracingLevel;
 use crate::cli::{ExecuteCommand, ExecutionMode, GlobalOptions, InputType};
 use crate::state::MockLedger;
+#[cfg(feature = "tracing")]
+use crate::tracing::{TraceLevel, TracingConfig};
 use crate::types::TealVersion;
 use crate::{ExecutionConfig, VirtualMachine};
 use anyhow::{Context, Result, anyhow};
@@ -16,6 +20,14 @@ pub fn handle(cmd: ExecuteCommand, global: &GlobalOptions) -> Result<()> {
         println!("Input: {}", cmd.input);
         println!("Type: {:?}", cmd.input_type);
         println!("Mode: {:?}", cmd.mode);
+
+        #[cfg(feature = "tracing")]
+        if cmd.trace {
+            println!("Tracing: enabled");
+            println!("Trace level: {:?}", cmd.trace_level);
+            println!("Trace opcodes: {}", cmd.trace_opcodes);
+            println!("Trace stack: {}", cmd.trace_stack);
+        }
     }
 
     // Determine input type and load bytecode
@@ -37,6 +49,20 @@ pub fn handle(cmd: ExecuteCommand, global: &GlobalOptions) -> Result<()> {
         ExecutionMode::Application => crate::types::RunMode::Application,
     };
 
+    #[cfg(feature = "tracing")]
+    let config = if cmd.trace {
+        let tracing_config = build_tracing_config(&cmd)?;
+        ExecutionConfig::new(version)
+            .with_cost_budget(cmd.budget)
+            .with_run_mode(run_mode)
+            .with_tracing(tracing_config)
+    } else {
+        ExecutionConfig::new(version)
+            .with_cost_budget(cmd.budget)
+            .with_run_mode(run_mode)
+    };
+
+    #[cfg(not(feature = "tracing"))]
     let config = ExecutionConfig::new(version)
         .with_cost_budget(cmd.budget)
         .with_run_mode(run_mode);
@@ -201,4 +227,21 @@ fn execute_with_stepping(
     // For now, fall back to normal execution
     println!("⚠️  Step-by-step execution not yet implemented, running normally...");
     execute_normal(vm, bytecode, config.clone(), ledger, global)
+}
+
+/// Build tracing configuration from CLI options
+#[cfg(feature = "tracing")]
+fn build_tracing_config(cmd: &ExecuteCommand) -> Result<TracingConfig> {
+    let level = match cmd.trace_level {
+        TracingLevel::Trace => TraceLevel::Trace,
+        TracingLevel::Debug => TraceLevel::Debug,
+        TracingLevel::Info => TraceLevel::Info,
+        TracingLevel::Warn => TraceLevel::Warn,
+        TracingLevel::Error => TraceLevel::Error,
+    };
+
+    Ok(TracingConfig::new()
+        .with_level(level)
+        .with_opcodes(cmd.trace_opcodes)
+        .with_stack(cmd.trace_stack))
 }
