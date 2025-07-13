@@ -2,6 +2,7 @@
 
 pub mod common;
 pub mod constant_blocks;
+pub mod property;
 
 // Opcode category tests
 pub mod opcodes {
