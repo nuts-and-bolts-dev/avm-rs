@@ -96,16 +96,40 @@ Execute TEAL programs from various input sources:
 avm-rs execute program.teal
 
 # Execute inline TEAL
-avm-rs execute -t inline "int 1; int 2; +; return"
+avm-rs execute -t inline "$(echo -e "int 1\nint 3\n+")"
 
 # Execute bytecode directly
 avm-rs execute -t bytecode "81010181020D43"
 
 # Application mode with budget
 avm-rs execute -m application -b 5000 contract.teal
+```
 
-# Debug mode with stack visualization
-avm-rs execute --step --show-stack program.teal
+#### Stepped Execution
+
+Execute TEAL programs step-by-step with detailed stack traces:
+
+```bash
+avm-rs execute --step program.teal
+```
+
+Example:
+
+```bash
+❯ avm-rs execute --step ./examples/basic_arithmetic.teal
+
+🔍 Step-by-step execution mode
+Commands: [Enter] step, 'c' continue, 'q' quit, 'h' help
+────────────────────────────────────────────────────────────
+Step 0: PC=0000 | pushint (cost: 1)
+Stack: (empty)
+vm>
+Step 1: PC=0009 | pushint (cost: 1)
+Stack: [0: Uint(10)]
+vm>
+Step 2: PC=0018 | + (cost: 1)
+Stack: [0: Uint(10), 1: Uint(20)]
+vm>
 ```
 
 ### Assembly
