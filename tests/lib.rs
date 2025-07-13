@@ -10,12 +10,12 @@ pub mod constant_blocks;
 
 // Opcode category tests
 pub mod opcodes {
-    pub mod arithmetic_tests;
-    pub mod constants_tests;
-    pub mod crypto_tests;
-    pub mod flow_tests;
-    pub mod integration_tests;
-    pub mod stack_tests;
-    pub mod state_tests;
-    pub mod transaction_tests;
+    pub mod arithmetic;
+    pub mod constants;
+    pub mod crypto;
+    pub mod flow;
+    pub mod integration;
+    pub mod stack;
+    pub mod state;
+    pub mod transaction;
 }
