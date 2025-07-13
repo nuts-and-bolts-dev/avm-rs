@@ -86,10 +86,6 @@ pub enum Commands {
     #[command(aliases = ["asm", "compile"])]
     Assemble(AssembleCommand),
 
-    /// Disassemble bytecode to TEAL source
-    #[command(aliases = ["disasm", "decompile"])]
-    Disassemble(DisassembleCommand),
-
     /// Validate TEAL programs
     #[command(alias = "check")]
     Validate(ValidateCommand),
@@ -341,7 +337,6 @@ pub fn run() -> anyhow::Result<()> {
     match cli.command {
         Commands::Execute(cmd) => commands::execute::handle(cmd, &cli.global),
         Commands::Assemble(cmd) => commands::assemble::handle(cmd, &cli.global),
-        Commands::Disassemble(cmd) => commands::disassemble::handle(cmd, &cli.global),
         Commands::Validate(cmd) => commands::validate::handle(cmd, &cli.global),
     }
 }
