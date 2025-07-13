@@ -695,24 +695,25 @@ impl LedgerAccess for MockLedger {
             }
         })?;
 
-        use TxnField::*;
         let value = match field {
-            Sender => TealValue::Bytes(tx.sender.clone()),
-            Fee => TealValue::Uint(tx.fee),
-            FirstValid => TealValue::Uint(tx.first_valid),
-            FirstValidTime => TealValue::Uint(tx.first_valid_time),
-            LastValid => TealValue::Uint(tx.last_valid),
-            Note => TealValue::Bytes(tx.note.clone()),
-            Lease => TealValue::Bytes(tx.lease.clone()),
-            Receiver => TealValue::Bytes(tx.receiver.clone().unwrap_or_default()),
-            Amount => TealValue::Uint(tx.amount.unwrap_or(0)),
-            CloseRemainderTo => TealValue::Bytes(tx.close_remainder_to.clone().unwrap_or_default()),
-            VotePK => TealValue::Bytes(tx.vote_pk.clone().unwrap_or_default()),
-            SelectionPK => TealValue::Bytes(tx.selection_pk.clone().unwrap_or_default()),
-            VoteFirst => TealValue::Uint(tx.vote_first.unwrap_or(0)),
-            VoteLast => TealValue::Uint(tx.vote_last.unwrap_or(0)),
-            VoteKeyDilution => TealValue::Uint(tx.vote_key_dilution.unwrap_or(0)),
-            Type => TealValue::Bytes(match tx.tx_type {
+            TxnField::Sender => TealValue::Bytes(tx.sender.clone()),
+            TxnField::Fee => TealValue::Uint(tx.fee),
+            TxnField::FirstValid => TealValue::Uint(tx.first_valid),
+            TxnField::FirstValidTime => TealValue::Uint(tx.first_valid_time),
+            TxnField::LastValid => TealValue::Uint(tx.last_valid),
+            TxnField::Note => TealValue::Bytes(tx.note.clone()),
+            TxnField::Lease => TealValue::Bytes(tx.lease.clone()),
+            TxnField::Receiver => TealValue::Bytes(tx.receiver.clone().unwrap_or_default()),
+            TxnField::Amount => TealValue::Uint(tx.amount.unwrap_or(0)),
+            TxnField::CloseRemainderTo => {
+                TealValue::Bytes(tx.close_remainder_to.clone().unwrap_or_default())
+            }
+            TxnField::VotePK => TealValue::Bytes(tx.vote_pk.clone().unwrap_or_default()),
+            TxnField::SelectionPK => TealValue::Bytes(tx.selection_pk.clone().unwrap_or_default()),
+            TxnField::VoteFirst => TealValue::Uint(tx.vote_first.unwrap_or(0)),
+            TxnField::VoteLast => TealValue::Uint(tx.vote_last.unwrap_or(0)),
+            TxnField::VoteKeyDilution => TealValue::Uint(tx.vote_key_dilution.unwrap_or(0)),
+            TxnField::Type => TealValue::Bytes(match tx.tx_type {
                 TransactionType::Payment => b"pay".to_vec(),
                 TransactionType::KeyRegistration => b"keyreg".to_vec(),
                 TransactionType::AssetConfig => b"acfg".to_vec(),
@@ -721,31 +722,37 @@ impl LedgerAccess for MockLedger {
                 TransactionType::ApplicationCall => b"appl".to_vec(),
                 TransactionType::StateProof => b"stpf".to_vec(),
             }),
-            TypeEnum => TealValue::Uint(tx.type_enum),
-            XferAsset => TealValue::Uint(tx.xfer_asset.unwrap_or(0)),
-            AssetAmount => TealValue::Uint(tx.asset_amount.unwrap_or(0)),
-            AssetSender => TealValue::Bytes(tx.asset_sender.clone().unwrap_or_default()),
-            AssetReceiver => TealValue::Bytes(tx.asset_receiver.clone().unwrap_or_default()),
-            AssetCloseTo => TealValue::Bytes(tx.asset_close_to.clone().unwrap_or_default()),
-            GroupIndex => TealValue::Uint(tx.group_index),
-            TxID => TealValue::Bytes(tx.tx_id.clone()),
-            ApplicationID => TealValue::Uint(tx.application_id.unwrap_or(0)),
-            OnCompletion => TealValue::Uint(tx.on_completion.unwrap_or(0)),
-            ApplicationArgs => {
+            TxnField::TypeEnum => TealValue::Uint(tx.type_enum),
+            TxnField::XferAsset => TealValue::Uint(tx.xfer_asset.unwrap_or(0)),
+            TxnField::AssetAmount => TealValue::Uint(tx.asset_amount.unwrap_or(0)),
+            TxnField::AssetSender => TealValue::Bytes(tx.asset_sender.clone().unwrap_or_default()),
+            TxnField::AssetReceiver => {
+                TealValue::Bytes(tx.asset_receiver.clone().unwrap_or_default())
+            }
+            TxnField::AssetCloseTo => {
+                TealValue::Bytes(tx.asset_close_to.clone().unwrap_or_default())
+            }
+            TxnField::GroupIndex => TealValue::Uint(tx.group_index),
+            TxnField::TxID => TealValue::Bytes(tx.tx_id.clone()),
+            TxnField::ApplicationID => TealValue::Uint(tx.application_id.unwrap_or(0)),
+            TxnField::OnCompletion => TealValue::Uint(tx.on_completion.unwrap_or(0)),
+            TxnField::ApplicationArgs => {
                 // For now, return the first application arg if it exists
                 TealValue::Bytes(tx.application_args.first().cloned().unwrap_or_default())
             }
-            NumAppArgs => TealValue::Uint(tx.application_args.len() as u64),
-            Accounts => {
+            TxnField::NumAppArgs => TealValue::Uint(tx.application_args.len() as u64),
+            TxnField::Accounts => {
                 // For now, return the first account if it exists
                 TealValue::Bytes(tx.accounts.first().cloned().unwrap_or_default())
             }
-            NumAccounts => TealValue::Uint(tx.accounts.len() as u64),
-            ApprovalProgram => TealValue::Bytes(tx.approval_program.clone().unwrap_or_default()),
-            ClearStateProgram => {
+            TxnField::NumAccounts => TealValue::Uint(tx.accounts.len() as u64),
+            TxnField::ApprovalProgram => {
+                TealValue::Bytes(tx.approval_program.clone().unwrap_or_default())
+            }
+            TxnField::ClearStateProgram => {
                 TealValue::Bytes(tx.clear_state_program.clone().unwrap_or_default())
             }
-            RekeyTo => TealValue::Bytes(tx.rekey_to.clone().unwrap_or_default()),
+            TxnField::RekeyTo => TealValue::Bytes(tx.rekey_to.clone().unwrap_or_default()),
             _ => TealValue::Uint(0), // Default for other fields
         };
 
@@ -753,26 +760,27 @@ impl LedgerAccess for MockLedger {
     }
 
     fn get_global_field(&self, field: GlobalField) -> AvmResult<TealValue> {
-        use GlobalField::*;
         let value = match field {
-            MinTxnFee => TealValue::Uint(1000),
-            MinBalance => TealValue::Uint(100000),
-            MaxTxnLife => TealValue::Uint(1000),
-            ZeroAddress => TealValue::Bytes(vec![0; 32]),
-            GroupSize => TealValue::Uint(self.transactions.len() as u64),
-            LogicSigVersion => TealValue::Uint(8),
-            Round => TealValue::Uint(self.current_round),
-            LatestTimestamp => TealValue::Uint(self.latest_timestamp),
-            CurrentApplicationID => TealValue::Uint(self.current_app_id),
-            CreatorAddress => TealValue::Bytes(self.creator_addr.clone()),
-            CurrentApplicationAddress => TealValue::Bytes(self.current_app_addr.clone()),
-            GroupID => TealValue::Bytes(self.group_id.clone()),
-            OpcodeBudget => TealValue::Uint(self.opcode_budget),
-            CallerApplicationID => TealValue::Uint(self.caller_app_id.unwrap_or(0)),
-            CallerApplicationAddress => {
+            GlobalField::MinTxnFee => TealValue::Uint(1000),
+            GlobalField::MinBalance => TealValue::Uint(100000),
+            GlobalField::MaxTxnLife => TealValue::Uint(1000),
+            GlobalField::ZeroAddress => TealValue::Bytes(vec![0; 32]),
+            GlobalField::GroupSize => TealValue::Uint(self.transactions.len() as u64),
+            GlobalField::LogicSigVersion => TealValue::Uint(8),
+            GlobalField::Round => TealValue::Uint(self.current_round),
+            GlobalField::LatestTimestamp => TealValue::Uint(self.latest_timestamp),
+            GlobalField::CurrentApplicationID => TealValue::Uint(self.current_app_id),
+            GlobalField::CreatorAddress => TealValue::Bytes(self.creator_addr.clone()),
+            GlobalField::CurrentApplicationAddress => {
+                TealValue::Bytes(self.current_app_addr.clone())
+            }
+            GlobalField::GroupID => TealValue::Bytes(self.group_id.clone()),
+            GlobalField::OpcodeBudget => TealValue::Uint(self.opcode_budget),
+            GlobalField::CallerApplicationID => TealValue::Uint(self.caller_app_id.unwrap_or(0)),
+            GlobalField::CallerApplicationAddress => {
                 TealValue::Bytes(self.caller_app_addr.clone().unwrap_or_default())
             }
-            GenesisHash => TealValue::Bytes(self.genesis_hash.clone()),
+            GlobalField::GenesisHash => TealValue::Bytes(self.genesis_hash.clone()),
             _ => TealValue::Uint(0), // Default for other fields
         };
 
