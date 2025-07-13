@@ -1,8 +1,3 @@
-//! AVM Opcode Test Suite
-//!
-//! Comprehensive test suite for all Algorand Virtual Machine opcodes.
-//! Tests are organized by opcode category for better maintainability.
-
 #![allow(clippy::vec_init_then_push)]
 
 pub mod common;
