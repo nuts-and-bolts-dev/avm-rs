@@ -86,8 +86,6 @@ avm-rs <COMMAND> [OPTIONS]
 - **`execute`** - Execute TEAL programs with debugging support
 - **`assemble`** - Compile TEAL source code to bytecode
 - **`validate`** - Validate TEAL programs for correctness
-- **`examples`** - Run built-in example programs
-- **`info`** - Display AVM information and statistics
 
 ### Execute TEAL Programs
 
@@ -145,9 +143,6 @@ The project includes comprehensive examples demonstrating various TEAL patterns 
 ```bash
 # Build all examples
 make examples
-
-# Run all examples sequentially
-make run-examples
 
 # Run individual examples
 cargo run --example basic_arithmetic

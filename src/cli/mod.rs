@@ -93,12 +93,6 @@ pub enum Commands {
     /// Validate TEAL programs
     #[command(alias = "check")]
     Validate(ValidateCommand),
-
-    /// Show AVM information
-    Info(InfoCommand),
-
-    /// Interactive REPL mode
-    Repl(ReplCommand),
 }
 
 /// Execute command for running TEAL programs
@@ -349,8 +343,6 @@ pub fn run() -> anyhow::Result<()> {
         Commands::Assemble(cmd) => commands::assemble::handle(cmd, &cli.global),
         Commands::Disassemble(cmd) => commands::disassemble::handle(cmd, &cli.global),
         Commands::Validate(cmd) => commands::validate::handle(cmd, &cli.global),
-        Commands::Info(cmd) => commands::info::handle(cmd, &cli.global),
-        Commands::Repl(cmd) => commands::repl::handle(cmd, &cli.global),
     }
 }
 
