@@ -44,7 +44,7 @@ audit:
 dev-deps:
 	rustup component add rustfmt clippy
 	cargo install cargo-audit
-	cargo install taplo-cli
+	argo install taplo-cli --features=lsp
 
 # Build all examples
 examples:
