@@ -4,68 +4,95 @@ use crate::error::{AvmError, AvmResult};
 use crate::vm::EvalContext;
 
 /// Branch if not zero
-/// TODO: Conditional branches in complex tests cause arithmetic underflow
-/// Branch logic may execute wrong path leading to invalid operations (5-10=underflow)
-/// Jump offset calculations need verification against TEAL specification
 pub fn op_bnz(ctx: &mut EvalContext) -> AvmResult<()> {
-    // Advance past the opcode first
+    // Save the PC at start of instruction for offset calculation
+    let instruction_pc = ctx.pc();
+
+    // Advance past the opcode to read offset
     ctx.advance_pc(1)?;
-    // Read 2-byte offset
     let offset_bytes = ctx.read_bytes(2)?.to_vec();
-    ctx.advance_pc(2)?;
     let offset = i16::from_be_bytes([offset_bytes[0], offset_bytes[1]]);
+
+    // PC after full instruction (opcode + 2-byte offset)
+    let pc_after_instruction = instruction_pc + 3;
 
     let val = ctx.pop()?;
     let condition = val.as_bool()?;
 
     if condition {
-        // Offset is relative to the PC after the instruction
-        let target = (ctx.pc() as i32 + offset as i32) as usize;
-        ctx.set_pc(target)?;
+        // Calculate target with proper bounds checking
+        let target = pc_after_instruction as i32 + offset as i32;
+        if target < 0 || target as usize > ctx.program_len() {
+            return Err(AvmError::ProgramCounterOutOfBounds {
+                pc: target as usize,
+                program_len: ctx.program_len(),
+            });
+        }
+        ctx.set_pc(target as usize)?;
+    } else {
+        // Not branching - set PC to after instruction
+        ctx.set_pc(pc_after_instruction)?;
     }
 
     Ok(())
 }
 
 /// Branch if zero
-/// TODO: Conditional branches in complex tests cause arithmetic underflow
-/// Branch logic may execute wrong path leading to invalid operations (5-10=underflow)
-/// Jump offset calculations need verification against TEAL specification
 pub fn op_bz(ctx: &mut EvalContext) -> AvmResult<()> {
-    // Advance past the opcode first
+    // Save the PC at start of instruction for offset calculation
+    let instruction_pc = ctx.pc();
+
+    // Advance past the opcode to read offset
     ctx.advance_pc(1)?;
-    // Read 2-byte offset
     let offset_bytes = ctx.read_bytes(2)?.to_vec();
-    ctx.advance_pc(2)?;
     let offset = i16::from_be_bytes([offset_bytes[0], offset_bytes[1]]);
+
+    // PC after full instruction (opcode + 2-byte offset)
+    let pc_after_instruction = instruction_pc + 3;
 
     let val = ctx.pop()?;
     let condition = val.as_bool()?;
 
     if !condition {
-        // Offset is relative to the PC after the instruction
-        let target = (ctx.pc() as i32 + offset as i32) as usize;
-        ctx.set_pc(target)?;
+        // Calculate target with proper bounds checking
+        let target = pc_after_instruction as i32 + offset as i32;
+        if target < 0 || target as usize > ctx.program_len() {
+            return Err(AvmError::ProgramCounterOutOfBounds {
+                pc: target as usize,
+                program_len: ctx.program_len(),
+            });
+        }
+        ctx.set_pc(target as usize)?;
+    } else {
+        // Not branching - set PC to after instruction
+        ctx.set_pc(pc_after_instruction)?;
     }
 
     Ok(())
 }
 
 /// Unconditional branch
-/// TODO: Complex flow tests fail with IntegerOverflow - branching logic incorrect
-/// Jump offset calculations and conditional branches need debugging
-/// Branch targets may be calculated incorrectly causing wrong execution paths
 pub fn op_b(ctx: &mut EvalContext) -> AvmResult<()> {
-    // Advance past the opcode first
+    // Save the PC at start of instruction for offset calculation
+    let instruction_pc = ctx.pc();
+
+    // Advance past the opcode to read offset
     ctx.advance_pc(1)?;
-    // Read 2-byte offset
     let offset_bytes = ctx.read_bytes(2)?.to_vec();
-    ctx.advance_pc(2)?;
     let offset = i16::from_be_bytes([offset_bytes[0], offset_bytes[1]]);
 
-    // Offset is relative to the PC after the instruction
-    let target = (ctx.pc() as i32 + offset as i32) as usize;
-    ctx.set_pc(target)?;
+    // PC after full instruction (opcode + 2-byte offset)
+    let pc_after_instruction = instruction_pc + 3;
+
+    // Calculate target with proper bounds checking
+    let target = pc_after_instruction as i32 + offset as i32;
+    if target < 0 || target as usize > ctx.program_len() {
+        return Err(AvmError::ProgramCounterOutOfBounds {
+            pc: target as usize,
+            program_len: ctx.program_len(),
+        });
+    }
+    ctx.set_pc(target as usize)?;
 
     Ok(())
 }
@@ -94,16 +121,29 @@ pub fn op_assert(ctx: &mut EvalContext) -> AvmResult<()> {
 
 /// Call subroutine
 pub fn op_callsub(ctx: &mut EvalContext) -> AvmResult<()> {
-    // Advance past the opcode first
+    // Save the PC at start of instruction for offset calculation
+    let instruction_pc = ctx.pc();
+
+    // Advance past the opcode to read offset
     ctx.advance_pc(1)?;
-    // Read 2-byte offset
     let offset_bytes = ctx.read_bytes(2)?.to_vec();
-    ctx.advance_pc(2)?;
     let offset = i16::from_be_bytes([offset_bytes[0], offset_bytes[1]]);
 
-    // Offset is relative to the PC after the instruction
-    let target = (ctx.pc() as i32 + offset as i32) as usize;
-    ctx.call_subroutine(target)?;
+    // PC after full instruction (opcode + 2-byte offset) - this is the return address
+    let return_address = instruction_pc + 3;
+
+    // Calculate target with proper bounds checking
+    let target = return_address as i32 + offset as i32;
+    if target < 0 || target as usize > ctx.program_len() {
+        return Err(AvmError::ProgramCounterOutOfBounds {
+            pc: target as usize,
+            program_len: ctx.program_len(),
+        });
+    }
+
+    // Set PC to return address before calling subroutine
+    ctx.set_pc(return_address)?;
+    ctx.call_subroutine(target as usize)?;
 
     Ok(())
 }
