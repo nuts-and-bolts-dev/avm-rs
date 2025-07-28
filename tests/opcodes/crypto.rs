@@ -334,3 +334,35 @@ fn test_hash_algorithms_different_outputs() {
 
     execute_and_check(&bytecode, true).unwrap();
 }
+
+#[test]
+fn test_op_mimc_basic() {
+    // Test MiMC hash function with basic inputs
+    let mut bytecode = Vec::new();
+
+    // Key (32 bytes)
+    bytecode.push(OP_PUSHBYTES);
+    bytecode.push(32);
+    bytecode.extend_from_slice(&[2u8; 32]); // Simple key
+
+    // Message (32 bytes - must be multiple of 32)
+    bytecode.push(OP_PUSHBYTES);
+    bytecode.push(32);
+    bytecode.extend_from_slice(&[1u8; 32]); // Simple message
+
+    // MiMC opcode with 220 rounds (standard MiMC parameters)
+    bytecode.push(OP_MIMC);
+    bytecode.push(220); // round count
+
+    // Check that result is 32 bytes
+    bytecode.push(OP_LEN);
+    bytecode = with_assert_equals(bytecode, StackValue::Uint(32));
+
+    // MiMC requires Application mode and TEAL version 11+
+    let vm = setup_vm_with_version(TealVersion::V11);
+    let mut ledger = setup_mock_ledger();
+    let config = test_config_with_version(TealVersion::V11)
+        .with_run_mode(avm_rs::types::RunMode::Application);
+    let result = vm.execute(&bytecode, config, &mut ledger).unwrap();
+    assert!(result, "Expected program to return true");
+}
