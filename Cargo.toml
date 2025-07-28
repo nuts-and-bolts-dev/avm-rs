@@ -30,6 +30,21 @@ sha2 = "0.10"
 sha3 = "0.10"
 thiserror = "1.0"
 
+# Advanced cryptography dependencies
+vrf = "0.2"
+
+# Zero-knowledge proof dependencies
+arkworks-mimc = "0.3.0"
+poseidon-rs = "0.0.10"
+
+# Elliptic curve dependencies (compatible with arkworks-mimc)
+ark-bls12-381 = "0.3"
+ark-bn254 = "0.3"
+ark-ec = "0.3"
+ark-ff = "0.3"
+ark-serialize = "0.3"
+ark-std = "0.3"
+
 # Optional tracing dependencies
 tracing = { version = "0.1", optional = true }
 tracing-appender = { version = "0.2", optional = true }

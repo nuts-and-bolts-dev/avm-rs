@@ -4,6 +4,9 @@ pub mod common;
 pub mod constant_blocks;
 pub mod property;
 
+// Test vectors for cryptographic operations
+pub mod vectors;
+
 // Opcode category tests
 pub mod opcodes {
     pub mod arithmetic;
