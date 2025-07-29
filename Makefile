@@ -1,4 +1,4 @@
-.PHONY: all build test check fmt clippy clean doc audit dev-deps ci examples help
+.PHONY: all build test check fmt clippy clean doc audit dev-deps ci examples spec help
 
 # Run formatting, linting, tests, and build examples
 all: fmt clippy test examples
@@ -44,11 +44,16 @@ audit:
 dev-deps:
 	rustup component add rustfmt clippy
 	cargo install cargo-audit
-	argo install taplo-cli --features=lsp
+	cargo install taplo-cli --features=lsp
+	cargo install mdbook
 
 # Build all examples
 examples:
 	cargo build --examples
+
+# Serve mdbook documentation
+spec:
+	cd spec && mdbook serve --open
 
 # Run all CI checks locally
 ci: fmt clippy test build examples

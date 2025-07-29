@@ -590,10 +590,10 @@ impl<'a> EvalContext<'a> {
             });
         }
 
-        if !spec.modes.contains(&config.run_mode) {
+        if !spec.is_available(self.version, config.run_mode) {
             return Err(AvmError::invalid_program(format!(
-                "Opcode {} not allowed in {:?} mode",
-                spec.name, config.run_mode
+                "Opcode {} not available in {:?} mode for TEAL version {}",
+                spec.name, config.run_mode, self.version
             )));
         }
 
@@ -601,10 +601,11 @@ impl<'a> EvalContext<'a> {
         #[cfg(feature = "tracing")]
         if self.tracing_config().enabled {
             if self.tracing_config().trace_opcodes {
+                let cost = spec.get_cost(self.version).unwrap_or(1);
                 tracing::debug!(
                     opcode = &spec.name,
                     pc = self.pc(),
-                    cost = spec.cost,
+                    cost = cost,
                     "Executing opcode"
                 );
             }
@@ -623,11 +624,12 @@ impl<'a> EvalContext<'a> {
         }
 
         // Add execution cost
-        self.add_cost(spec.cost)?;
+        let cost = spec.get_cost(self.version).unwrap_or(1);
+        self.add_cost(cost)?;
 
         // Add trace entry (legacy tracing)
         let pc = self.pc();
-        self.add_trace(format!("PC:{pc:04} {} (cost: {})", spec.name, spec.cost));
+        self.add_trace(format!("PC:{pc:04} {} (cost: {})", spec.name, cost));
 
         // Execute the opcode
         (spec.execute)(self)?;

@@ -221,6 +221,8 @@ pub enum TealVersion {
     V10 = 10,
     /// TEAL version 11 (added MIMC hash and block opcode)
     V11 = 11,
+    /// TEAL version 12 (added Falcon signature verification and sumhash512)
+    V12 = 12,
 }
 
 impl TealVersion {
@@ -238,6 +240,7 @@ impl TealVersion {
             9 => Ok(Self::V9),
             10 => Ok(Self::V10),
             11 => Ok(Self::V11),
+            12 => Ok(Self::V12),
             _ => Err(crate::error::AvmError::UnsupportedVersion(version)),
         }
     }
@@ -249,7 +252,7 @@ impl TealVersion {
 
     /// Get the latest supported version
     pub const fn latest() -> Self {
-        Self::V11
+        Self::V12
     }
 
     /// Check if this version supports a specific feature
@@ -287,6 +290,11 @@ impl TealVersion {
         self >= Self::V11
     }
 
+    /// Check if this version supports Falcon signatures and sumhash512
+    pub fn supports_falcon_and_sumhash(self) -> bool {
+        self >= Self::V12
+    }
+
     /// Get all available versions
     pub const fn all() -> &'static [Self] {
         &[
@@ -301,6 +309,7 @@ impl TealVersion {
             Self::V9,
             Self::V10,
             Self::V11,
+            Self::V12,
         ]
     }
 }

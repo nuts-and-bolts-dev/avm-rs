@@ -1,9 +1,9 @@
 //! Opcode definitions and specifications
 
 use crate::error::AvmResult;
-use crate::types::RunMode;
+use crate::types::{RunMode, TealVersion};
 use crate::vm::EvalContext;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 pub mod argument;
 pub mod arithmetic;
@@ -38,6 +38,17 @@ pub use transaction::*;
 /// Opcode execution function type
 pub type OpcodeExecutor = fn(&mut EvalContext) -> AvmResult<()>;
 
+/// Version-specific specification for an opcode
+#[derive(Debug, Clone)]
+pub struct VersionSpec {
+    /// Allowed run modes for this version
+    pub modes: HashSet<RunMode>,
+    /// Execution cost for this version
+    pub cost: u64,
+    /// Size in bytes for this version (including immediate values)
+    pub size: usize,
+}
+
 /// Opcode specification
 #[derive(Debug, Clone)]
 pub struct OpSpec {
@@ -47,44 +58,103 @@ pub struct OpSpec {
     pub name: String,
     /// Execution function
     pub execute: OpcodeExecutor,
-    /// Allowed run modes
-    pub modes: HashSet<RunMode>,
     /// Minimum TEAL version required
     pub min_version: u8,
-    /// Execution cost
-    pub cost: u64,
-    /// Size in bytes (including immediate values)
-    pub size: usize,
+    /// Version-specific specifications (version -> spec)
+    pub version_specs: HashMap<u8, VersionSpec>,
     /// Human-readable description
     pub description: String,
 }
 
+impl VersionSpec {
+    /// Create a new version specification
+    pub fn new(modes: &[RunMode], cost: u64, size: usize) -> Self {
+        Self {
+            modes: modes.iter().cloned().collect(),
+            cost,
+            size,
+        }
+    }
+}
+
 impl OpSpec {
-    /// Create a new opcode specification
-    #[allow(clippy::too_many_arguments)]
+    /// Create a new opcode specification with version-dependent specs
     pub fn new(
         opcode: u8,
         name: impl Into<String>,
         execute: OpcodeExecutor,
-        modes: &[RunMode],
         min_version: u8,
-        cost: u64,
-        size: usize,
         description: impl Into<String>,
     ) -> Self {
         Self {
             opcode,
             name: name.into(),
             execute,
-            modes: modes.iter().cloned().collect(),
             min_version,
-            cost,
-            size,
+            version_specs: HashMap::new(),
             description: description.into(),
         }
     }
 
-    /// Create a specification for an opcode available in both modes
+    /// Add a version-specific specification
+    pub fn with_version_spec(mut self, version: u8, spec: VersionSpec) -> Self {
+        self.version_specs.insert(version, spec);
+        self
+    }
+
+    /// Get the specification for a specific version
+    pub fn get_version_spec(&self, version: TealVersion) -> Option<&VersionSpec> {
+        // Try to get exact version first
+        if let Some(spec) = self.version_specs.get(&version.as_u8()) {
+            return Some(spec);
+        }
+
+        // Fall back to the highest version <= requested version
+        let mut best_version = None;
+        let mut best_spec = None;
+
+        for (&ver, spec) in &self.version_specs {
+            if ver <= version.as_u8()
+                && ver >= self.min_version
+                && (best_version.is_none() || ver > best_version.unwrap())
+            {
+                best_version = Some(ver);
+                best_spec = Some(spec);
+            }
+        }
+
+        best_spec
+    }
+
+    /// Get the cost for a specific version
+    pub fn get_cost(&self, version: TealVersion) -> Option<u64> {
+        self.get_version_spec(version).map(|spec| spec.cost)
+    }
+
+    /// Get the modes for a specific version
+    pub fn get_modes(&self, version: TealVersion) -> Option<&HashSet<RunMode>> {
+        self.get_version_spec(version).map(|spec| &spec.modes)
+    }
+
+    /// Get the size for a specific version
+    pub fn get_size(&self, version: TealVersion) -> Option<usize> {
+        self.get_version_spec(version).map(|spec| spec.size)
+    }
+
+    /// Check if this opcode is available in the given version and mode
+    pub fn is_available(&self, version: TealVersion, mode: RunMode) -> bool {
+        if version.as_u8() < self.min_version {
+            return false;
+        }
+
+        if let Some(modes) = self.get_modes(version) {
+            modes.contains(&mode)
+        } else {
+            false
+        }
+    }
+
+    /// Create a specification for an opcode available in both modes with single version
     pub fn both_modes(
         opcode: u8,
         name: impl Into<String>,
@@ -94,15 +164,9 @@ impl OpSpec {
         size: usize,
         description: impl Into<String>,
     ) -> Self {
-        Self::new(
-            opcode,
-            name,
-            execute,
-            &[RunMode::Signature, RunMode::Application],
+        Self::new(opcode, name, execute, min_version, description).with_version_spec(
             min_version,
-            cost,
-            size,
-            description,
+            VersionSpec::new(&[RunMode::Signature, RunMode::Application], cost, size),
         )
     }
 
@@ -116,15 +180,25 @@ impl OpSpec {
         size: usize,
         description: impl Into<String>,
     ) -> Self {
-        Self::new(
-            opcode,
-            name,
-            execute,
-            &[RunMode::Application],
+        Self::new(opcode, name, execute, min_version, description).with_version_spec(
             min_version,
-            cost,
-            size,
-            description,
+            VersionSpec::new(&[RunMode::Application], cost, size),
+        )
+    }
+
+    /// Create a specification for an opcode available only in signature mode
+    pub fn sig_only(
+        opcode: u8,
+        name: impl Into<String>,
+        execute: OpcodeExecutor,
+        min_version: u8,
+        cost: u64,
+        size: usize,
+        description: impl Into<String>,
+    ) -> Self {
+        Self::new(opcode, name, execute, min_version, description).with_version_spec(
+            min_version,
+            VersionSpec::new(&[RunMode::Signature], cost, size),
         )
     }
 }
@@ -513,42 +587,68 @@ pub fn get_standard_opcodes() -> Vec<OpSpec> {
             "Match statement - matches specific values.",
         ),
         // Crypto
-        OpSpec::both_modes(OP_SHA256, "sha256", op_sha256, 1, 35, 1, "SHA256 hash."),
-        OpSpec::both_modes(
+        OpSpec::new(OP_SHA256, "sha256", op_sha256, 1, "SHA256 hash.")
+            .with_version_spec(
+                1,
+                VersionSpec::new(&[RunMode::Signature, RunMode::Application], 7, 1),
+            )
+            .with_version_spec(
+                2,
+                VersionSpec::new(&[RunMode::Signature, RunMode::Application], 35, 1),
+            ),
+        OpSpec::new(
             OP_KECCAK256,
             "keccak256",
             op_keccak256,
             1,
-            130,
-            1,
             "Keccak256 hash.",
+        )
+        .with_version_spec(
+            1,
+            VersionSpec::new(&[RunMode::Signature, RunMode::Application], 26, 1),
+        )
+        .with_version_spec(
+            2,
+            VersionSpec::new(&[RunMode::Signature, RunMode::Application], 130, 1),
         ),
-        OpSpec::both_modes(
+        OpSpec::new(
             OP_SHA512_256,
             "sha512_256",
             op_sha512_256,
             1,
-            45,
-            1,
             "SHA512_256 hash.",
+        )
+        .with_version_spec(
+            1,
+            VersionSpec::new(&[RunMode::Signature, RunMode::Application], 9, 1),
+        )
+        .with_version_spec(
+            2,
+            VersionSpec::new(&[RunMode::Signature, RunMode::Application], 45, 1),
         ),
         OpSpec::both_modes(
             OP_SHA3_256,
             "sha3_256",
             op_sha3_256,
-            1,
+            7,
             45,
             1,
             "SHA3_256 hash.",
         ),
-        OpSpec::both_modes(
+        OpSpec::new(
             OP_ED25519VERIFY,
             "ed25519verify",
             op_ed25519verify,
             1,
-            1900,
-            1,
             "Ed25519 signature verification.",
+        )
+        .with_version_spec(1, VersionSpec::new(&[RunMode::Signature], 1900, 1))
+        .with_version_spec(2, VersionSpec::new(&[RunMode::Signature], 1900, 1))
+        .with_version_spec(3, VersionSpec::new(&[RunMode::Signature], 1900, 1))
+        .with_version_spec(4, VersionSpec::new(&[RunMode::Signature], 1900, 1))
+        .with_version_spec(
+            5,
+            VersionSpec::new(&[RunMode::Signature, RunMode::Application], 1900, 1),
         ),
         OpSpec::both_modes(
             OP_ED25519VERIFY_BARE,
@@ -560,10 +660,28 @@ pub fn get_standard_opcodes() -> Vec<OpSpec> {
             "Ed25519 bare signature verification.",
         ),
         OpSpec::both_modes(
+            OP_FALCON_VERIFY,
+            "falcon_verify",
+            op_falcon_verify,
+            12,
+            1900,
+            1,
+            "Falcon post-quantum signature verification.",
+        ),
+        OpSpec::both_modes(
+            OP_SUMHASH512,
+            "sumhash512",
+            op_sumhash512,
+            12,
+            35,
+            1,
+            "Sum hash 512 operation.",
+        ),
+        OpSpec::both_modes(
             OP_ECDSA_VERIFY,
             "ecdsa_verify",
             op_ecdsa_verify,
-            1,
+            5,
             1700,
             1,
             "ECDSA signature verification.",
@@ -572,7 +690,7 @@ pub fn get_standard_opcodes() -> Vec<OpSpec> {
             OP_ECDSA_PK_DECOMPRESS,
             "ecdsa_pk_decompress",
             op_ecdsa_pk_decompress,
-            1,
+            5,
             650,
             1,
             "ECDSA public key decompression.",
@@ -581,7 +699,7 @@ pub fn get_standard_opcodes() -> Vec<OpSpec> {
             OP_ECDSA_PK_RECOVER,
             "ecdsa_pk_recover",
             op_ecdsa_pk_recover,
-            1,
+            5,
             2000,
             1,
             "ECDSA public key recovery.",
@@ -1150,6 +1268,24 @@ pub fn get_standard_opcodes() -> Vec<OpSpec> {
             2,
             "Get account parameters.",
         ),
+        OpSpec::app_only(
+            OP_VOTER_PARAMS_GET,
+            "voter_params_get",
+            op_voter_params_get,
+            11,
+            1,
+            2,
+            "Get voter parameters for consensus.",
+        ),
+        OpSpec::app_only(
+            OP_ONLINE_STAKE,
+            "online_stake",
+            op_online_stake,
+            11,
+            1,
+            1,
+            "Get online stake information.",
+        ),
         OpSpec::both_modes(
             OP_GTXNA,
             "gtxna",
@@ -1328,7 +1464,7 @@ pub fn get_standard_opcodes() -> Vec<OpSpec> {
             OP_BOX_SPLICE,
             "box_splice",
             op_box_splice,
-            9,
+            10,
             40,
             1,
             "Splice bytes into a box (insert/replace with size change).",
@@ -1337,7 +1473,7 @@ pub fn get_standard_opcodes() -> Vec<OpSpec> {
             OP_BOX_RESIZE,
             "box_resize",
             op_box_resize,
-            9,
+            10,
             40,
             1,
             "Resize a box.",

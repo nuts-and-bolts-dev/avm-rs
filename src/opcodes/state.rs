@@ -381,3 +381,51 @@ pub fn op_acct_params_get(ctx: &mut EvalContext) -> AvmResult<()> {
 
     Ok(())
 }
+
+/// Get voter parameters (TEAL v11)
+pub fn op_voter_params_get(ctx: &mut EvalContext) -> AvmResult<()> {
+    ctx.advance_pc(1)?; // advance past opcode first
+    let field = ctx.read_bytes(1)?[0];
+    ctx.advance_pc(1)?; // advance past field parameter
+
+    let account = ctx.pop()?;
+    let _account_addr = account.as_bytes()?.to_vec();
+
+    // Voter parameters fields:
+    // 0 - VoterBalance: voting balance of the account
+    // 1 - VoterIncentiveEligible: whether account is eligible for incentives
+    match field {
+        0 => {
+            // VoterBalance - placeholder implementation
+            ctx.push(StackValue::Uint(0))?; // balance
+            ctx.push(StackValue::Uint(0))?; // exists (not implemented)
+        }
+        1 => {
+            // VoterIncentiveEligible - placeholder implementation
+            ctx.push(StackValue::Uint(0))?; // eligible flag
+            ctx.push(StackValue::Uint(0))?; // exists (not implemented)
+        }
+        _ => {
+            return Err(AvmError::invalid_program(format!(
+                "Invalid voter params field: {field}"
+            )));
+        }
+    }
+
+    Ok(())
+}
+
+/// Get online stake information (TEAL v11)
+pub fn op_online_stake(ctx: &mut EvalContext) -> AvmResult<()> {
+    let account = ctx.pop()?;
+    let _account_addr = account.as_bytes()?.to_vec();
+
+    // Online stake returns the voting stake of an online account
+    // This is a placeholder implementation - real implementation would
+    // query the consensus layer for the account's online stake
+    ctx.push(StackValue::Uint(0))?; // online stake amount
+    ctx.push(StackValue::Uint(0))?; // exists flag (not implemented)
+
+    ctx.advance_pc(1)?;
+    Ok(())
+}
