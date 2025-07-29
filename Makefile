@@ -1,4 +1,4 @@
-.PHONY: all build test check fmt clippy clean doc audit dev-deps ci examples serve-docs build-docs help
+.PHONY: all build test check fmt clippy clean doc audit dev-deps ci examples spec help
 
 # Run formatting, linting, tests, and build examples
 all: fmt clippy test examples
@@ -52,12 +52,8 @@ examples:
 	cargo build --examples
 
 # Serve mdbook documentation
-serve-docs:
+spec:
 	cd spec && mdbook serve --open
-
-# Build mdbook documentation
-build-docs:
-	cd spec && mdbook build
 
 # Run all CI checks locally
 ci: fmt clippy test build examples
