@@ -587,24 +587,44 @@ pub fn get_standard_opcodes() -> Vec<OpSpec> {
             "Match statement - matches specific values.",
         ),
         // Crypto
-        OpSpec::both_modes(OP_SHA256, "sha256", op_sha256, 1, 35, 1, "SHA256 hash."),
-        OpSpec::both_modes(
+        OpSpec::new(OP_SHA256, "sha256", op_sha256, 1, "SHA256 hash.")
+            .with_version_spec(
+                1,
+                VersionSpec::new(&[RunMode::Signature, RunMode::Application], 7, 1),
+            )
+            .with_version_spec(
+                2,
+                VersionSpec::new(&[RunMode::Signature, RunMode::Application], 35, 1),
+            ),
+        OpSpec::new(
             OP_KECCAK256,
             "keccak256",
             op_keccak256,
             1,
-            130,
-            1,
             "Keccak256 hash.",
+        )
+        .with_version_spec(
+            1,
+            VersionSpec::new(&[RunMode::Signature, RunMode::Application], 26, 1),
+        )
+        .with_version_spec(
+            2,
+            VersionSpec::new(&[RunMode::Signature, RunMode::Application], 130, 1),
         ),
-        OpSpec::both_modes(
+        OpSpec::new(
             OP_SHA512_256,
             "sha512_256",
             op_sha512_256,
             1,
-            45,
-            1,
             "SHA512_256 hash.",
+        )
+        .with_version_spec(
+            1,
+            VersionSpec::new(&[RunMode::Signature, RunMode::Application], 9, 1),
+        )
+        .with_version_spec(
+            2,
+            VersionSpec::new(&[RunMode::Signature, RunMode::Application], 45, 1),
         ),
         OpSpec::both_modes(
             OP_SHA3_256,
