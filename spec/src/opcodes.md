@@ -30,6 +30,73 @@ This reads as "under stack S, operation op consumes n values of types τ₁...τ
 ⟨S, P, pc, C, σ, L⟩ →[op] ⟨S', P, pc', C', σ', L'⟩
 ```
 
+## Critical Implementation Issues vs go-algorand Reference
+
+**⚠️ IMPORTANT**: This specification analysis reveals **critical discrepancies** between the avm-rs implementation and the authoritative go-algorand reference implementation. These issues must be addressed for production compatibility.
+
+### High-Priority Security Issues
+
+#### 1. **ed25519verify Mode Restriction Violation (CRITICAL)**
+- **Issue**: Currently allows both signature and application modes from v1
+- **go-algorand Requirement**: ModeSig only for v1-4, both modes for v5+
+- **Security Impact**: HIGH - Violates cross-mode security boundaries
+- **Status**: ❌ INCORRECT IMPLEMENTATION
+
+#### 2. **Missing TEAL v12 Support**
+- **Missing Opcodes**: 
+  - `0x85`: falcon_verify (post-quantum cryptography)
+  - `0x86`: sumhash512 (sum hash 512)
+- **Impact**: Cannot execute latest TEAL programs
+- **Status**: ❌ INCOMPLETE
+
+#### 3. **Version-Dependent Cost Infrastructure Missing**
+- **Issue**: Single cost per opcode, but go-algorand has version-dependent costs
+- **Examples**:
+  - SHA256: v1 cost=7, v2+ cost=35 (we have fixed cost=35)
+  - Keccak256: v1 cost=26, v2+ cost=130 (we have fixed cost=130)
+- **Impact**: Incorrect cost accounting across TEAL versions
+- **Status**: ❌ ARCHITECTURAL PROBLEM
+
+### Cryptographic Opcode Issues
+
+| Opcode | go-algorand | avm-rs | Status |
+|--------|-------------|---------|---------|
+| **SHA256** (0x01) | v1 cost=7, v2+ cost=35 | v1 cost=35 | ❌ Wrong v1 cost |
+| **Keccak256** (0x02) | v1 cost=26, v2+ cost=130 | v1 cost=130 | ❌ Wrong v1 cost |
+| **SHA512_256** (0x03) | v1 cost=9, v2+ cost=45 | v1 cost=45 | ❌ Wrong v1 cost |
+| **ed25519verify** (0x04) | v1-4: ModeSig, v5+: both | v1: both modes | ❌ SECURITY VIOLATION |
+| **ecdsa_verify** (0x05) | v5 minimum | v1 minimum | ❌ Wrong version |
+| **sha3_256** (0x98) | v7 minimum | v1 minimum | ❌ Wrong version |
+
+### Missing Opcodes (go-algorand → avm-rs)
+
+#### TEAL v11 Missing:
+- `0x74`: voter_params_get - Get voter parameters for consensus
+- `0x75`: online_stake - Get online stake information
+
+#### TEAL v12 Missing:
+- `0x85`: falcon_verify - Falcon signature verification (post-quantum)
+- `0x86`: sumhash512 - Sum hash 512 operation
+
+### Version Requirement Corrections Needed
+
+**Critical Version Mismatches:**
+- ecdsa_verify: v1 → **v5**
+- ecdsa_pk_decompress: v1 → **v5** 
+- ecdsa_pk_recover: v1 → **v5**
+- sha3_256: v1 → **v7**
+- box_splice/box_resize: v9 → **v10**
+
+### Recommended Actions
+
+1. **Immediate**: Fix ed25519verify mode restrictions (security critical)
+2. **High Priority**: Implement version-dependent cost system
+3. **High Priority**: Add missing TEAL v12 support
+4. **Medium Priority**: Correct all version requirements
+5. **Medium Priority**: Implement missing v11/v12 opcodes
+
+---
+
 ## Arithmetic Operations
 
 ### Addition (`+`, opcode 0x08)
