@@ -244,7 +244,10 @@ fn execute_with_stepping(
             // Display current state
             let opcode_info = eval_ctx
                 .current_opcode_spec(vm)
-                .map(|spec| format!("{} (cost: {})", spec.name, spec.cost))
+                .map(|spec| {
+                    let cost = spec.get_cost(eval_ctx.version()).unwrap_or(0);
+                    format!("{} (cost: {})", spec.name, cost)
+                })
                 .unwrap_or_else(|_| "Invalid opcode".to_string());
 
             println!(
