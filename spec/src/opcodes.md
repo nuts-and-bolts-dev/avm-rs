@@ -99,7 +99,9 @@ This reads as "under stack S, operation op consumes n values of types τ₁...τ
 
 ## Arithmetic Operations
 
-### Addition (`+`, opcode 0x08)
+### Addition (`+`)
+
+**Opcode**: `0x08`
 
 **Syntax**: `+`
 
@@ -121,7 +123,9 @@ result = a + b (mod 2⁶⁴)
 ⟨S, P, pc, C, σ, L⟩ →[+] ⊥
 ```
 
-### Subtraction (`-`, opcode 0x09)
+### Subtraction (`-`)
+
+**Opcode**: `0x09`
 
 **Syntax**: `-`
 
@@ -144,7 +148,9 @@ S = b :: a :: S'  ∧  a < b
 ⟨S, P, pc, C, σ, L⟩ →[-] ⊥
 ```
 
-### Division (`/`, opcode 0x0A)
+### Division (`/`)
+
+**Opcode**: `0x0A`
 
 **Syntax**: `/`
 
@@ -167,7 +173,9 @@ S = 0 :: a :: S'
 ⟨S, P, pc, C, σ, L⟩ →[/] ⊥
 ```
 
-### Multiplication (`*`, opcode 0x0B)
+### Multiplication (`*`)
+
+**Opcode**: `0x0B`
 
 **Syntax**: `*`
 
@@ -182,7 +190,9 @@ result = (a × b) mod 2⁶⁴
 ⟨S, P, pc, C, σ, L⟩ →[*] ⟨result :: S', P, pc+1, C+1, σ, L⟩
 ```
 
-### Modulo (`%`, opcode 0x0C)
+### Modulo (`%`)
+
+**Opcode**: `0x18`
 
 **Syntax**: `%`
 
@@ -200,7 +210,9 @@ result = a mod b
 
 ## Logical Operations
 
-### Logical AND (`&&`, opcode 0x10)
+### Logical AND (`&&`)
+
+**Opcode**: `0x10`
 
 **Syntax**: `&&`
 
@@ -214,7 +226,9 @@ result = if (a ≠ 0) ∧ (b ≠ 0) then 1 else 0
 ⟨S, P, pc, C, σ, L⟩ →[&&] ⟨result :: S', P, pc+1, C+1, σ, L⟩
 ```
 
-### Logical OR (`||`, opcode 0x11)
+### Logical OR (`||`)
+
+**Opcode**: `0x11`
 
 **Syntax**: `||`
 
@@ -228,7 +242,9 @@ result = if (a ≠ 0) ∨ (b ≠ 0) then 1 else 0
 ⟨S, P, pc, C, σ, L⟩ →[||] ⟨result :: S', P, pc+1, C+1, σ, L⟩
 ```
 
-### Logical NOT (`!`, opcode 0x12)
+### Logical NOT (`!`)
+
+**Opcode**: `0x14`
 
 **Syntax**: `!`
 
@@ -244,7 +260,9 @@ result = if a = 0 then 1 else 0
 
 ## Comparison Operations
 
-### Equality (`==`, opcode 0x12)
+### Equality (`==`)
+
+**Opcode**: `0x12`
 
 **Syntax**: `==`
 
@@ -260,7 +278,9 @@ result = if a = b then 1 else 0
 
 **Note**: Equality is defined for both uint64 and bytes values. For bytes, it's lexicographic equality.
 
-### Less Than (`<`, opcode 0x0C)
+### Less Than (`<`)
+
+**Opcode**: `0x0C`
 
 **Syntax**: `<`
 
@@ -277,7 +297,9 @@ result = if a < b then 1 else 0
 
 ## Stack Operations
 
-### Duplicate (`dup`, opcode 0x48)
+### Duplicate (`dup`)
+
+**Opcode**: `0x49`
 
 **Syntax**: `dup`
 
@@ -291,7 +313,9 @@ S = a :: S'
 ⟨S, P, pc, C, σ, L⟩ →[dup] ⟨a :: a :: S', P, pc+1, C+1, σ, L⟩
 ```
 
-### Pop (`pop`, opcode 0x48)
+### Pop (`pop`)
+
+**Opcode**: `0x48`
 
 **Syntax**: `pop`
 
@@ -304,7 +328,9 @@ S = a :: S'
 ⟨S, P, pc, C, σ, L⟩ →[pop] ⟨S', P, pc+1, C+1, σ, L⟩
 ```
 
-### Swap (`swap`, opcode 0x4C)
+### Swap (`swap`)
+
+**Opcode**: `0x4C`
 
 **Syntax**: `swap`
 
@@ -319,7 +345,9 @@ S = b :: a :: S'
 
 ## Flow Control Operations
 
-### Branch if Not Zero (`bnz`, opcode 0x40)
+### Branch if Not Zero (`bnz`)
+
+**Opcode**: `0x40`
 
 **Syntax**: `bnz target`
 
@@ -337,7 +365,9 @@ new_pc = if a ≠ 0 then pc + 3 + target else pc + 3
 ⟨S, P, pc, C, σ, L⟩ →[bnz] ⟨S', P, new_pc, C+1, σ, L⟩
 ```
 
-### Branch if Zero (`bz`, opcode 0x41)
+### Branch if Zero (`bz`)
+
+**Opcode**: `0x41`
 
 **Syntax**: `bz target`
 
@@ -355,7 +385,9 @@ new_pc = if a = 0 then pc + 3 + target else pc + 3
 ⟨S, P, pc, C, σ, L⟩ →[bz] ⟨S', P, new_pc, C+1, σ, L⟩
 ```
 
-### Unconditional Branch (`b`, opcode 0x42)
+### Unconditional Branch (`b`)
+
+**Opcode**: `0x42`
 
 **Syntax**: `b target`
 
@@ -372,7 +404,9 @@ new_pc = pc + 3 + target
 ⟨S, P, pc, C, σ, L⟩ →[b] ⟨S, P, new_pc, C+1, σ, L⟩
 ```
 
-### Return (`return`, opcode 0x43)
+### Return (`return`)
+
+**Opcode**: `0x43`
 
 **Syntax**: `return`
 
@@ -388,7 +422,9 @@ result = if a ≠ 0 then ✓ else ⊥
 
 ## Constant Operations
 
-### Push Integer (`pushint`, opcode 0x81)
+### Push Integer (`pushint`)
+
+**Opcode**: `0x81`
 
 **Syntax**: `pushint VALUE`
 
@@ -403,7 +439,9 @@ value = decode_uint64(value_bytes)
 ⟨S, P, pc, C, σ, L⟩ →[pushint] ⟨value :: S, P, pc+9, C+1, σ, L⟩
 ```
 
-### Push Bytes (`pushbytes`, opcode 0x80)
+### Push Bytes (`pushbytes`)
+
+**Opcode**: `0x80`
 
 **Syntax**: `pushbytes "VALUE"`
 
@@ -420,7 +458,9 @@ P[pc+2..pc+1+length] = value_bytes
 
 ## Cryptographic Operations
 
-### SHA256 (`sha256`, opcode 0x01)
+### SHA256 (`sha256`)
+
+**Opcode**: `0x01`
 
 **Syntax**: `sha256`
 
@@ -435,7 +475,9 @@ result = SHA256(data)
 ⟨S, P, pc, C, σ, L⟩ →[sha256] ⟨result :: S', P, pc+1, C+35, σ, L⟩
 ```
 
-### Keccak256 (`keccak256`, opcode 0x02)
+### Keccak256 (`keccak256`)
+
+**Opcode**: `0x02`
 
 **Syntax**: `keccak256`
 
@@ -450,7 +492,9 @@ result = KECCAK256(data)
 ⟨S, P, pc, C, σ, L⟩ →[keccak256] ⟨result :: S', P, pc+1, C+130, σ, L⟩
 ```
 
-### Ed25519 Verify (`ed25519verify`, opcode 0x04)
+### Ed25519 Verify (`ed25519verify`)
+
+**Opcode**: `0x04`
 
 **Syntax**: `ed25519verify`
 
@@ -468,7 +512,9 @@ result = if Ed25519_Verify(data, signature, pubkey) then 1 else 0
 
 ## Byte Operations
 
-### Length (`len`, opcode 0x21)
+### Length (`len`)
+
+**Opcode**: `0x21`
 
 **Syntax**: `len`
 
@@ -482,7 +528,9 @@ result = |data|
 ⟨S, P, pc, C, σ, L⟩ →[len] ⟨result :: S', P, pc+1, C+1, σ, L⟩
 ```
 
-### Substring (`substring`, opcode 0x51)
+### Substring (`substring`)
+
+**Opcode**: `0x51`
 
 **Syntax**: `substring START END`
 
@@ -499,7 +547,9 @@ result = data[start:end]
 ⟨S, P, pc, C, σ, L⟩ →[substring] ⟨result :: S', P, pc+3, C+1, σ, L⟩
 ```
 
-### Concatenate (`concat`, opcode 0x50)
+### Concatenate (`concat`)
+
+**Opcode**: `0x50`
 
 **Syntax**: `concat`
 
@@ -516,7 +566,9 @@ result = a || b  (concatenation)
 
 ## Scratch Space Operations
 
-### Load (`load`, opcode 0x34)
+### Load (`load`)
+
+**Opcode**: `0x34`
 
 **Syntax**: `load INDEX`
 
@@ -532,7 +584,9 @@ value = σ(index)
 ⟨S, P, pc, C, σ, L⟩ →[load] ⟨value :: S, P, pc+2, C+1, σ, L⟩
 ```
 
-### Store (`store`, opcode 0x35)
+### Store (`store`)
+
+**Opcode**: `0x35`
 
 **Syntax**: `store INDEX`
 
@@ -550,7 +604,9 @@ index ≤ 255
 
 ## Subroutine Operations (TEAL v4+)
 
-### Call Subroutine (`callsub`, opcode 0x88)
+### Call Subroutine (`callsub`)
+
+**Opcode**: `0x88`
 
 **Syntax**: `callsub TARGET`
 
@@ -567,7 +623,9 @@ target < |P|
 ⟨S, P, pc, C, σ, L, cs⟩ →[callsub] ⟨S, P, target, C+1, σ, L, (pc+3) :: cs⟩
 ```
 
-### Return from Subroutine (`retsub`, opcode 0x89)
+### Return from Subroutine (`retsub`)
+
+**Opcode**: `0x89`
 
 **Syntax**: `retsub`
 
@@ -582,7 +640,9 @@ call_stack = return_pc :: cs'
 
 ## Error Handling
 
-### Error (`err`, opcode 0x00)
+### Error (`err`)
+
+**Opcode**: `0x00`
 
 **Syntax**: `err`
 
@@ -594,7 +654,9 @@ call_stack = return_pc :: cs'
 ⟨S, P, pc, C, σ, L⟩ →[err] ⊥
 ```
 
-### Assert (`assert`, opcode 0x44)
+### Assert (`assert`)
+
+**Opcode**: `0x44`
 
 **Syntax**: `assert`
 
@@ -616,7 +678,9 @@ S = 0 :: S'
 
 ## Application State Operations (Application Mode Only)
 
-### Global State Get (`app_global_get`, opcode 0x60)
+### Global State Get (`app_global_get`)
+
+**Opcode**: `0x64`
 
 **Syntax**: `app_global_get`
 
@@ -634,7 +698,9 @@ result_flag = if exists then 1 else 0
 ⟨S, P, pc, C, σ, L⟩ →[app_global_get] ⟨result_flag :: result_value :: S', P, pc+1, C+1, σ, L⟩
 ```
 
-### Global State Put (`app_global_put`, opcode 0x61)
+### Global State Put (`app_global_put`)
+
+**Opcode**: `0x67`
 
 **Syntax**: `app_global_put`
 
