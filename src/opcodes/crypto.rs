@@ -345,3 +345,46 @@ pub fn op_block(ctx: &mut EvalContext) -> AvmResult<()> {
 
     Ok(())
 }
+
+/// Falcon signature verification (TEAL v12 - post-quantum cryptography)
+pub fn op_falcon_verify(ctx: &mut EvalContext) -> AvmResult<()> {
+    let public_key = ctx.pop()?;
+    let signature = ctx.pop()?;
+    let data = ctx.pop()?;
+
+    let _pub_key_bytes = public_key.as_bytes()?;
+    let _sig_bytes = signature.as_bytes()?;
+    let _data_bytes = data.as_bytes()?;
+
+    // TODO: Implement Falcon signature verification
+    // Falcon is a NIST post-quantum cryptographic signature scheme
+    // Real implementation would:
+    // 1. Parse the Falcon public key (typically 897 or 1793 bytes)
+    // 2. Parse the Falcon signature (variable length, ~690 or ~1330 bytes)
+    // 3. Verify the signature against the data using Falcon algorithm
+    // 4. Return 1 for valid, 0 for invalid
+
+    // Placeholder implementation - always returns 0 (verification failed)
+    ctx.push(StackValue::Uint(0))?;
+    ctx.advance_pc(1)?;
+    Ok(())
+}
+
+/// Sum hash 512 operation (TEAL v12)
+pub fn op_sumhash512(ctx: &mut EvalContext) -> AvmResult<()> {
+    let data = ctx.pop()?;
+    let _data_bytes = data.as_bytes()?;
+
+    // TODO: Implement SumHash512 algorithm
+    // SumHash512 is a specialized hash function for Algorand
+    // Real implementation would:
+    // 1. Apply the SumHash512 algorithm to the input data
+    // 2. Return a 64-byte (512-bit) hash digest
+
+    // Placeholder implementation - returns 64 bytes of zeros
+    let result = vec![0u8; 64];
+
+    ctx.push(StackValue::Bytes(result))?;
+    ctx.advance_pc(1)?;
+    Ok(())
+}
